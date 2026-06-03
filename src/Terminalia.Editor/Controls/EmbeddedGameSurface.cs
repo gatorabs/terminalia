@@ -14,7 +14,7 @@ public sealed class EmbeddedGameSurface : Control
     public EmbeddedGameSurface()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.Workspace;
+        BackColor = EditorTheme.TerminalBackground;
         DoubleBuffered = true;
         TabStop = true;
     }
@@ -106,7 +106,7 @@ public sealed class EmbeddedGameSurface : Control
     {
         base.OnPaint(e);
 
-        e.Graphics.Clear(EditorTheme.Workspace);
+        e.Graphics.Clear(EditorTheme.TerminalBackground);
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
         var mapPixelWidth = (_document.Width * _cellSize) + (CanvasPadding * 2);
@@ -137,10 +137,8 @@ public sealed class EmbeddedGameSurface : Control
     {
         var bounds = new Rectangle(x * _cellSize, y * _cellSize, _cellSize, _cellSize);
 
-        using var background = new SolidBrush(GetTileColor(tile));
-        using var border = new Pen(EditorTheme.GridLine);
         using var tileFont = GetTileFont();
-        using var textBrush = new SolidBrush(GetTileTextColor(tile));
+        using var textBrush = new SolidBrush(GetTileColor(tile));
         using var format = new StringFormat
         {
             Alignment = StringAlignment.Center,
@@ -148,26 +146,15 @@ public sealed class EmbeddedGameSurface : Control
             FormatFlags = StringFormatFlags.NoClip
         };
 
-        graphics.FillRectangle(background, bounds);
-        graphics.DrawRectangle(border, bounds);
         graphics.DrawString(tile.ToString(), tileFont, textBrush, bounds, format);
     }
 
     private static Color GetTileColor(char tile) => tile switch
     {
-        '#' => Color.FromArgb(30, 30, 30),
-        '.' => Color.FromArgb(8, 8, 8),
-        '@' => Color.FromArgb(18, 18, 18),
-        '*' => Color.FromArgb(22, 22, 22),
-        _ => EditorTheme.Section
-    };
-
-    private static Color GetTileTextColor(char tile) => tile switch
-    {
-        '#' => Color.FromArgb(230, 230, 230),
-        '.' => Color.FromArgb(86, 86, 86),
-        '@' => Color.FromArgb(255, 255, 255),
-        '*' => Color.FromArgb(214, 214, 214),
+        '#' => Color.FromArgb(148, 163, 184),
+        '.' => Color.FromArgb(71, 85, 105),
+        '@' => Color.FromArgb(96, 165, 250),
+        '*' => Color.FromArgb(250, 204, 21),
         _ => EditorTheme.PrimaryText
     };
 
