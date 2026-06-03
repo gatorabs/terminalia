@@ -1,0 +1,16 @@
+{
+  "name": "player_walk",
+  "frameDurationMs": 150,
+  "frames": [
+    [
+      " O ",
+      "/|\\",
+      "/ \\"
+    ],
+    [
+      " O ",
+      "\\|/",
+      "/ \\"
+    ]
+  ]
+}

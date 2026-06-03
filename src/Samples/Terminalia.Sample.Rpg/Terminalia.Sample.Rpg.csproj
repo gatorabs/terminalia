@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Terminalia.Core\Terminalia.Core.csproj" />
+    <ProjectReference Include="..\..\Terminalia.Rendering.Terminal\Terminalia.Rendering.Terminal.csproj" />
+    <ProjectReference Include="..\..\Terminalia.Input.Console\Terminalia.Input.Console.csproj" />
+    <ProjectReference Include="..\..\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
+    <ProjectReference Include="..\..\Terminalia.Infrastructure\Terminalia.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="assets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
