@@ -20,14 +20,14 @@ public sealed class ConsoleInputProviderTests
     [Fact]
     public void ConsoleInputProvider_Should_Map_Available_Keys_To_Commands()
     {
-        var keyboard = new FakeConsoleKeyboard(ConsoleKey.W, ConsoleKey.Escape);
+        var keyboard = new FakeConsoleKeyboard(ConsoleKey.Enter, ConsoleKey.Escape);
         var provider = new ConsoleInputProvider(
             keyboard,
             new InputCommandMapper(KeyMap.CreateDefault()));
 
         var commands = provider.GetCommands();
 
-        Assert.Equal([InputCommand.MoveUp, InputCommand.Exit], commands);
+        Assert.Equal([InputCommand.Confirm, InputCommand.Exit], commands);
     }
 
     private sealed class FakeConsoleKeyboard : IConsoleKeyboard

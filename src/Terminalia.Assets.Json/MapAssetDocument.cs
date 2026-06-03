@@ -128,8 +128,10 @@ public sealed class MapAssetDocument
 
         var pending = new Queue<(int X, int Y)>();
         pending.Enqueue((x, y));
+        var visited = 0;
+        var maxCells = MaxDimension * MaxDimension;
 
-        while (pending.Count > 0)
+        while (pending.Count > 0 && visited++ < maxCells)
         {
             var current = pending.Dequeue();
             if (!Contains(current.X, current.Y) || GetTile(current.X, current.Y) != targetTile)

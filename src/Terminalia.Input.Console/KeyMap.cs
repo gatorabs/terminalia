@@ -10,14 +10,6 @@ public sealed class KeyMap
     {
         var keyMap = new KeyMap();
 
-        keyMap.Map(ConsoleKey.W, InputCommand.MoveUp);
-        keyMap.Map(ConsoleKey.UpArrow, InputCommand.MoveUp);
-        keyMap.Map(ConsoleKey.S, InputCommand.MoveDown);
-        keyMap.Map(ConsoleKey.DownArrow, InputCommand.MoveDown);
-        keyMap.Map(ConsoleKey.A, InputCommand.MoveLeft);
-        keyMap.Map(ConsoleKey.LeftArrow, InputCommand.MoveLeft);
-        keyMap.Map(ConsoleKey.D, InputCommand.MoveRight);
-        keyMap.Map(ConsoleKey.RightArrow, InputCommand.MoveRight);
         keyMap.Map(ConsoleKey.Enter, InputCommand.Confirm);
         keyMap.Map(ConsoleKey.Escape, InputCommand.Exit);
 

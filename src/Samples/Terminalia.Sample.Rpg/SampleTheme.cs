@@ -11,4 +11,13 @@ internal static class SampleTheme
     public static readonly Font TerminalFont = new(FontFamily.GenericMonospace, 16, FontStyle.Bold);
     public static readonly Font HudFont = new("Segoe UI", 9, FontStyle.Regular);
     public static readonly Font TitleFont = new("Segoe UI Semibold", 11, FontStyle.Bold);
+
+    public static Color GetTileColor(char tile) => tile switch
+    {
+        '#' => Color.FromArgb(148, 163, 184),
+        '.' => Color.FromArgb(71, 85, 105),
+        '@' => Color.FromArgb(96, 165, 250),
+        '*' => Color.FromArgb(250, 204, 21),
+        _ => PrimaryText
+    };
 }
