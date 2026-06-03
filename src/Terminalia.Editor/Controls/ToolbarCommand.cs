@@ -17,11 +17,10 @@ public sealed class ToolbarCommand : Control
             ControlStyles.AllPaintingInWmPaint |
             ControlStyles.OptimizedDoubleBuffer |
             ControlStyles.ResizeRedraw |
-            ControlStyles.SupportsTransparentBackColor |
             ControlStyles.Selectable,
             true);
 
-        BackColor = Color.Transparent;
+        BackColor = EditorTheme.Surface;
         ForeColor = EditorTheme.PrimaryText;
         Cursor = Cursors.Hand;
         Font = EditorTheme.UiFont;

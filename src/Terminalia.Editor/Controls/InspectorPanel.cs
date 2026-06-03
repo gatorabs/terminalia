@@ -7,17 +7,16 @@ public sealed class InspectorPanel : UserControl
     private readonly Dictionary<InspectorSection, Control> _sections = [];
     private readonly Dictionary<InspectorSection, int> _sectionHeights = [];
     private readonly TableLayoutPanel _stack = new();
+    private readonly Panel _scrollHost = new();
     private readonly TextBox _nameTextBox = new();
     private readonly NumericUpDown _widthInput = new();
     private readonly NumericUpDown _heightInput = new();
-    private readonly TrackBar _zoomInput = new();
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
     private readonly Button _runEmbeddedButton = EditorTheme.CreateButton("Run in editor", primary: true);
     private readonly Button _resetEmbeddedButton = EditorTheme.CreateButton("Reset embedded");
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
-    public event EventHandler<int>? ZoomChanged;
     public event EventHandler<EditorToolMode>? ToolChanged;
     public event EventHandler<char>? TileSelected;
     public event EventHandler? RunEmbeddedRequested;
@@ -30,13 +29,10 @@ public sealed class InspectorPanel : UserControl
         Font = EditorTheme.UiFont;
         Padding = new Padding(12);
 
-        var scrollHost = new Panel
-        {
-            Dock = DockStyle.Fill,
-            AutoScroll = true,
-            BackColor = EditorTheme.Navigation,
-            Padding = new Padding(0)
-        };
+        _scrollHost.Dock = DockStyle.Fill;
+        _scrollHost.AutoScroll = true;
+        _scrollHost.BackColor = EditorTheme.Navigation;
+        _scrollHost.Padding = new Padding(0);
 
         _stack.Dock = DockStyle.Top;
         _stack.AutoSize = true;
@@ -45,15 +41,14 @@ public sealed class InspectorPanel : UserControl
         _stack.BackColor = EditorTheme.Navigation;
         _stack.Padding = new Padding(0);
 
-        AddSection(InspectorSection.Map, BuildMapSection(), 156);
-        AddSection(InspectorSection.View, BuildViewSection(), 112);
-        AddSection(InspectorSection.Tool, BuildToolSection(), 122);
-        AddSection(InspectorSection.Palette, BuildPaletteSection(), 202);
-        AddSection(InspectorSection.Run, BuildRunSection(), 132);
+        AddSection(InspectorSection.Map, BuildMapSection(), 160);
+        AddSection(InspectorSection.Tool, BuildToolSection(), 128);
+        AddSection(InspectorSection.Palette, BuildPaletteSection(), 210);
+        AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
-        scrollHost.Controls.Add(_stack);
-        scrollHost.Resize += (_, _) => _stack.Width = scrollHost.ClientSize.Width;
-        Controls.Add(scrollHost);
+        _scrollHost.Controls.Add(_stack);
+        _scrollHost.Resize += (_, _) => _stack.Width = _scrollHost.ClientSize.Width;
+        Controls.Add(_scrollHost);
         SetActiveSection(InspectorSection.Map);
     }
 
@@ -88,6 +83,7 @@ public sealed class InspectorPanel : UserControl
             control.Visible = key == section;
         }
 
+        _scrollHost.AutoScrollPosition = Point.Empty;
         Height = ActiveSectionHeight;
         Invalidate();
     }
@@ -99,7 +95,7 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 2,
             RowCount = 4,
-            Padding = new Padding(0, 4, 0, 0)
+            Padding = new Padding(0, 2, 0, 0)
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -114,6 +110,7 @@ public sealed class InspectorPanel : UserControl
 
         var applyButton = EditorTheme.CreateButton("Apply", primary: true);
         applyButton.Dock = DockStyle.Fill;
+        applyButton.Height = 30;
         applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(
             this,
             new MapPropertiesChangedEventArgs(
@@ -130,35 +127,7 @@ public sealed class InspectorPanel : UserControl
         layout.Controls.Add(applyButton, 0, 3);
         layout.SetColumnSpan(applyButton, 2);
 
-        return CreateSection("Map", layout, 156);
-    }
-
-    private Control BuildViewSection()
-    {
-        var layout = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 2,
-            Padding = new Padding(0, 4, 0, 0)
-        };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-        _zoomInput.Minimum = 16;
-        _zoomInput.Maximum = 48;
-        _zoomInput.TickFrequency = 8;
-        _zoomInput.SmallChange = 4;
-        _zoomInput.LargeChange = 8;
-        _zoomInput.Value = 32;
-        _zoomInput.Dock = DockStyle.Fill;
-        _zoomInput.BackColor = EditorTheme.Section;
-        _zoomInput.ForeColor = EditorTheme.PrimaryText;
-        _zoomInput.ValueChanged += (_, _) => ZoomChanged?.Invoke(this, _zoomInput.Value);
-
-        layout.Controls.Add(EditorTheme.CreateFieldLabel("Zoom"), 0, 0);
-        layout.Controls.Add(_zoomInput, 0, 1);
-        return CreateSection("View", layout, 112);
+        return CreateSection("Map", layout, 160);
     }
 
     private Control BuildToolSection()
@@ -168,10 +137,10 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
-            Padding = new Padding(0, 6, 0, 0)
+            Padding = new Padding(0, 4, 0, 0)
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
 
         ConfigureToolButton(_paintButton, "Paint", isChecked: true);
         ConfigureToolButton(_fillButton, "Fill", isChecked: false);
@@ -193,7 +162,7 @@ public sealed class InspectorPanel : UserControl
 
         layout.Controls.Add(_paintButton, 0, 0);
         layout.Controls.Add(_fillButton, 0, 1);
-        return CreateSection("Tool", layout, 122);
+        return CreateSection("Tool", layout, 128);
     }
 
     private Control BuildPaletteSection()
@@ -203,19 +172,19 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 4,
-            Padding = new Padding(0, 6, 0, 0),
+            Padding = new Padding(0, 4, 0, 0),
             BackColor = EditorTheme.Section
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
 
         layout.Controls.Add(CreateTileButton("#  Wall", '#'), 0, 0);
         layout.Controls.Add(CreateTileButton(".  Floor", '.'), 0, 1);
         layout.Controls.Add(CreateTileButton("@  Player", '@'), 0, 2);
         layout.Controls.Add(CreateTileButton("*  Relic", '*'), 0, 3);
-        return CreateSection("Palette", layout, 202);
+        return CreateSection("Palette", layout, 210);
     }
 
     private Control BuildRunSection()
@@ -225,20 +194,20 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
-            Padding = new Padding(0, 6, 0, 0),
+            Padding = new Padding(0, 4, 0, 0),
             BackColor = EditorTheme.Section
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
 
-        _runEmbeddedButton.Dock = DockStyle.Top;
-        _resetEmbeddedButton.Dock = DockStyle.Top;
+        _runEmbeddedButton.Dock = DockStyle.Fill;
+        _resetEmbeddedButton.Dock = DockStyle.Fill;
         _runEmbeddedButton.Click += (_, _) => RunEmbeddedRequested?.Invoke(this, EventArgs.Empty);
         _resetEmbeddedButton.Click += (_, _) => ResetEmbeddedRequested?.Invoke(this, EventArgs.Empty);
 
         layout.Controls.Add(_runEmbeddedButton, 0, 0);
         layout.Controls.Add(_resetEmbeddedButton, 0, 1);
-        return CreateSection("Run", layout, 132);
+        return CreateSection("Run", layout, 138);
     }
 
     private static Panel CreateSection(string title, Control content, int height)
@@ -254,31 +223,40 @@ public sealed class InspectorPanel : UserControl
             Margin = new Padding(0, 0, 0, 10)
         };
 
-        var label = new Label
+        var titleLabel = new Label
         {
             Text = title,
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
             Height = 24,
             Font = EditorTheme.SectionFont,
-            ForeColor = EditorTheme.PrimaryText,
+            ForeColor = EditorTheme.SecondaryText,
             BackColor = EditorTheme.Section,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
-        var layout = new TableLayoutPanel
+        var separator = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 1,
+            BackColor = EditorTheme.BorderSoft
+        };
+
+        var contentArea = new Panel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 2,
-            BackColor = EditorTheme.Section
+            AutoScroll = true,
+            BackColor = EditorTheme.Section,
+            Padding = new Padding(0, 6, 0, 0)
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         content.Dock = DockStyle.Fill;
-        layout.Controls.Add(label, 0, 0);
-        layout.Controls.Add(content, 0, 1);
-        section.Controls.Add(layout);
+        contentArea.Controls.Add(content);
+
+        // Controls added last render first in Dock.Top stack (highest z-order = top)
+        section.Controls.Add(contentArea);
+        section.Controls.Add(separator);
+        section.Controls.Add(titleLabel);
+
         return section;
     }
 
@@ -298,7 +276,7 @@ public sealed class InspectorPanel : UserControl
         var button = EditorTheme.CreateButton(text);
         button.Dock = DockStyle.Fill;
         button.TextAlign = ContentAlignment.MiddleLeft;
-        button.Margin = new Padding(0, 0, 0, 6);
+        button.Margin = new Padding(0, 0, 0, 4);
         button.Click += (_, _) => TileSelected?.Invoke(this, tile);
         return button;
     }
@@ -314,7 +292,6 @@ public sealed class InspectorPanel : UserControl
 public enum InspectorSection
 {
     Map,
-    View,
     Tool,
     Palette,
     Run

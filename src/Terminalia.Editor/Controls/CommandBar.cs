@@ -15,7 +15,6 @@ public sealed class CommandBar : UserControl
     public event EventHandler? SaveSampleRequested;
     public event EventHandler? RunExternalRequested;
     public event EventHandler? MapPanelRequested;
-    public event EventHandler? ViewPanelRequested;
     public event EventHandler? ToolPanelRequested;
     public event EventHandler? PalettePanelRequested;
     public event EventHandler? RunPanelRequested;
@@ -33,7 +32,6 @@ public sealed class CommandBar : UserControl
         _toolTip.Draw += DrawToolTip;
 
         AddCommand("[#]", "Map", () => MapPanelRequested?.Invoke(this, EventArgs.Empty));
-        AddCommand("[Z]", "View", () => ViewPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCommand("[T]", "Tool", () => ToolPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCommand("[P]", "Palette", () => PalettePanelRequested?.Invoke(this, EventArgs.Empty));
         AddCommand("[R]", "Run", () => RunPanelRequested?.Invoke(this, EventArgs.Empty));

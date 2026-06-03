@@ -28,6 +28,7 @@ public sealed class EditorShell : UserControl
         };
         canvasPanel.Controls.Add(Canvas);
         canvasPanel.Resize += (_, _) => CenterCanvas(canvasPanel);
+        canvasPanel.MouseWheel += (_, e) => Canvas.CellSize += e.Delta > 0 ? 4 : -4;
         Canvas.SizeChanged += (_, _) => CenterCanvas(canvasPanel);
 
         var mainLayout = new TableLayoutPanel

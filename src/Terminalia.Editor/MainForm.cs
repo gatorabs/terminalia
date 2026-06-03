@@ -65,7 +65,6 @@ public sealed class MainForm : Form
         _shell.CommandBar.SaveSampleRequested += async (_, _) => await SaveSampleMapWithLoadingAsync();
         _shell.CommandBar.RunExternalRequested += async (_, _) => await PlaytestSampleWithLoadingAsync();
         _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
-        _shell.CommandBar.ViewPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.View);
         _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
         _shell.CommandBar.PalettePanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Palette);
         _shell.CommandBar.RunPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Run);
@@ -75,7 +74,6 @@ public sealed class MainForm : Form
         _startPage.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
 
         _shell.Inspector.ApplyMapPropertiesRequested += (_, args) => ApplyMapProperties(args);
-        _shell.Inspector.ZoomChanged += (_, zoom) => _shell.Canvas.CellSize = zoom;
         _shell.Inspector.ToolChanged += (_, tool) =>
         {
             _state.ToolMode = tool;
