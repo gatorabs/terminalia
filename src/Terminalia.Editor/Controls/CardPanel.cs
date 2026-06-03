@@ -1,8 +1,8 @@
 namespace Terminalia.Editor;
 
-public sealed class RoundedPanel : Panel
+public sealed class CardPanel : Panel
 {
-    public RoundedPanel()
+    public CardPanel()
     {
         SetStyle(
             ControlStyles.UserPaint |

@@ -201,7 +201,7 @@ public sealed class InspectorPanel : UserControl
 
     private static Panel CreateSection(string title, Control content, int height)
     {
-        var section = new RoundedPanel
+        var section = new CardPanel
         {
             Dock = DockStyle.Top,
             Height = height,
@@ -236,6 +236,7 @@ public sealed class InspectorPanel : UserControl
             BackColor = EditorTheme.Section,
             Padding = new Padding(0, 6, 0, 0)
         };
+        EditorTheme.ApplyDarkScrollBars(contentArea);
 
         content.Dock = DockStyle.Fill;
         contentArea.Controls.Add(content);

@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 
 namespace Terminalia.Editor;
 
@@ -119,4 +120,15 @@ internal static class EditorTheme
         input.ForeColor = PrimaryText;
         input.Font = UiFont;
     }
+
+    public static void ApplyDarkScrollBars(Control control)
+    {
+        if (control.IsHandleCreated)
+            SetWindowTheme(control.Handle, "DarkMode_Explorer", null);
+        else
+            control.HandleCreated += (_, _) => SetWindowTheme(control.Handle, "DarkMode_Explorer", null);
+    }
+
+    [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+    private static extern int SetWindowTheme(IntPtr hwnd, string? pszSubAppName, string? pszSubIdList);
 }

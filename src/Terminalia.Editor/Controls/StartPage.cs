@@ -2,7 +2,7 @@ namespace Terminalia.Editor;
 
 public sealed class StartPage : UserControl
 {
-    private readonly Terminalia.Editor.RoundedPanel _panel = new()
+    private readonly CardPanel _panel = new()
     {
         FillColor = EditorTheme.Surface,
         BorderColor = EditorTheme.Border,
