@@ -1,4 +1,4 @@
-using Terminalia.Assets.Json;
+using Terminalia.Core.Assets;
 
 namespace Terminalia.Editor;
 
@@ -16,7 +16,7 @@ public sealed class EmbeddedGameSurface : Control
     private readonly Font _terminalFont = new(FontFamily.GenericMonospace, 14, FontStyle.Bold);
     private readonly Font _hudFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
     private readonly Font _titleFont = new(FontFamily.GenericMonospace, 11, FontStyle.Bold);
-    private MapAssetDocument _document = MapAssetDocument.CreateDefault();
+    private TileMap _document = TileMap.Empty;
     private Point _playerPosition;
     private bool _hasPlayer;
 
@@ -31,7 +31,7 @@ public sealed class EmbeddedGameSurface : Control
 
     public bool IsRunning { get; private set; }
 
-    public void LoadDocument(MapAssetDocument document, bool preserveRunState = false)
+    public void LoadDocument(TileMap document, bool preserveRunState = false)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
         if (!preserveRunState ||

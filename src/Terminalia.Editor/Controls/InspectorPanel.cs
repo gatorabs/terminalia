@@ -1,5 +1,3 @@
-using Terminalia.Assets.Json;
-
 namespace Terminalia.Editor;
 
 public sealed class InspectorPanel : UserControl
@@ -42,11 +40,11 @@ public sealed class InspectorPanel : UserControl
         SetActiveSection(InspectorSection.Map);
     }
 
-    public void LoadDocument(MapAssetDocument document)
+    public void LoadDocument(string name, int width, int height)
     {
-        _nameTextBox.Text = document.Name;
-        _widthInput.Value = document.Width;
-        _heightInput.Value = document.Height;
+        _nameTextBox.Text = name;
+        _widthInput.Value = width;
+        _heightInput.Value = height;
     }
 
     public void SetRunState(bool isRunning)

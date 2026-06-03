@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Terminalia.Core.Assets;
 
 namespace Terminalia.Assets.Json;
 
@@ -174,6 +175,20 @@ public sealed class MapAssetDocument
     }
 
     public const int MaxDimension = 4096;
+
+    public TileMap ToTileMap()
+    {
+        var legend = new Dictionary<char, string>();
+        foreach (var item in Legend)
+        {
+            if (item.Key.Length == 1)
+            {
+                legend[item.Key[0]] = item.Value;
+            }
+        }
+
+        return new TileMap(Name, Width, Height, Tiles, legend);
+    }
 
     public void Validate()
     {

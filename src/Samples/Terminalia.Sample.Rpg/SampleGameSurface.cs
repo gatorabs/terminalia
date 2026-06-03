@@ -240,19 +240,28 @@ public sealed class SampleGameSurface : Control
                 switch (tile)
                 {
                     case '#':
-                        scene.AddEntity(CreateEntity("Stone Wall", position, '#', layer: 1, Velocity.Zero, solid: true));
+                        scene.AddEntity(CreateStaticEntity("Stone Wall", position, '#', layer: 1, solid: true));
                         break;
                     case '@':
                         scene.AddEntity(CreateEntity("Player", position, '@', layer: 2, Velocity.Zero, solid: true));
                         break;
                     case '*':
-                        scene.AddEntity(CreateEntity("Relic", position, '*', layer: 1, Velocity.Zero, solid: false));
+                        scene.AddEntity(CreateStaticEntity("Relic", position, '*', layer: 1, solid: false));
                         break;
                 }
             }
         }
 
         return scene;
+    }
+
+    private static Entity CreateStaticEntity(string name, Position position, char character, int layer, bool solid)
+    {
+        var entity = new Entity(name);
+        entity.AddComponent(new TransformComponent(position));
+        entity.AddComponent(new RenderComponent(character, layer));
+        entity.AddComponent(new ColliderComponent(new Terminalia.Core.ValueObjects.Size(1, 1), solid));
+        return entity;
     }
 
     private static Entity CreateEntity(

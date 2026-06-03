@@ -113,8 +113,8 @@ public sealed class MainForm : Form
         _state.Document = document;
         _state.CurrentFile = currentFile;
         _shell.Canvas.LoadDocument(document);
-        _shell.Runtime.LoadDocument(document);
-        _shell.Inspector.LoadDocument(document);
+        _shell.Runtime.LoadDocument(document.ToTileMap());
+        _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height);
         ShowEditor();
 
         if (markClean)
@@ -357,7 +357,7 @@ public sealed class MainForm : Form
             : args.Name.Trim();
         _state.Document.Resize(args.Width, args.Height);
         _shell.Canvas.RefreshDocument();
-        _shell.Runtime.LoadDocument(_state.Document);
+        _shell.Runtime.LoadDocument(_state.Document.ToTileMap());
         UpdateStatus();
     }
 
@@ -380,7 +380,7 @@ public sealed class MainForm : Form
     private void MarkDirty()
     {
         _state.HasUnsavedChanges = true;
-        _shell.Runtime.LoadDocument(_state.Document, preserveRunState: true);
+        _shell.Runtime.LoadDocument(_state.Document.ToTileMap(), preserveRunState: true);
         UpdateStatus();
     }
 

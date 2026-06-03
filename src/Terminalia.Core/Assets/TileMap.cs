@@ -5,6 +5,8 @@ public sealed class TileMap
     private readonly List<string> _tiles;
     private readonly Dictionary<char, string> _legend;
 
+    public static TileMap Empty { get; } = new("untitled", 1, 1, ["."], new Dictionary<char, string> { ['.'] = "floor" });
+
     public TileMap(string name, int width, int height, IEnumerable<string> tiles, IReadOnlyDictionary<char, string> legend)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -39,4 +41,16 @@ public sealed class TileMap
     public IReadOnlyList<string> Tiles => _tiles;
 
     public IReadOnlyDictionary<char, string> Legend => _legend;
+
+    public bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
+
+    public char GetTile(int x, int y)
+    {
+        if (!Contains(x, y))
+        {
+            throw new ArgumentOutOfRangeException(nameof(x), "Coordinates must be inside the map.");
+        }
+
+        return _tiles[y][x];
+    }
 }
