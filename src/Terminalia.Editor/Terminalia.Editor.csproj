@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
+    <ProjectReference Include="..\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
   </ItemGroup>
 
 </Project>
