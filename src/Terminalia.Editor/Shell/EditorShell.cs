@@ -27,6 +27,7 @@ public sealed class EditorShell : UserControl
             BackColor = EditorTheme.Workspace,
             Padding = new Padding(EditorTheme.CanvasPadding)
         };
+        EditorTheme.ApplyDarkScrollBars(canvasPanel);
         canvasPanel.Controls.Add(Canvas);
         canvasPanel.Resize += (_, _) => CenterCanvas(canvasPanel);
         canvasPanel.MouseWheel += (_, e) => Canvas.CellSize += e.Delta > 0 ? 4 : -4;
@@ -167,8 +168,10 @@ public sealed class EditorShell : UserControl
         if (!Inspector.Visible) return;
 
         const int flyoutGap = 6;
+        var x = EditorTheme.CommandBarWidth + flyoutGap;
 
         // CommandBar sits at (0,0) inside _mainHost, so itemBounds.Top maps directly.
+        var itemBounds = CommandBar.GetPanelItemBounds(Inspector.ActiveSection);
         var anchorY = itemBounds.Top;
         var maxTop = _mainHost.Height - Inspector.ActiveSectionHeight - flyoutGap;
         var top = Math.Max(flyoutGap, Math.Min(maxTop, anchorY));
