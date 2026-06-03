@@ -154,8 +154,10 @@ Terminalia.Input.Console/
 ```
 Terminalia.Editor/
 ├── Program.cs
-├── MainForm.cs                      (<150 LOC — orquestração)
-├── MainForm.Events.cs               (partial — wiring de eventos)
+├── MainForm/
+│   ├── MainForm.cs                  (partial — campos, construtor, overrides, DllImport)
+│   ├── MainForm.Events.cs           (partial — WireEvents: wiring de todos os eventos)
+│   └── MainForm.Actions.cs          (partial — ações: file I/O, loading async, estado UI)
 │
 ├── Shell/
 │   ├── EditorShell.cs               (composição de layout)
