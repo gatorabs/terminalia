@@ -73,20 +73,44 @@ public sealed class CommandBar : UserControl
     {
         base.OnLayout(e);
 
-        var x = ((Width - EditorTheme.CommandSize) / 2) + _entranceOffset;
+        const int SepAdvance = 22;
+        var sepCount = _commands.Count(c => c.Tag is SeparatorTag);
+        var buttonCount = _commands.Count - sepCount;
+
+        var available = Height - EditorTheme.BrandSectionHeight - EditorTheme.CommandPadding;
+        var sizeOnlyNeeded = buttonCount * EditorTheme.CommandSize + sepCount * SepAdvance;
+
+        int size, gap;
+        if (sizeOnlyNeeded <= available)
+        {
+            size = EditorTheme.CommandSize;
+            gap = buttonCount > 1
+                ? Math.Min(EditorTheme.CommandGap, (available - sizeOnlyNeeded) / (buttonCount - 1))
+                : EditorTheme.CommandGap;
+        }
+        else
+        {
+            const int MinGap = 2;
+            size = Math.Max(24, (available - Math.Max(0, buttonCount - 1) * MinGap - sepCount * SepAdvance) / Math.Max(1, buttonCount));
+            gap = buttonCount > 1
+                ? Math.Max(MinGap, (available - buttonCount * size - sepCount * SepAdvance) / (buttonCount - 1))
+                : MinGap;
+        }
+
+        var x = ((Width - size) / 2) + _entranceOffset;
         var y = EditorTheme.BrandSectionHeight;
 
         foreach (var command in _commands)
         {
             if (command.Tag is SeparatorTag)
             {
-                command.Bounds = new Rectangle(x, y + 4, EditorTheme.CommandSize, 14);
-                y += EditorTheme.CommandGap * 3;
+                command.Bounds = new Rectangle(x, y + 3, size, 10);
+                y += SepAdvance;
                 continue;
             }
 
-            command.Bounds = new Rectangle(x, y, EditorTheme.CommandSize, EditorTheme.CommandSize);
-            y += EditorTheme.CommandSize + EditorTheme.CommandGap;
+            command.Bounds = new Rectangle(x, y, size, size);
+            y += size + gap;
         }
     }
 
