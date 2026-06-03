@@ -1,3 +1,8 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Drawing;
+using Terminalia.Editor.Styling.Fonts;
+using Terminalia.Editor.Styling.Layout;
+
 namespace Terminalia.Editor;
 
 public sealed class CommandBar : UserControl
@@ -28,13 +33,13 @@ public sealed class CommandBar : UserControl
     public CommandBar()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.AppBackground;
-        MinimumSize = new Size(EditorTheme.CommandBarWidth, 0);
+        BackColor = EditorColors.AppBackground;
+        MinimumSize = new Size(EditorLayout.CommandBarWidth, 0);
         DoubleBuffered = true;
         SetStyle(ControlStyles.Selectable, false);
 
-        _toolTip.BackColor = EditorTheme.Surface;
-        _toolTip.ForeColor = EditorTheme.PrimaryText;
+        _toolTip.BackColor = EditorColors.Surface;
+        _toolTip.ForeColor = EditorColors.PrimaryText;
         _toolTip.OwnerDraw = true;
         _toolTip.Draw += DrawToolTip;
 
@@ -55,10 +60,10 @@ public sealed class CommandBar : UserControl
         foreach (var item in _items)
             item.BackColor = item.TargetColor = NormalColor(item);
 
-        _animTimer.Interval = EditorTheme.AnimationInterval;
+        _animTimer.Interval = EditorLayout.AnimationInterval;
         _animTimer.Tick += (_, _) => AnimTick();
 
-        _entranceTimer.Interval = EditorTheme.AnimationInterval;
+        _entranceTimer.Interval = EditorLayout.AnimationInterval;
         _entranceTimer.Tick += (_, _) =>
         {
             _entranceOffset = (int)Math.Round(_entranceOffset * 0.66);
@@ -89,18 +94,18 @@ public sealed class CommandBar : UserControl
     protected override void OnPaint(PaintEventArgs e)
     {
         var g = e.Graphics;
-        g.Clear(EditorTheme.AppBackground);
+        g.Clear(EditorColors.AppBackground);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
         var rail = new Rectangle(
-            EditorTheme.CommandPadding, EditorTheme.CommandPadding,
-            Width - EditorTheme.CommandPadding * 2,
-            Height - EditorTheme.CommandPadding * 2);
+            EditorLayout.CommandPadding, EditorLayout.CommandPadding,
+            Width - EditorLayout.CommandPadding * 2,
+            Height - EditorLayout.CommandPadding * 2);
 
-        using (var railPath = EditorTheme.CreateRoundedPath(rail, 18))
-        using (var railFill = new SolidBrush(EditorTheme.Surface))
-        using (var railBorder = new Pen(EditorTheme.BorderSoft))
+        using (var railPath = EditorDrawing.CreateRoundedPath(rail, 18))
+        using (var railFill = new SolidBrush(EditorColors.Surface))
+        using (var railBorder = new Pen(EditorColors.BorderSoft))
         {
             g.FillPath(railFill, railPath);
             g.DrawPath(railBorder, railPath);
@@ -129,7 +134,7 @@ public sealed class CommandBar : UserControl
         {
             if (item.IsSeparator) continue;
             item.TargetColor = item == hit
-                ? (item.IsPrimary ? EditorTheme.AccentHover : EditorTheme.CommandHover)
+                ? (item.IsPrimary ? EditorColors.AccentHover : EditorColors.CommandHover)
                 : NormalColor(item);
         }
 
@@ -167,7 +172,7 @@ public sealed class CommandBar : UserControl
 
         _pressItem = hit;
         hit.Pulse = 1;
-        hit.TargetColor = hit.IsPrimary ? EditorTheme.AccentPressed : EditorTheme.ButtonPressed;
+        hit.TargetColor = hit.IsPrimary ? EditorColors.AccentPressed : EditorColors.ButtonPressed;
         StartAnim();
         Invalidate();
     }
@@ -179,7 +184,7 @@ public sealed class CommandBar : UserControl
         _pressItem = null;
 
         pressed.TargetColor = pressed == _hoverItem
-            ? (pressed.IsPrimary ? EditorTheme.AccentHover : EditorTheme.CommandHover)
+            ? (pressed.IsPrimary ? EditorColors.AccentHover : EditorColors.CommandHover)
             : NormalColor(pressed);
 
         if (pressed == _hoverItem)
@@ -217,16 +222,16 @@ public sealed class CommandBar : UserControl
     {
         var sepCount = _items.Count(c => c.IsSeparator);
         var buttonCount = _items.Count - sepCount;
-        var available = Height - EditorTheme.BrandSectionHeight - EditorTheme.CommandPadding;
-        var sizeOnlyNeeded = buttonCount * EditorTheme.CommandSize + sepCount * SepAdvance;
+        var available = Height - EditorLayout.BrandSectionHeight - EditorLayout.CommandPadding;
+        var sizeOnlyNeeded = buttonCount * EditorLayout.CommandSize + sepCount * SepAdvance;
 
         int size, gap;
         if (sizeOnlyNeeded <= available)
         {
-            size = EditorTheme.CommandSize;
+            size = EditorLayout.CommandSize;
             gap = buttonCount > 1
-                ? Math.Min(EditorTheme.CommandGap, (available - sizeOnlyNeeded) / (buttonCount - 1))
-                : EditorTheme.CommandGap;
+                ? Math.Min(EditorLayout.CommandGap, (available - sizeOnlyNeeded) / (buttonCount - 1))
+                : EditorLayout.CommandGap;
         }
         else
         {
@@ -237,7 +242,7 @@ public sealed class CommandBar : UserControl
         }
 
         var x = (Width - size) / 2 + _entranceOffset;
-        var y = EditorTheme.BrandSectionHeight;
+        var y = EditorLayout.BrandSectionHeight;
 
         foreach (var item in _items)
         {
@@ -260,16 +265,16 @@ public sealed class CommandBar : UserControl
         using var smallFont = new Font(FontFamily.GenericMonospace, 7, FontStyle.Regular);
 
         TextRenderer.DrawText(g, ">_", titleFont,
-            new Rectangle(0, 28, Width, 24), EditorTheme.PrimaryText,
+            new Rectangle(0, 28, Width, 24), EditorColors.PrimaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         TextRenderer.DrawText(g, "TERM", smallFont,
-            new Rectangle(0, 52, Width, 16), EditorTheme.SecondaryText,
+            new Rectangle(0, 52, Width, 16), EditorColors.SecondaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
     private static void PaintSeparator(Graphics g, ToolbarCommand item)
     {
-        using var pen = new Pen(EditorTheme.BorderSoft);
+        using var pen = new Pen(EditorColors.BorderSoft);
         var midY = item.Bounds.Top + item.Bounds.Height / 2;
         g.DrawLine(pen, item.Bounds.Left + 10, midY, item.Bounds.Right - 10, midY);
     }
@@ -281,9 +286,9 @@ public sealed class CommandBar : UserControl
         if (item == _pressItem)
             b.Offset(0, 1);
 
-        using var path = EditorTheme.CreateRoundedPath(b, 12);
+        using var path = EditorDrawing.CreateRoundedPath(b, 12);
         using var fill = new SolidBrush(item.BackColor);
-        using var border = new Pen(item.IsPrimary ? EditorTheme.PrimaryText : EditorTheme.BorderSoft);
+        using var border = new Pen(item.IsPrimary ? EditorColors.PrimaryText : EditorColors.BorderSoft);
         g.FillPath(fill, path);
 
         if (item.Pulse > 0.01)
@@ -296,18 +301,18 @@ public sealed class CommandBar : UserControl
 
         using var iconFont = new Font(FontFamily.GenericMonospace, item.Glyph.Length > 2 ? 9 : 10, FontStyle.Bold);
         TextRenderer.DrawText(g, item.Glyph, iconFont, b,
-            item.IsPrimary ? Color.Black : EditorTheme.PrimaryText,
+            item.IsPrimary ? Color.Black : EditorColors.PrimaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
     }
 
     private void DrawToolTip(object? sender, DrawToolTipEventArgs e)
     {
-        using var fill = new SolidBrush(EditorTheme.Surface);
-        using var border = new Pen(EditorTheme.Border);
+        using var fill = new SolidBrush(EditorColors.Surface);
+        using var border = new Pen(EditorColors.Border);
         e.Graphics.FillRectangle(fill, e.Bounds);
         e.Graphics.DrawRectangle(border, new Rectangle(0, 0, e.Bounds.Width - 1, e.Bounds.Height - 1));
-        TextRenderer.DrawText(e.Graphics, e.ToolTipText, EditorTheme.UiFont, e.Bounds,
-            EditorTheme.PrimaryText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        TextRenderer.DrawText(e.Graphics, e.ToolTipText, EditorFonts.UiFont, e.Bounds,
+            EditorColors.PrimaryText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
     public Rectangle GetPanelItemBounds(InspectorSection section)
@@ -347,9 +352,9 @@ public sealed class CommandBar : UserControl
         foreach (var item in _items)
         {
             if (item.IsSeparator) continue;
-            item.BackColor = EditorTheme.Lerp(item.BackColor, item.TargetColor, 0.32);
+            item.BackColor = EditorColors.Lerp(item.BackColor, item.TargetColor, 0.32);
             item.Pulse *= 0.72;
-            if (EditorTheme.ColorDistance(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
+            if (EditorColors.ColorDistance(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
             {
                 item.BackColor = item.TargetColor;
                 item.Pulse = 0;
@@ -370,6 +375,5 @@ public sealed class CommandBar : UserControl
     }
 
     private static Color NormalColor(ToolbarCommand item) =>
-        item.IsPrimary ? EditorTheme.Accent : EditorTheme.CommandBackground;
-
+        item.IsPrimary ? EditorColors.Accent : EditorColors.CommandBackground;
 }

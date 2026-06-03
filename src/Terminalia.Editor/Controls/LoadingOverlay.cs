@@ -1,3 +1,7 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Drawing;
+using Terminalia.Editor.Styling.Fonts;
+
 namespace Terminalia.Editor;
 
 public sealed class LoadingOverlay : UserControl
@@ -49,7 +53,7 @@ public sealed class LoadingOverlay : UserControl
     {
         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-        using var scrim = new SolidBrush(EditorTheme.OverlayScrim);
+        using var scrim = new SolidBrush(EditorColors.OverlayScrim);
         e.Graphics.FillRectangle(scrim, ClientRectangle);
 
         var cardSize = new Size(300, 112);
@@ -59,9 +63,9 @@ public sealed class LoadingOverlay : UserControl
             cardSize.Width,
             cardSize.Height);
 
-        using var cardPath = EditorTheme.CreateRoundedPath(cardBounds, 14);
-        using var cardFill = new SolidBrush(EditorTheme.LoadingCard);
-        using var cardBorder = new Pen(EditorTheme.Border);
+        using var cardPath = EditorDrawing.CreateRoundedPath(cardBounds, 14);
+        using var cardFill = new SolidBrush(EditorColors.LoadingCard);
+        using var cardBorder = new Pen(EditorColors.Border);
         e.Graphics.FillPath(cardFill, cardPath);
         e.Graphics.DrawPath(cardBorder, cardPath);
 
@@ -71,9 +75,9 @@ public sealed class LoadingOverlay : UserControl
         TextRenderer.DrawText(
             e.Graphics,
             _message,
-            EditorTheme.SectionFont,
+            EditorFonts.SectionFont,
             textBounds,
-            EditorTheme.PrimaryText,
+            EditorColors.PrimaryText,
             TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
     }
 
@@ -94,7 +98,7 @@ public sealed class LoadingOverlay : UserControl
                 center.X + (float)Math.Cos(angle) * radius,
                 center.Y + (float)Math.Sin(angle) * radius);
 
-            using var brush = new SolidBrush(Color.FromArgb(Math.Clamp(alpha, 70, 224), EditorTheme.Accent));
+            using var brush = new SolidBrush(Color.FromArgb(Math.Clamp(alpha, 70, 224), EditorColors.Accent));
             graphics.FillEllipse(brush, point.X - 3, point.Y - 3, 6, 6);
         }
     }

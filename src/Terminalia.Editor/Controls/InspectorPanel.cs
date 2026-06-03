@@ -1,3 +1,7 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Controls;
+using Terminalia.Editor.Styling.Fonts;
+
 namespace Terminalia.Editor;
 
 public sealed class InspectorPanel : UserControl
@@ -10,8 +14,8 @@ public sealed class InspectorPanel : UserControl
     private readonly NumericUpDown _heightInput = new();
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
-    private readonly Button _runEmbeddedButton = EditorTheme.CreateButton("Run", primary: true);
-    private readonly Button _resetEmbeddedButton = EditorTheme.CreateButton("Reset");
+    private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
+    private readonly Button _resetEmbeddedButton = EditorControls.CreateButton("Reset");
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
@@ -23,12 +27,12 @@ public sealed class InspectorPanel : UserControl
     {
         Dock = DockStyle.Fill;
         BackColor = Color.Transparent;
-        Font = EditorTheme.UiFont;
+        Font = EditorFonts.UiFont;
 
         _stack.Dock = DockStyle.Top;
         _stack.AutoSize = true;
         _stack.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _stack.BackColor = EditorTheme.Section;
+        _stack.BackColor = EditorColors.Section;
         _stack.Padding = new Padding(0);
 
         AddSection(InspectorSection.Map, BuildMapSection(), 160);
@@ -87,15 +91,15 @@ public sealed class InspectorPanel : UserControl
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-        EditorTheme.StyleTextBox(_nameTextBox);
+        EditorControls.StyleTextBox(_nameTextBox);
         _widthInput.Minimum = 4;
         _widthInput.Maximum = 80;
         _heightInput.Minimum = 4;
         _heightInput.Maximum = 40;
-        EditorTheme.StyleNumberInput(_widthInput);
-        EditorTheme.StyleNumberInput(_heightInput);
+        EditorControls.StyleNumberInput(_widthInput);
+        EditorControls.StyleNumberInput(_heightInput);
 
-        var applyButton = EditorTheme.CreateButton("Apply", primary: true);
+        var applyButton = EditorControls.CreateButton("Apply", primary: true);
         applyButton.Dock = DockStyle.Fill;
         applyButton.Height = 30;
         applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(
@@ -105,11 +109,11 @@ public sealed class InspectorPanel : UserControl
                 (int)_widthInput.Value,
                 (int)_heightInput.Value));
 
-        layout.Controls.Add(EditorTheme.CreateFieldLabel("Name"), 0, 0);
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
         layout.Controls.Add(_nameTextBox, 1, 0);
-        layout.Controls.Add(EditorTheme.CreateFieldLabel("Width"), 0, 1);
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Width"), 0, 1);
         layout.Controls.Add(_widthInput, 1, 1);
-        layout.Controls.Add(EditorTheme.CreateFieldLabel("Height"), 0, 2);
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Height"), 0, 2);
         layout.Controls.Add(_heightInput, 1, 2);
         layout.Controls.Add(applyButton, 0, 3);
         layout.SetColumnSpan(applyButton, 2);
@@ -160,7 +164,7 @@ public sealed class InspectorPanel : UserControl
             ColumnCount = 1,
             RowCount = 4,
             Padding = new Padding(0, 4, 0, 0),
-            BackColor = EditorTheme.Section
+            BackColor = EditorColors.Section
         };
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
@@ -182,7 +186,7 @@ public sealed class InspectorPanel : UserControl
             ColumnCount = 1,
             RowCount = 2,
             Padding = new Padding(0, 4, 0, 0),
-            BackColor = EditorTheme.Section
+            BackColor = EditorColors.Section
         };
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
@@ -203,8 +207,8 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Top,
             Height = height,
-            FillColor = EditorTheme.Section,
-            BorderColor = EditorTheme.BorderSoft,
+            FillColor = EditorColors.Section,
+            BorderColor = EditorColors.BorderSoft,
             Padding = new Padding(12),
             Margin = new Padding(0, 0, 0, 10)
         };
@@ -214,9 +218,9 @@ public sealed class InspectorPanel : UserControl
             Text = title,
             Dock = DockStyle.Top,
             Height = 24,
-            Font = EditorTheme.SectionFont,
-            ForeColor = EditorTheme.SecondaryText,
-            BackColor = EditorTheme.Section,
+            Font = EditorFonts.SectionFont,
+            ForeColor = EditorColors.SecondaryText,
+            BackColor = EditorColors.Section,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
@@ -224,17 +228,17 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Top,
             Height = 1,
-            BackColor = EditorTheme.BorderSoft
+            BackColor = EditorColors.BorderSoft
         };
 
         var contentArea = new Panel
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
-            BackColor = EditorTheme.Section,
+            BackColor = EditorColors.Section,
             Padding = new Padding(0, 6, 0, 0)
         };
-        EditorTheme.ApplyDarkScrollBars(contentArea);
+        EditorControls.ApplyDarkScrollBars(contentArea);
 
         content.Dock = DockStyle.Fill;
         contentArea.Controls.Add(content);
@@ -252,15 +256,15 @@ public sealed class InspectorPanel : UserControl
         radioButton.Text = text;
         radioButton.Checked = isChecked;
         radioButton.Dock = DockStyle.Fill;
-        radioButton.Font = EditorTheme.UiFont;
-        radioButton.BackColor = EditorTheme.Section;
-        radioButton.ForeColor = EditorTheme.PrimaryText;
+        radioButton.Font = EditorFonts.UiFont;
+        radioButton.BackColor = EditorColors.Section;
+        radioButton.ForeColor = EditorColors.PrimaryText;
         radioButton.Margin = new Padding(0, 0, 0, 4);
     }
 
     private Button CreateTileButton(string text, char tile)
     {
-        var button = EditorTheme.CreateButton(text);
+        var button = EditorControls.CreateButton(text);
         button.Dock = DockStyle.Fill;
         button.TextAlign = ContentAlignment.MiddleLeft;
         button.Margin = new Padding(0, 0, 0, 4);

@@ -1,3 +1,8 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Controls;
+using Terminalia.Editor.Styling.Fonts;
+using Terminalia.Editor.Styling.Layout;
+
 namespace Terminalia.Editor;
 
 public sealed class EditorShell : UserControl
@@ -9,13 +14,13 @@ public sealed class EditorShell : UserControl
     public EditorShell()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.AppBackground;
-        Font = EditorTheme.UiFont;
+        BackColor = EditorColors.AppBackground;
+        Font = EditorFonts.UiFont;
 
         CommandBar = new CommandBar();
         Inspector = new InspectorPanel();
         Inspector.Visible = false;
-        Inspector.Width = EditorTheme.InspectorWidth;
+        Inspector.Width = EditorLayout.InspectorWidth;
         Inspector.Dock = DockStyle.None;
         Canvas = new MapCanvas();
         Runtime = new EmbeddedGameSurface();
@@ -26,10 +31,10 @@ public sealed class EditorShell : UserControl
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
-            BackColor = EditorTheme.Workspace,
-            Padding = new Padding(EditorTheme.CanvasPadding)
+            BackColor = EditorColors.Workspace,
+            Padding = new Padding(EditorLayout.CanvasPadding)
         };
-        EditorTheme.ApplyDarkScrollBars(_canvasScroll);
+        EditorControls.ApplyDarkScrollBars(_canvasScroll);
         _canvasScroll.Controls.Add(Canvas);
         _canvasScroll.Resize += (_, _) => CenterCanvas(_canvasScroll);
         _canvasScroll.MouseWheel += (_, e) => Canvas.CellSize += e.Delta > 0 ? 4 : -4;
@@ -44,15 +49,15 @@ public sealed class EditorShell : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 2,
             RowCount = 1,
-            BackColor = EditorTheme.AppBackground
+            BackColor = EditorColors.AppBackground
         };
-        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, EditorTheme.CommandBarWidth));
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, EditorLayout.CommandBarWidth));
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         mainLayout.Controls.Add(CommandBar, 0, 0);
         mainLayout.Controls.Add(contentHost, 1, 0);
 
         _mainHost.Dock = DockStyle.Fill;
-        _mainHost.BackColor = EditorTheme.AppBackground;
+        _mainHost.BackColor = EditorColors.AppBackground;
         _mainHost.Controls.Add(mainLayout);
         _mainHost.Controls.Add(Inspector);
         _mainHost.Resize += (_, _) => PlaceInspector();
@@ -62,10 +67,10 @@ public sealed class EditorShell : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
-            BackColor = EditorTheme.AppBackground
+            BackColor = EditorColors.AppBackground
         };
         shellLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        shellLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, EditorTheme.StatusBarHeight));
+        shellLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, EditorLayout.StatusBarHeight));
         shellLayout.Controls.Add(_mainHost, 0, 0);
         shellLayout.Controls.Add(StatusLabel, 0, 1);
 
@@ -139,12 +144,12 @@ public sealed class EditorShell : UserControl
         return new Label
         {
             Dock = DockStyle.Fill,
-            Height = EditorTheme.StatusBarHeight,
-            Font = EditorTheme.SmallFont,
+            Height = EditorLayout.StatusBarHeight,
+            Font = EditorFonts.SmallFont,
             TextAlign = ContentAlignment.MiddleLeft,
             Padding = new Padding(12, 0, 0, 0),
-            BackColor = EditorTheme.StatusBar,
-            ForeColor = EditorTheme.SecondaryText
+            BackColor = EditorColors.StatusBar,
+            ForeColor = EditorColors.SecondaryText
         };
     }
 
@@ -176,7 +181,7 @@ public sealed class EditorShell : UserControl
 
     private void CenterCanvas(ScrollableControl canvasPanel)
     {
-        var p = EditorTheme.CanvasPadding;
+        var p = EditorLayout.CanvasPadding;
         var x = Math.Max(p, (canvasPanel.ClientSize.Width - Canvas.Width) / 2);
         var y = Math.Max(p, (canvasPanel.ClientSize.Height - Canvas.Height) / 4);
         Canvas.Location = new Point(x, y);
@@ -187,13 +192,13 @@ public sealed class EditorShell : UserControl
         if (!Inspector.Visible) return;
 
         const int flyoutGap = 6;
-        var x = EditorTheme.CommandBarWidth + flyoutGap;
+        var x = EditorLayout.CommandBarWidth + flyoutGap;
 
         // CommandBar sits at (0,0) inside _mainHost, so itemBounds.Top maps directly.
         var itemBounds = CommandBar.GetPanelItemBounds(Inspector.ActiveSection);
         var anchorY = itemBounds.Top;
         var maxTop = _mainHost.Height - Inspector.ActiveSectionHeight - flyoutGap;
         var top = Math.Max(flyoutGap, Math.Min(maxTop, anchorY));
-        Inspector.Bounds = new Rectangle(x, top, EditorTheme.InspectorWidth, Inspector.ActiveSectionHeight);
+        Inspector.Bounds = new Rectangle(x, top, EditorLayout.InspectorWidth, Inspector.ActiveSectionHeight);
     }
 }

@@ -1,3 +1,5 @@
+using Terminalia.Editor.Styling.Colors;
+
 namespace Terminalia.Editor;
 
 public sealed class CardPanel : Panel
@@ -11,8 +13,8 @@ public sealed class CardPanel : Panel
             ControlStyles.ResizeRedraw,
             true);
 
-        FillColor = EditorTheme.Section;
-        BorderColor = EditorTheme.BorderSoft;
+        FillColor = EditorColors.Section;
+        BorderColor = EditorColors.BorderSoft;
         BorderThickness = 1;
     }
 

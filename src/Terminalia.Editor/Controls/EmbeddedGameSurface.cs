@@ -1,4 +1,5 @@
 using Terminalia.Core.Assets;
+using Terminalia.Editor.Styling.Colors;
 
 namespace Terminalia.Editor;
 
@@ -14,7 +15,7 @@ public sealed class EmbeddedGameSurface : Control
     public EmbeddedGameSurface()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.TerminalBackground;
+        BackColor = EditorColors.TerminalBackground;
         DoubleBuffered = true;
         TabStop = true;
     }
@@ -118,7 +119,7 @@ public sealed class EmbeddedGameSurface : Control
     {
         base.OnPaint(e);
 
-        e.Graphics.Clear(EditorTheme.TerminalBackground);
+        e.Graphics.Clear(EditorColors.TerminalBackground);
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
         var mapPixelWidth = (_document.Width * _cellSize) + (CanvasPadding * 2);
@@ -167,7 +168,7 @@ public sealed class EmbeddedGameSurface : Control
         '.' => Color.FromArgb(71, 85, 105),
         '@' => Color.FromArgb(96, 165, 250),
         '*' => Color.FromArgb(250, 204, 21),
-        _ => EditorTheme.PrimaryText
+        _ => EditorColors.PrimaryText
     };
 
     private Font GetTileFont()

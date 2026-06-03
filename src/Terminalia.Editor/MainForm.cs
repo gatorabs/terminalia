@@ -1,4 +1,6 @@
 using System.Runtime.InteropServices;
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Fonts;
 
 namespace Terminalia.Editor;
 
@@ -15,8 +17,8 @@ public sealed class MainForm : Form
         Text = "Terminalia Editor";
         MinimumSize = new Size(900, 600);
         StartPosition = FormStartPosition.CenterScreen;
-        BackColor = EditorTheme.AppBackground;
-        Font = EditorTheme.UiFont;
+        BackColor = EditorColors.AppBackground;
+        Font = EditorFonts.UiFont;
         KeyPreview = true;
         TryUseDarkTitleBar();
 

@@ -1,4 +1,5 @@
 using Terminalia.Assets.Json;
+using Terminalia.Editor.Styling.Colors;
 
 namespace Terminalia.Editor;
 
@@ -19,7 +20,7 @@ public sealed class MapCanvas : Control
     public MapCanvas()
     {
         Location = new Point(0, 0);
-        BackColor = EditorTheme.Workspace;
+        BackColor = EditorColors.Workspace;
         DoubleBuffered = true;
         Font = new Font(FontFamily.GenericMonospace, 16, FontStyle.Bold);
         UpdateCanvasSize();
@@ -67,7 +68,7 @@ public sealed class MapCanvas : Control
     {
         base.OnPaint(e);
 
-        e.Graphics.Clear(EditorTheme.Workspace);
+        e.Graphics.Clear(EditorColors.Workspace);
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
         e.Graphics.TranslateTransform(CanvasPadding, CanvasPadding);
 
@@ -213,7 +214,7 @@ public sealed class MapCanvas : Control
         var bounds = new Rectangle(x * CellSize, y * CellSize, CellSize, CellSize);
 
         using var background = new SolidBrush(GetTileColor(tile));
-        using var border = new Pen(EditorTheme.GridLine);
+        using var border = new Pen(EditorColors.GridLine);
         using var tileFont = GetTileFont();
         using var textBrush = new SolidBrush(GetTileTextColor(tile));
         using var format = new StringFormat
@@ -236,7 +237,7 @@ public sealed class MapCanvas : Control
             '.' => Color.FromArgb(8, 8, 8),
             '@' => Color.FromArgb(18, 18, 18),
             '*' => Color.FromArgb(22, 22, 22),
-            _ => EditorTheme.Section
+            _ => EditorColors.Section
         };
     }
 
@@ -248,7 +249,7 @@ public sealed class MapCanvas : Control
             '.' => Color.FromArgb(86, 86, 86),
             '@' => Color.FromArgb(255, 255, 255),
             '*' => Color.FromArgb(214, 214, 214),
-            _ => EditorTheme.PrimaryText
+            _ => EditorColors.PrimaryText
         };
     }
 

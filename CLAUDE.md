@@ -197,16 +197,26 @@ Terminalia.Editor/
 │   └── EditorToolMode.cs
 │
 └── Styling/
-    └── EditorTheme.cs
+    ├── Colors/
+    │   └── EditorColors.cs          (Color tokens + ColorDistance + Lerp)
+    ├── Fonts/
+    │   └── EditorFonts.cs           (Font tokens)
+    ├── Layout/
+    │   └── EditorLayout.cs          (const int — dimensões e espaçamentos)
+    ├── Drawing/
+    │   └── EditorDrawing.cs         (CreateRoundedPath)
+    └── Controls/
+        └── EditorControls.cs        (Create* + Style* + ApplyDarkScrollBars)
 ```
 
 ### Regras do Editor
 
 - Cada tela tem subdiretório próprio em `Screens/`.
 - Nenhum controle define o layout de outro controle (sem `SetBounds` cruzado).
-- `EditorTheme` é a **única** fonte de cores, fontes e espaçamentos. Zero magic strings de cor.
+- `Styling/` é a **única** fonte de cores, fontes, espaçamentos e utilitários de desenho. Zero magic strings de cor.
 - `MainForm` apenas orquestra: não desenha, não lê arquivo diretamente, não conhece detalhes de controles filhos.
 - Comunicação entre controles via **eventos C#** (não chamadas diretas entre siblings).
+- Arquivos dentro de um subdiretório de `Styling/` seguem o sufixo do diretório: `Colors/` → `Editor*Colors`, `Fonts/` → `Editor*Fonts`, etc.
 
 ---
 

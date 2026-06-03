@@ -1,3 +1,7 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Fonts;
+using Terminalia.Editor.Styling.Layout;
+
 namespace Terminalia.Editor;
 
 public sealed class ModernButton : Button
@@ -23,16 +27,16 @@ public sealed class ModernButton : Button
         FlatStyle = FlatStyle.Flat;
         FlatAppearance.BorderSize = 0;
         BackColor = Color.Transparent;
-        ForeColor = EditorTheme.PrimaryText;
+        ForeColor = EditorColors.PrimaryText;
         Cursor = Cursors.Hand;
-        Font = EditorTheme.UiFont;
+        Font = EditorFonts.UiFont;
         UseVisualStyleBackColor = false;
         TextAlign = ContentAlignment.MiddleCenter;
 
-        _currentBackColor = EditorTheme.ButtonBackground;
+        _currentBackColor = EditorColors.ButtonBackground;
         _targetBackColor = _currentBackColor;
 
-        _animationTimer.Interval = EditorTheme.AnimationInterval;
+        _animationTimer.Interval = EditorLayout.AnimationInterval;
         _animationTimer.Tick += (_, _) => Animate();
     }
 
@@ -42,7 +46,7 @@ public sealed class ModernButton : Button
         set
         {
             _isPrimary = value;
-            ForeColor = _isPrimary ? Color.Black : EditorTheme.PrimaryText;
+            ForeColor = _isPrimary ? Color.Black : EditorColors.PrimaryText;
             _currentBackColor = NormalColor;
             _targetBackColor = NormalColor;
             Invalidate();
@@ -85,7 +89,7 @@ public sealed class ModernButton : Button
 
     protected override void OnEnabledChanged(EventArgs e)
     {
-        SetTarget(Enabled ? NormalColor : EditorTheme.ButtonPressed);
+        SetTarget(Enabled ? NormalColor : EditorColors.ButtonPressed);
         Cursor = Enabled ? Cursors.Hand : Cursors.Default;
         base.OnEnabledChanged(e);
     }
@@ -95,7 +99,7 @@ public sealed class ModernButton : Button
         var bounds = ClientRectangle;
         bounds.Inflate(-1, -1);
 
-        using var fill = new SolidBrush(Enabled ? _currentBackColor : EditorTheme.ButtonPressed);
+        using var fill = new SolidBrush(Enabled ? _currentBackColor : EditorColors.ButtonPressed);
         pevent.Graphics.FillRectangle(fill, bounds);
 
         if (_pulse > 0.01)
@@ -104,7 +108,7 @@ public sealed class ModernButton : Button
             pevent.Graphics.FillRectangle(pulseBrush, bounds);
         }
 
-        using var border = new Pen(IsPrimary ? EditorTheme.PrimaryText : EditorTheme.BorderSoft);
+        using var border = new Pen(IsPrimary ? EditorColors.PrimaryText : EditorColors.BorderSoft);
         pevent.Graphics.DrawRectangle(border, bounds);
 
         var textOffset = _isPressed ? 1 : 0;
@@ -118,15 +122,15 @@ public sealed class ModernButton : Button
             Text,
             Font,
             textBounds,
-            Enabled ? ForeColor : EditorTheme.SecondaryText,
+            Enabled ? ForeColor : EditorColors.SecondaryText,
             GetTextFormatFlags());
     }
 
-    private Color NormalColor => IsPrimary ? EditorTheme.Accent : EditorTheme.ButtonBackground;
+    private Color NormalColor => IsPrimary ? EditorColors.Accent : EditorColors.ButtonBackground;
 
-    private Color HoverColor => IsPrimary ? EditorTheme.AccentHover : EditorTheme.ButtonHover;
+    private Color HoverColor => IsPrimary ? EditorColors.AccentHover : EditorColors.ButtonHover;
 
-    private Color PressedColor => IsPrimary ? EditorTheme.AccentPressed : EditorTheme.ButtonPressed;
+    private Color PressedColor => IsPrimary ? EditorColors.AccentPressed : EditorColors.ButtonPressed;
 
     private void SetTarget(Color color)
     {
@@ -139,10 +143,10 @@ public sealed class ModernButton : Button
 
     private void Animate()
     {
-        _currentBackColor = EditorTheme.Lerp(_currentBackColor, _targetBackColor, 0.35);
+        _currentBackColor = EditorColors.Lerp(_currentBackColor, _targetBackColor, 0.35);
         _pulse *= 0.72;
 
-        if (EditorTheme.ColorDistance(_currentBackColor, _targetBackColor) < 3 && _pulse < 0.01)
+        if (EditorColors.ColorDistance(_currentBackColor, _targetBackColor) < 3 && _pulse < 0.01)
         {
             _currentBackColor = _targetBackColor;
             _pulse = 0;
