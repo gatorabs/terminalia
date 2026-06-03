@@ -2,7 +2,7 @@ using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Fonts;
 using Terminalia.Editor.Styling.Layout;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Shared;
 
 public sealed class ModernButton : Button
 {
@@ -136,9 +136,7 @@ public sealed class ModernButton : Button
     {
         _targetBackColor = color;
         if (!_animationTimer.Enabled)
-        {
             _animationTimer.Start();
-        }
     }
 
     private void Animate()

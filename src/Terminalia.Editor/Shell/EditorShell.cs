@@ -1,3 +1,7 @@
+using Terminalia.Editor.Controls.Canvas;
+using Terminalia.Editor.Controls.CommandBar;
+using Terminalia.Editor.Controls.Inspector;
+using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Controls;
 using Terminalia.Editor.Styling.Fonts;
@@ -23,7 +27,7 @@ public sealed class EditorShell : UserControl
         Inspector.Width = EditorLayout.InspectorWidth;
         Inspector.Dock = DockStyle.None;
         Canvas = new MapCanvas();
-        Runtime = new EmbeddedGameSurface();
+        Runtime = new EmbeddedCanvas();
         Runtime.Visible = false;
         StatusLabel = BuildStatusLabel();
 
@@ -96,7 +100,7 @@ public sealed class EditorShell : UserControl
 
     public MapCanvas Canvas { get; }
 
-    public EmbeddedGameSurface Runtime { get; }
+    public EmbeddedCanvas Runtime { get; }
 
     public Label StatusLabel { get; }
 

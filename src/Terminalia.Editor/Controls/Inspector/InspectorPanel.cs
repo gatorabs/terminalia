@@ -1,8 +1,9 @@
+using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Controls;
 using Terminalia.Editor.Styling.Fonts;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Inspector;
 
 public sealed class InspectorPanel : UserControl
 {
@@ -139,16 +140,12 @@ public sealed class InspectorPanel : UserControl
         _paintButton.CheckedChanged += (_, _) =>
         {
             if (_paintButton.Checked)
-            {
                 ToolChanged?.Invoke(this, EditorToolMode.Paint);
-            }
         };
         _fillButton.CheckedChanged += (_, _) =>
         {
             if (_fillButton.Checked)
-            {
                 ToolChanged?.Invoke(this, EditorToolMode.Fill);
-            }
         };
 
         layout.Controls.Add(_paintButton, 0, 0);
@@ -291,8 +288,6 @@ public enum InspectorSection
 public sealed class MapPropertiesChangedEventArgs(string name, int width, int height) : EventArgs
 {
     public string Name { get; } = name;
-
     public int Width { get; } = width;
-
     public int Height { get; } = height;
 }

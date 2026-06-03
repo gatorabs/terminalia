@@ -1,6 +1,6 @@
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.CommandBar;
 
-internal sealed class ToolbarCommand
+internal sealed class CommandBarItem
 {
     public string Glyph { get; init; } = string.Empty;
     public string Caption { get; init; } = string.Empty;

@@ -2,7 +2,7 @@ using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Drawing;
 using Terminalia.Editor.Styling.Fonts;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Shared;
 
 public sealed class LoadingOverlay : UserControl
 {
@@ -89,9 +89,7 @@ public sealed class LoadingOverlay : UserControl
             var angle = (Math.PI * 2 / 8) * i;
             var alphaStep = (i - _frame) % 8;
             if (alphaStep < 0)
-            {
                 alphaStep += 8;
-            }
 
             var alpha = 70 + (7 - alphaStep) * 22;
             var point = new PointF(

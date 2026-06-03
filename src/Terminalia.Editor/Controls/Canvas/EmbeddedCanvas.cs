@@ -1,9 +1,9 @@
 using Terminalia.Core.Assets;
 using Terminalia.Editor.Styling.Colors;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Canvas;
 
-public sealed class EmbeddedGameSurface : Control
+public sealed class EmbeddedCanvas : Control
 {
     private const int CanvasPadding = 24;
 
@@ -12,7 +12,7 @@ public sealed class EmbeddedGameSurface : Control
     private bool _hasPlayer;
     private int _cellSize = 32;
 
-    public EmbeddedGameSurface()
+    public EmbeddedCanvas()
     {
         Dock = DockStyle.Fill;
         BackColor = EditorColors.TerminalBackground;
@@ -51,9 +51,7 @@ public sealed class EmbeddedGameSurface : Control
     {
         IsRunning = true;
         if (!_hasPlayer)
-        {
             ResetGame();
-        }
 
         Focus();
         Invalidate();
@@ -74,9 +72,7 @@ public sealed class EmbeddedGameSurface : Control
     public bool TryHandleInput(Keys key)
     {
         if (!IsRunning || !_hasPlayer)
-        {
             return false;
-        }
 
         var delta = key switch
         {
@@ -89,9 +85,7 @@ public sealed class EmbeddedGameSurface : Control
         };
 
         if (delta == Point.Empty)
-        {
             return key == Keys.Escape;
-        }
 
         var next = new Point(_playerPosition.X + delta.X, _playerPosition.Y + delta.Y);
         if (_document.Contains(next.X, next.Y) && _document.GetTile(next.X, next.Y) != '#')

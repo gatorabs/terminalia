@@ -1,7 +1,7 @@
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Styling.Colors;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Canvas;
 
 public sealed class MapCanvas : Control
 {
@@ -88,10 +88,7 @@ public sealed class MapCanvas : Control
         if (e.Button != MouseButtons.Left)
         {
             if (e.Button == MouseButtons.Right)
-            {
                 PickTileAt(e.Location);
-            }
-
             return;
         }
 
@@ -114,15 +111,12 @@ public sealed class MapCanvas : Control
         UpdateCursorCell(e.Location);
 
         if (ToolMode == EditorToolMode.Paint && _isPainting && e.Button == MouseButtons.Left)
-        {
             PaintAt(e.Location);
-        }
     }
 
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
-
         _isPainting = false;
         _lastPaintedCell = null;
     }
@@ -141,9 +135,7 @@ public sealed class MapCanvas : Control
     private void PaintAt(Point location)
     {
         if (!TryGetCell(location, out var cell) || _lastPaintedCell == cell)
-        {
             return;
-        }
 
         _document.SetTile(cell.X, cell.Y, _selectedTile);
         _lastPaintedCell = cell;
@@ -158,9 +150,7 @@ public sealed class MapCanvas : Control
     private void FillAt(Point location)
     {
         if (!TryGetCell(location, out var cell))
-        {
             return;
-        }
 
         _document.FloodFill(cell.X, cell.Y, _selectedTile);
         Invalidate();
@@ -170,9 +160,7 @@ public sealed class MapCanvas : Control
     private void PickTileAt(Point location)
     {
         if (TryGetCell(location, out var cell))
-        {
             TilePicked?.Invoke(this, _document.GetTile(cell.X, cell.Y));
-        }
     }
 
     private void UpdateCursorCell(Point location)
@@ -180,9 +168,7 @@ public sealed class MapCanvas : Control
         Point? nextCell = TryGetCell(location, out var cell) ? cell : null;
 
         if (_cursorCell == nextCell)
-        {
             return;
-        }
 
         _cursorCell = nextCell;
         CursorCellChanged?.Invoke(this, EventArgs.Empty);
@@ -193,17 +179,13 @@ public sealed class MapCanvas : Control
         cell = default;
 
         if (location.X < CanvasPadding || location.Y < CanvasPadding)
-        {
             return false;
-        }
 
         var x = (location.X - CanvasPadding) / CellSize;
         var y = (location.Y - CanvasPadding) / CellSize;
 
         if (!_document.Contains(x, y))
-        {
             return false;
-        }
 
         cell = new Point(x, y);
         return true;
@@ -229,29 +211,23 @@ public sealed class MapCanvas : Control
         graphics.DrawString(tile.ToString(), tileFont, textBrush, bounds, format);
     }
 
-    private static Color GetTileColor(char tile)
+    private static Color GetTileColor(char tile) => tile switch
     {
-        return tile switch
-        {
-            '#' => Color.FromArgb(30, 30, 30),
-            '.' => Color.FromArgb(8, 8, 8),
-            '@' => Color.FromArgb(18, 18, 18),
-            '*' => Color.FromArgb(22, 22, 22),
-            _ => EditorColors.Section
-        };
-    }
+        '#' => Color.FromArgb(30, 30, 30),
+        '.' => Color.FromArgb(8, 8, 8),
+        '@' => Color.FromArgb(18, 18, 18),
+        '*' => Color.FromArgb(22, 22, 22),
+        _ => EditorColors.Section
+    };
 
-    private static Color GetTileTextColor(char tile)
+    private static Color GetTileTextColor(char tile) => tile switch
     {
-        return tile switch
-        {
-            '#' => Color.FromArgb(230, 230, 230),
-            '.' => Color.FromArgb(86, 86, 86),
-            '@' => Color.FromArgb(255, 255, 255),
-            '*' => Color.FromArgb(214, 214, 214),
-            _ => EditorColors.PrimaryText
-        };
-    }
+        '#' => Color.FromArgb(230, 230, 230),
+        '.' => Color.FromArgb(86, 86, 86),
+        '@' => Color.FromArgb(255, 255, 255),
+        '*' => Color.FromArgb(214, 214, 214),
+        _ => EditorColors.PrimaryText
+    };
 
     private void UpdateCanvasSize()
     {

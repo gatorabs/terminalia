@@ -1,21 +1,22 @@
+using Terminalia.Editor.Controls.Inspector;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Drawing;
 using Terminalia.Editor.Styling.Fonts;
 using Terminalia.Editor.Styling.Layout;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.CommandBar;
 
 public sealed class CommandBar : UserControl
 {
     private const int SepAdvance = 22;
     private const int MinGap = 2;
 
-    private readonly List<ToolbarCommand> _items = [];
+    private readonly List<CommandBarItem> _items = [];
     private readonly System.Windows.Forms.Timer _animTimer = new();
     private readonly System.Windows.Forms.Timer _entranceTimer = new();
     private readonly ToolTip _toolTip = new();
-    private ToolbarCommand? _hoverItem;
-    private ToolbarCommand? _pressItem;
+    private CommandBarItem? _hoverItem;
+    private CommandBarItem? _pressItem;
     private int _entranceOffset = -56;
 
     public event EventHandler? NewRequested;
@@ -207,7 +208,7 @@ public sealed class CommandBar : UserControl
 
     private void AddCmd(string glyph, string caption, Action action, bool isPrimary = false)
     {
-        _items.Add(new ToolbarCommand
+        _items.Add(new CommandBarItem
         {
             Glyph = glyph,
             Caption = caption,
@@ -216,7 +217,7 @@ public sealed class CommandBar : UserControl
         });
     }
 
-    private void AddSep() => _items.Add(new ToolbarCommand { IsSeparator = true });
+    private void AddSep() => _items.Add(new CommandBarItem { IsSeparator = true });
 
     private void CalculateBounds()
     {
@@ -272,14 +273,14 @@ public sealed class CommandBar : UserControl
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
-    private static void PaintSeparator(Graphics g, ToolbarCommand item)
+    private static void PaintSeparator(Graphics g, CommandBarItem item)
     {
         using var pen = new Pen(EditorColors.BorderSoft);
         var midY = item.Bounds.Top + item.Bounds.Height / 2;
         g.DrawLine(pen, item.Bounds.Left + 10, midY, item.Bounds.Right - 10, midY);
     }
 
-    private void PaintButton(Graphics g, ToolbarCommand item)
+    private void PaintButton(Graphics g, CommandBarItem item)
     {
         var b = item.Bounds;
         b.Inflate(-1, -1);
@@ -336,7 +337,7 @@ public sealed class CommandBar : UserControl
         return Rectangle.Empty;
     }
 
-    private ToolbarCommand? HitTest(Point p)
+    private CommandBarItem? HitTest(Point p)
     {
         foreach (var item in _items)
         {
@@ -374,6 +375,6 @@ public sealed class CommandBar : UserControl
             _animTimer.Start();
     }
 
-    private static Color NormalColor(ToolbarCommand item) =>
+    private static Color NormalColor(CommandBarItem item) =>
         item.IsPrimary ? EditorColors.Accent : EditorColors.CommandBackground;
 }

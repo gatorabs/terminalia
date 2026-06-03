@@ -1,6 +1,6 @@
 using Terminalia.Editor.Styling.Colors;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.Controls.Shared;
 
 public sealed class CardPanel : Panel
 {

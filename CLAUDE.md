@@ -174,17 +174,18 @@ Terminalia.Editor/
 │           └── PickerTool.cs
 │
 ├── Controls/
-│   ├── CommandBar/
-│   │   ├── CommandBar.cs            (<200 LOC)
-│   │   └── CommandBarAnimator.cs    (lógica de animação)
+│   ├── Canvas/                      (namespace ...Controls.Canvas; sufixo Canvas)
+│   │   ├── MapCanvas.cs
+│   │   └── EmbeddedCanvas.cs
 │   │
-│   ├── Inspector/
-│   │   ├── InspectorPanel.cs        (container, <100 LOC)
-│   │   ├── MapPropertiesSection.cs
-│   │   ├── PaletteSection.cs
-│   │   └── RunSection.cs
+│   ├── CommandBar/                  (namespace ...Controls.CommandBar; prefixo CommandBar)
+│   │   ├── CommandBar.cs
+│   │   └── CommandBarItem.cs
 │   │
-│   └── Shared/
+│   ├── Inspector/                   (namespace ...Controls.Inspector; prefixo Inspector)
+│   │   └── InspectorPanel.cs
+│   │
+│   └── Shared/                      (namespace ...Controls.Shared; sufixo semântico CLAUDE.md)
 │       ├── ModernButton.cs
 │       ├── CardPanel.cs
 │       └── LoadingOverlay.cs

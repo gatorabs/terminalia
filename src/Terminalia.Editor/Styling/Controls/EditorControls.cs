@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Fonts;
 
