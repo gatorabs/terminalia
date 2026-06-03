@@ -121,6 +121,32 @@ MainForm.Layout.cs    → InitializeComponent e configuração visual (se necess
 
 ---
 
+## Organização dos Adapters
+
+Projetos adapter (`Rendering.Terminal`, `Input.Console`, `Assets.Json`) seguem esta estrutura interna:
+
+```
+Terminalia.Input.Console/
+├── Terminalia.Input.Console.csproj   (InternalsVisibleTo definido aqui, não em AssemblyInfo.cs)
+├── Abstractions/
+│   └── IConsoleKeyboard.cs           (prefixo I — convenção de interface)
+├── Mapping/
+│   ├── InputCommandMapper.cs         (sufixo Mapper)
+│   └── KeyMapper.cs                  (sufixo Mapper)
+└── Providers/
+    ├── ConsoleInputProvider.cs       (sufixo Provider — implementa a porta do Core)
+    └── ConsoleKeyboardProvider.cs    (sufixo Provider)
+```
+
+### Regras dos Adapters
+
+- `InternalsVisibleTo` vai no `.csproj` via `<InternalsVisibleTo Include="..." />`, nunca em `AssemblyInfo.cs`.
+- Interfaces internas (abstrações para testabilidade) ficam em `Abstractions/`; o prefixo `I` já identifica o diretório.
+- Cada subdiretório impõe um sufixo uniforme a todos os seus arquivos (`Mapping/` → `*Mapper`, `Providers/` → `*Provider`).
+- Namespace espelha o diretório: `Terminalia.Input.Console.Providers`, `Terminalia.Input.Console.Mapping`, etc.
+
+---
+
 ## Organização do Editor (WinForms)
 
 ### Estrutura de diretórios alvo

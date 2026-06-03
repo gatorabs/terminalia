@@ -1,4 +1,7 @@
 using Terminalia.Core.Input;
+using Terminalia.Input.Console.Abstractions;
+using Terminalia.Input.Console.Mapping;
+using Terminalia.Input.Console.Providers;
 
 namespace Terminalia.Input.Console.Tests;
 
@@ -10,7 +13,7 @@ public sealed class ConsoleInputProviderTests
         var keyboard = new FakeConsoleKeyboard();
         var provider = new ConsoleInputProvider(
             keyboard,
-            new InputCommandMapper(KeyMap.CreateDefault()));
+            new InputCommandMapper(KeyMapper.CreateDefault()));
 
         var commands = provider.GetCommands();
 
@@ -23,7 +26,7 @@ public sealed class ConsoleInputProviderTests
         var keyboard = new FakeConsoleKeyboard(ConsoleKey.Enter, ConsoleKey.Escape);
         var provider = new ConsoleInputProvider(
             keyboard,
-            new InputCommandMapper(KeyMap.CreateDefault()));
+            new InputCommandMapper(KeyMapper.CreateDefault()));
 
         var commands = provider.GetCommands();
 

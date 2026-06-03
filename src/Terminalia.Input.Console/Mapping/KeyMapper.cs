@@ -1,19 +1,19 @@
 using Terminalia.Core.Input;
 
-namespace Terminalia.Input.Console;
+namespace Terminalia.Input.Console.Mapping;
 
-public sealed class KeyMap
+public sealed class KeyMapper
 {
     private readonly Dictionary<ConsoleKey, InputCommand> _commands = [];
 
-    public static KeyMap CreateDefault()
+    public static KeyMapper CreateDefault()
     {
-        var keyMap = new KeyMap();
+        var keyMapper = new KeyMapper();
 
-        keyMap.Map(ConsoleKey.Enter, InputCommand.Confirm);
-        keyMap.Map(ConsoleKey.Escape, InputCommand.Exit);
+        keyMapper.Map(ConsoleKey.Enter, InputCommand.Confirm);
+        keyMapper.Map(ConsoleKey.Escape, InputCommand.Exit);
 
-        return keyMap;
+        return keyMapper;
     }
 
     public void Map(ConsoleKey key, InputCommand command)

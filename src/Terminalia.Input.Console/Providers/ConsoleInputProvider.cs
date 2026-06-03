@@ -1,6 +1,8 @@
 using Terminalia.Core.Input;
+using Terminalia.Input.Console.Abstractions;
+using Terminalia.Input.Console.Mapping;
 
-namespace Terminalia.Input.Console;
+namespace Terminalia.Input.Console.Providers;
 
 public sealed class ConsoleInputProvider : IInputProvider
 {
@@ -8,7 +10,7 @@ public sealed class ConsoleInputProvider : IInputProvider
     private readonly InputCommandMapper _mapper;
 
     public ConsoleInputProvider()
-        : this(new SystemConsoleKeyboard(), new InputCommandMapper(KeyMap.CreateDefault()))
+        : this(new ConsoleKeyboardProvider(), new InputCommandMapper(KeyMapper.CreateDefault()))
     {
     }
 

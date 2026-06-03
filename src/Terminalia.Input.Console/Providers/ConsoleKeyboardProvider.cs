@@ -1,6 +1,8 @@
-namespace Terminalia.Input.Console;
+using Terminalia.Input.Console.Abstractions;
 
-internal sealed class SystemConsoleKeyboard : IConsoleKeyboard
+namespace Terminalia.Input.Console.Providers;
+
+internal sealed class ConsoleKeyboardProvider : IConsoleKeyboard
 {
     public bool KeyAvailable => !System.Console.IsInputRedirected && System.Console.KeyAvailable;
 

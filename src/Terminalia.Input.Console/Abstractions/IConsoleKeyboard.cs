@@ -1,4 +1,4 @@
-namespace Terminalia.Input.Console;
+namespace Terminalia.Input.Console.Abstractions;
 
 internal interface IConsoleKeyboard
 {
