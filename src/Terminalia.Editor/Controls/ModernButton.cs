@@ -142,7 +142,7 @@ public sealed class ModernButton : Button
         _currentBackColor = EditorTheme.Lerp(_currentBackColor, _targetBackColor, 0.35);
         _pulse *= 0.72;
 
-        if (ColorDistance(_currentBackColor, _targetBackColor) < 3 && _pulse < 0.01)
+        if (EditorTheme.ColorDistance(_currentBackColor, _targetBackColor) < 3 && _pulse < 0.01)
         {
             _currentBackColor = _targetBackColor;
             _pulse = 0;
@@ -150,11 +150,6 @@ public sealed class ModernButton : Button
         }
 
         Invalidate();
-    }
-
-    private static int ColorDistance(Color left, Color right)
-    {
-        return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
     }
 
     private TextFormatFlags GetTextFormatFlags()

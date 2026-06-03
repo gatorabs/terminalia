@@ -203,23 +203,6 @@ public sealed class MainForm : Form
         return true;
     }
 
-    private void OpenSampleMap()
-    {
-        if (!ConfirmCanDiscardChanges())
-        {
-            return;
-        }
-
-        var sampleMapPath = _fileService.GetSampleMapPath();
-        if (sampleMapPath is null)
-        {
-            ShowRepositoryNotFound();
-            return;
-        }
-
-        LoadDocument(_fileService.LoadMap(sampleMapPath), sampleMapPath, markClean: true);
-    }
-
     private async Task OpenSampleMapWithLoadingAsync()
     {
         if (!ConfirmCanDiscardChanges())

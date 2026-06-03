@@ -1,4 +1,3 @@
-using Terminalia.Core.Domain;
 using Terminalia.Core.Ecs;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
@@ -32,14 +31,6 @@ public sealed class SceneTests
         Assert.True(system.WasUpdated);
         Assert.Same(scene, system.Scene);
         Assert.Same(time, system.Time);
-    }
-
-    [Fact]
-    public void Scene_Should_Be_Aggregate_Root()
-    {
-        var scene = new Scene("Dungeon");
-
-        Assert.IsAssignableFrom<IAggregateRoot>(scene);
     }
 
     [Fact]

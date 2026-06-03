@@ -349,7 +349,7 @@ public sealed class CommandBar : UserControl
             if (item.IsSeparator) continue;
             item.BackColor = EditorTheme.Lerp(item.BackColor, item.TargetColor, 0.32);
             item.Pulse *= 0.72;
-            if (ColorDist(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
+            if (EditorTheme.ColorDistance(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
             {
                 item.BackColor = item.TargetColor;
                 item.Pulse = 0;
@@ -372,6 +372,4 @@ public sealed class CommandBar : UserControl
     private static Color NormalColor(ToolbarCommand item) =>
         item.IsPrimary ? EditorTheme.Accent : EditorTheme.CommandBackground;
 
-    private static int ColorDist(Color a, Color b) =>
-        Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);
 }

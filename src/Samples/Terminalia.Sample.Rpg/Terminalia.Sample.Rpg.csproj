@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Terminalia.Core\Terminalia.Core.csproj" />
     <ProjectReference Include="..\..\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
-    <ProjectReference Include="..\..\Terminalia.Infrastructure\Terminalia.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

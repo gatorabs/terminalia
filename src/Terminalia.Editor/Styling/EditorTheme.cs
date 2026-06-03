@@ -39,6 +39,9 @@ internal static class EditorTheme
     public const int ButtonRadius = 8;
     public const int AnimationInterval = 15;
 
+    public static int ColorDistance(Color a, Color b) =>
+        Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);
+
     // Layout
     public const int CommandBarWidth = 76;
     public const int CommandSize = 42;

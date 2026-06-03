@@ -1,28 +1,18 @@
 using Terminalia.Core.Ecs;
-using Terminalia.Core.Domain;
 using Terminalia.Core.Runtime;
 
 namespace Terminalia.Core.Scenes;
 
-public sealed class Scene : IAggregateRoot
+public sealed class Scene
 {
     private readonly List<Entity> _entities = [];
     private readonly List<IGameSystem> _systems = [];
 
     public Scene(string name)
-        : this(SceneId.New(), name)
-    {
-    }
-
-    public Scene(SceneId id, string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        Id = id;
         Name = name;
     }
-
-    public SceneId Id { get; }
 
     public string Name { get; }
 
