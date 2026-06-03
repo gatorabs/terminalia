@@ -92,23 +92,20 @@ public sealed class ModernButton : Button
 
     protected override void OnPaint(PaintEventArgs pevent)
     {
-        pevent.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
         var bounds = ClientRectangle;
         bounds.Inflate(-1, -1);
 
-        using var path = EditorTheme.CreateRoundedPath(bounds, EditorTheme.ButtonRadius);
         using var fill = new SolidBrush(Enabled ? _currentBackColor : EditorTheme.ButtonPressed);
-        pevent.Graphics.FillPath(fill, path);
+        pevent.Graphics.FillRectangle(fill, bounds);
 
         if (_pulse > 0.01)
         {
             using var pulseBrush = new SolidBrush(Color.FromArgb((int)(38 * _pulse), Color.White));
-            pevent.Graphics.FillPath(pulseBrush, path);
+            pevent.Graphics.FillRectangle(pulseBrush, bounds);
         }
 
         using var border = new Pen(IsPrimary ? EditorTheme.PrimaryText : EditorTheme.BorderSoft);
-        pevent.Graphics.DrawPath(border, path);
+        pevent.Graphics.DrawRectangle(border, bounds);
 
         var textOffset = _isPressed ? 1 : 0;
         var textBounds = new Rectangle(
