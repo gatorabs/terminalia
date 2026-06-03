@@ -33,6 +33,12 @@ public sealed class Scene : IAggregateRoot
     public void AddEntity(Entity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
+
+        if (_entities.Any(e => e.Id == entity.Id))
+        {
+            throw new InvalidOperationException($"An entity with id '{entity.Id.Value}' already exists in scene '{Name}'.");
+        }
+
         _entities.Add(entity);
     }
 

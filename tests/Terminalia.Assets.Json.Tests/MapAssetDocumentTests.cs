@@ -101,6 +101,36 @@ public sealed class MapAssetDocumentTests : IDisposable
         Assert.Equal('.', document.GetTile(4, 3));
     }
 
+    [Fact]
+    public void MapAssetDocument_Should_Reject_Map_Exceeding_Max_Dimension()
+    {
+        var document = new MapAssetDocument
+        {
+            Name = "oversized",
+            Width = MapAssetDocument.MaxDimension + 1,
+            Height = 1,
+            Tiles = [new string('.', MapAssetDocument.MaxDimension + 1)]
+        };
+
+        Assert.Throws<InvalidDataException>(() => document.Validate());
+    }
+
+    [Fact]
+    public void MapAssetDocument_Should_Accept_Map_At_Max_Dimension()
+    {
+        var row = new string('.', MapAssetDocument.MaxDimension);
+        var document = new MapAssetDocument
+        {
+            Name = "max_size",
+            Width = MapAssetDocument.MaxDimension,
+            Height = 1,
+            Tiles = [row]
+        };
+
+        var ex = Record.Exception(() => document.Validate());
+        Assert.Null(ex);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDirectory))

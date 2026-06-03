@@ -32,6 +32,11 @@ public sealed class ConsoleFrameBuffer
 
     public void Draw(int x, int y, char character)
     {
+        if (char.IsControl(character))
+        {
+            character = '?';
+        }
+
         Draw(x, y, new Cell(character, _clearCell.Foreground, _clearCell.Background));
     }
 

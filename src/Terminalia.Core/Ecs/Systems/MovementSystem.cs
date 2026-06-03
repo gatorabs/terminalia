@@ -5,6 +5,8 @@ using Terminalia.Core.ValueObjects;
 
 namespace Terminalia.Core.Ecs.Systems;
 
+// Handles unconstrained movement for entities without a ColliderComponent.
+// Entities with ColliderComponent must use CollisionSystem, which owns their position.
 public sealed class MovementSystem : IGameSystem
 {
     public void Update(Scene scene, GameTime time)
@@ -14,6 +16,11 @@ public sealed class MovementSystem : IGameSystem
 
         foreach (var entity in scene.Entities.Where(entity => entity.IsActive))
         {
+            if (entity.HasComponent<ColliderComponent>())
+            {
+                continue;
+            }
+
             var transform = entity.GetComponent<TransformComponent>();
             var velocity = entity.GetComponent<VelocityComponent>();
 

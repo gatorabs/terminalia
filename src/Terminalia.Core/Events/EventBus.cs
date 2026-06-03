@@ -37,9 +37,23 @@ public sealed class EventBus
             return;
         }
 
+        List<Exception>? errors = null;
+
         foreach (var handler in handlers.ToArray())
         {
-            ((Action<TEvent>)handler)(gameEvent);
+            try
+            {
+                ((Action<TEvent>)handler)(gameEvent);
+            }
+            catch (Exception ex)
+            {
+                (errors ??= []).Add(ex);
+            }
+        }
+
+        if (errors is { Count: > 0 })
+        {
+            throw new AggregateException("One or more event handlers threw an exception.", errors);
         }
     }
 }

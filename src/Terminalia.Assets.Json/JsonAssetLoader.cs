@@ -14,14 +14,12 @@ public sealed class JsonAssetLoader : IAssetLoader
     public JsonAssetLoader(string assetRoot)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(assetRoot);
-        _assetRoot = assetRoot;
+        _assetRoot = Path.GetFullPath(assetRoot);
     }
 
     public TileMap LoadMap(string assetName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(assetName);
-
-        var document = MapAssetDocument.Load(Path.Combine(_assetRoot, "maps", $"{assetName}.json"));
+        var document = MapAssetDocument.Load(ResolveAssetPath("maps", assetName, ".json"));
 
         return new TileMap(
             document.Name,
@@ -33,9 +31,7 @@ public sealed class JsonAssetLoader : IAssetLoader
 
     public Sprite LoadSprite(string assetName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(assetName);
-
-        var path = Path.Combine(_assetRoot, "sprites", $"{assetName}.txt");
+        var path = ResolveAssetPath("sprites", assetName, ".txt");
         if (!File.Exists(path))
         {
             throw new FileNotFoundException("Sprite asset was not found.", path);
@@ -47,9 +43,7 @@ public sealed class JsonAssetLoader : IAssetLoader
 
     public Animation LoadAnimation(string assetName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(assetName);
-
-        var path = Path.Combine(_assetRoot, "animations", $"{assetName}.json");
+        var path = ResolveAssetPath("animations", assetName, ".json");
         var definition = ReadJson<AnimationDefinition>(path);
 
         if (definition.Name is null)
@@ -70,6 +64,28 @@ public sealed class JsonAssetLoader : IAssetLoader
             definition.Name,
             TimeSpan.FromMilliseconds(definition.FrameDurationMs),
             frames);
+    }
+
+    private string ResolveAssetPath(string subdir, string assetName, string extension)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(assetName);
+
+        if (assetName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || assetName.Contains('/')
+            || assetName.Contains('\\'))
+        {
+            throw new ArgumentException("Asset name must not contain path separators or invalid characters.", nameof(assetName));
+        }
+
+        var candidate = Path.GetFullPath(Path.Combine(_assetRoot, subdir, assetName + extension));
+        var root = _assetRoot + Path.DirectorySeparatorChar;
+
+        if (!candidate.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Asset name resolves outside the asset root.", nameof(assetName));
+        }
+
+        return candidate;
     }
 
     private TDefinition ReadJson<TDefinition>(string path)

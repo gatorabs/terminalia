@@ -61,4 +61,34 @@ public sealed class ConsoleFrameBufferTests
 
         Assert.Empty(buffer.GetChangedCells());
     }
+
+    [Theory]
+    [InlineData('\x1B')]
+    [InlineData('\n')]
+    [InlineData('\r')]
+    [InlineData('\x00')]
+    [InlineData('\x07')]
+    public void FrameBuffer_Should_Sanitize_Control_Characters(char controlChar)
+    {
+        var buffer = new ConsoleFrameBuffer(4, 3);
+
+        buffer.Draw(1, 1, controlChar);
+
+        Assert.Equal('?', buffer.GetBackCell(1, 1).Character);
+    }
+
+    [Fact]
+    public void FrameBuffer_DrawText_Should_Sanitize_Control_Characters()
+    {
+        var buffer = new ConsoleFrameBuffer(8, 3);
+        var esc = (char)0x1B;
+        var text = string.Concat("A", esc, "Bc");
+
+        buffer.DrawText(0, 0, text);
+
+        Assert.Equal('A', buffer.GetBackCell(0, 0).Character);
+        Assert.Equal('?', buffer.GetBackCell(1, 0).Character);
+        Assert.Equal('B', buffer.GetBackCell(2, 0).Character);
+        Assert.Equal('c', buffer.GetBackCell(3, 0).Character);
+    }
 }

@@ -42,6 +42,20 @@ public sealed class SceneTests
         Assert.IsAssignableFrom<IAggregateRoot>(scene);
     }
 
+    [Fact]
+    public void Scene_Should_Reject_Duplicate_Entity_Id()
+    {
+        var scene = new Scene("Dungeon");
+        var id = EntityId.New();
+        var first = new Entity(id, "FirstPlayer");
+        var duplicate = new Entity(id, "SecondPlayer");
+
+        scene.AddEntity(first);
+
+        Assert.Throws<InvalidOperationException>(() => scene.AddEntity(duplicate));
+        Assert.Single(scene.Entities);
+    }
+
     private sealed class TestSystem : IGameSystem
     {
         public bool WasUpdated { get; private set; }

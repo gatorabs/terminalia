@@ -109,6 +109,38 @@ public sealed class JsonAssetLoaderTests : IDisposable
         Assert.Equal(2, animation.Frames.Count);
     }
 
+    [Theory]
+    [InlineData("../../secret")]
+    [InlineData("../maps/other")]
+    [InlineData("/absolute/path")]
+    [InlineData("name/with/slash")]
+    [InlineData("name\\with\\backslash")]
+    public void JsonAssetLoader_Should_Reject_Path_Traversal_In_LoadMap(string maliciousName)
+    {
+        var loader = new JsonAssetLoader(_assetRoot);
+        Assert.Throws<ArgumentException>(() => loader.LoadMap(maliciousName));
+    }
+
+    [Theory]
+    [InlineData("../../secret")]
+    [InlineData("/absolute/path")]
+    [InlineData("name/with/slash")]
+    public void JsonAssetLoader_Should_Reject_Path_Traversal_In_LoadSprite(string maliciousName)
+    {
+        var loader = new JsonAssetLoader(_assetRoot);
+        Assert.Throws<ArgumentException>(() => loader.LoadSprite(maliciousName));
+    }
+
+    [Theory]
+    [InlineData("../../secret")]
+    [InlineData("/absolute/path")]
+    [InlineData("name/with/slash")]
+    public void JsonAssetLoader_Should_Reject_Path_Traversal_In_LoadAnimation(string maliciousName)
+    {
+        var loader = new JsonAssetLoader(_assetRoot);
+        Assert.Throws<ArgumentException>(() => loader.LoadAnimation(maliciousName));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_assetRoot))

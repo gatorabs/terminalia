@@ -19,6 +19,7 @@ public sealed class SampleGameSurface : Control
     private readonly Scene _scene;
     private readonly Entity _player;
     private DateTime _lastTick = DateTime.UtcNow;
+    private TimeSpan _totalTime = TimeSpan.Zero;
     private long _frame;
 
     public SampleGameSurface()
@@ -92,6 +93,7 @@ public sealed class SampleGameSurface : Control
         var now = DateTime.UtcNow;
         var delta = now - _lastTick;
         _lastTick = now;
+        _totalTime += delta;
         _frame++;
 
         var commands = DrainCommands();
@@ -102,7 +104,7 @@ public sealed class SampleGameSurface : Control
         }
 
         ApplyMovementCommands(commands);
-        _collisionSystem.Update(_scene, new GameTime(delta, TimeSpan.FromTicks(delta.Ticks * _frame), (int)_frame));
+        _collisionSystem.Update(_scene, new GameTime(delta, _totalTime, (int)(_frame % int.MaxValue)));
         Invalidate();
     }
 

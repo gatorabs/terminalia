@@ -173,11 +173,18 @@ public sealed class MapAssetDocument
         EnsureDefaultLegend();
     }
 
+    public const int MaxDimension = 4096;
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(Name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Height);
+
+        if (Width > MaxDimension || Height > MaxDimension)
+        {
+            throw new InvalidDataException($"Map dimensions must not exceed {MaxDimension}x{MaxDimension}.");
+        }
 
         if (Tiles.Count != Height)
         {
