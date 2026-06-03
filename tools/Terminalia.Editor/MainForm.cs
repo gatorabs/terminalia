@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Terminalia.Assets.Json;
 
 namespace Terminalia.Editor;
@@ -14,6 +15,8 @@ public sealed class MainForm : Form
     private readonly TrackBar _zoomInput = new();
     private readonly Button _runEmbeddedButton = new();
     private readonly Button _resetEmbeddedButton = new();
+    private readonly List<Control> _sidebarStretchControls = [];
+    private readonly List<Control> _sidebarSections = [];
     private string? _currentFile;
     private bool _hasUnsavedChanges;
 
@@ -25,8 +28,9 @@ public sealed class MainForm : Form
         BackColor = EditorTheme.AppBackground;
         Font = EditorTheme.UiFont;
         KeyPreview = true;
+        TryUseDarkTitleBar();
 
-        var menu = BuildMenu();
+        var commandBar = BuildCommandBar();
         var sidePanel = BuildSidePanel();
         var canvasPanel = BuildCanvasPanel();
         var mainLayout = new TableLayoutPanel
@@ -52,10 +56,22 @@ public sealed class MainForm : Form
         _statusLabel.BackColor = EditorTheme.StatusBar;
         _statusLabel.ForeColor = EditorTheme.SecondaryText;
 
-        Controls.Add(mainLayout);
-        Controls.Add(_statusLabel);
-        Controls.Add(menu);
-        MainMenuStrip = menu;
+        var shell = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            BackColor = EditorTheme.AppBackground,
+            Padding = new Padding(0)
+        };
+        shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+        shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        shell.Controls.Add(commandBar, 0, 0);
+        shell.Controls.Add(mainLayout, 0, 1);
+        shell.Controls.Add(_statusLabel, 0, 2);
+
+        Controls.Add(shell);
 
         _canvas.DocumentChanged += (_, _) => MarkDirty();
         _canvas.CursorCellChanged += (_, _) => UpdateStatus();
@@ -71,32 +87,46 @@ public sealed class MainForm : Form
         UpdateStatus();
     }
 
-    private MenuStrip BuildMenu()
+    private Control BuildCommandBar()
     {
-        var menu = new MenuStrip
+        var bar = new Panel
         {
+            Dock = DockStyle.Fill,
             BackColor = EditorTheme.Surface,
-            ForeColor = EditorTheme.PrimaryText,
-            Padding = new Padding(8, 4, 8, 4),
-            Renderer = new ToolStripProfessionalRenderer(new ModernMenuColorTable())
+            Padding = new Padding(14, 7, 14, 7)
         };
-        var fileMenu = new ToolStripMenuItem("&File");
-        var newItem = new ToolStripMenuItem("&New", null, (_, _) => NewMap());
-        var openItem = new ToolStripMenuItem("&Open...", null, (_, _) => OpenMap());
-        var saveItem = new ToolStripMenuItem("&Save", null, (_, _) => SaveMap());
-        var saveAsItem = new ToolStripMenuItem("Save &As...", null, (_, _) => SaveMapAs());
-        var sampleMenu = new ToolStripMenuItem("&Sample");
-        var openSampleItem = new ToolStripMenuItem("&Open Sample Map", null, (_, _) => OpenSampleMap());
-        var saveSampleItem = new ToolStripMenuItem("&Save To Sample Map", null, (_, _) => SaveToSampleMap());
-        var playtestItem = new ToolStripMenuItem("&Run External Playtest", null, (_, _) => PlaytestSample());
 
-        fileMenu.DropDownItems.AddRange([newItem, openItem, saveItem, saveAsItem]);
-        sampleMenu.DropDownItems.AddRange([openSampleItem, saveSampleItem, playtestItem]);
-        menu.Items.Add(fileMenu);
-        menu.Items.Add(sampleMenu);
-        StyleMenuItems(menu.Items);
+        var title = new Label
+        {
+            Text = "Terminalia Editor",
+            Dock = DockStyle.Left,
+            Width = 170,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = new Font("Segoe UI Semibold", 10, FontStyle.Bold),
+            ForeColor = EditorTheme.PrimaryText
+        };
 
-        return menu;
+        var commands = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            BackColor = EditorTheme.Surface,
+            Padding = new Padding(0),
+            Margin = new Padding(0)
+        };
+
+        commands.Controls.Add(CreateCommandButton("New", NewMap));
+        commands.Controls.Add(CreateCommandButton("Open", OpenMap));
+        commands.Controls.Add(CreateCommandButton("Save", () => SaveMap()));
+        commands.Controls.Add(CreateCommandButton("Save as", () => SaveMapAs()));
+        commands.Controls.Add(CreateCommandButton("Open sample", OpenSampleMap));
+        commands.Controls.Add(CreateCommandButton("Save sample", () => SaveToSampleMap()));
+        commands.Controls.Add(CreateCommandButton("Run external", PlaytestSample));
+
+        bar.Controls.Add(commands);
+        bar.Controls.Add(title);
+        return bar;
     }
 
     private Control BuildCanvasPanel()
@@ -104,7 +134,7 @@ public sealed class MainForm : Form
         var panel = new Panel
         {
             Dock = DockStyle.Fill,
-            AutoScroll = true,
+            AutoScroll = false,
             BackColor = EditorTheme.Workspace,
             Padding = new Padding(22)
         };
@@ -115,14 +145,24 @@ public sealed class MainForm : Form
 
     private Control BuildSidePanel()
     {
-        var panel = new FlowLayoutPanel
+        var host = new Panel
         {
             Dock = DockStyle.Fill,
+            AutoScroll = false,
+            BackColor = EditorTheme.Navigation,
+            Padding = new Padding(12)
+        };
+
+        var panel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
             FlowDirection = FlowDirection.TopDown,
-            Padding = new Padding(16),
             WrapContents = false,
-            AutoScroll = true,
-            BackColor = EditorTheme.Navigation
+            Padding = new Padding(10),
+            BackColor = EditorTheme.Navigation,
+            Margin = new Padding(0)
         };
 
         panel.Controls.Add(BuildPropertiesPanel());
@@ -130,8 +170,28 @@ public sealed class MainForm : Form
         panel.Controls.Add(BuildToolPanel());
         panel.Controls.Add(BuildPalettePanel());
         panel.Controls.Add(BuildSamplePanel());
+        host.Controls.Add(panel);
+        host.Resize += (_, _) => ResizeSidebar(host, panel);
+        panel.HandleCreated += (_, _) => ResizeSidebar(host, panel);
 
-        return panel;
+        return host;
+    }
+
+    private void ResizeSidebar(Control host, Control panel)
+    {
+        var width = Math.Max(120, host.ClientSize.Width - host.Padding.Horizontal);
+        panel.Width = width;
+        var sectionWidth = Math.Max(120, width - panel.Padding.Horizontal);
+        var contentWidth = Math.Max(80, sectionWidth - 24);
+        foreach (var section in _sidebarSections)
+        {
+            section.Width = sectionWidth;
+        }
+
+        foreach (var control in _sidebarStretchControls)
+        {
+            control.Width = contentWidth;
+        }
     }
 
     private Control BuildZoomPanel()
@@ -143,6 +203,8 @@ public sealed class MainForm : Form
             RowCount = 2,
             Padding = new Padding(0, 2, 0, 0)
         };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         var label = new Label
         {
@@ -159,6 +221,7 @@ public sealed class MainForm : Form
         _zoomInput.LargeChange = 8;
         _zoomInput.Value = _canvas.CellSize;
         _zoomInput.Dock = DockStyle.Fill;
+        _zoomInput.Height = 34;
         _zoomInput.BackColor = EditorTheme.Section;
         _zoomInput.ForeColor = EditorTheme.PrimaryText;
         _zoomInput.ValueChanged += (_, _) =>
@@ -170,7 +233,7 @@ public sealed class MainForm : Form
         layout.Controls.Add(label, 0, 0);
         layout.Controls.Add(_zoomInput, 0, 1);
 
-        return CreateSection("View", 88, layout);
+        return CreateSection("View", 112, layout);
     }
 
     private Control BuildToolPanel()
@@ -179,7 +242,7 @@ public sealed class MainForm : Form
         {
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.TopDown,
-            Padding = new Padding(0, 2, 0, 0),
+            Padding = new Padding(0, 4, 0, 0),
             WrapContents = false
         };
 
@@ -188,9 +251,10 @@ public sealed class MainForm : Form
             Text = "Paint",
             Checked = true,
             Width = 176,
-            Height = 26,
+            Height = 28,
             BackColor = EditorTheme.Section,
-            ForeColor = EditorTheme.PrimaryText
+            ForeColor = EditorTheme.PrimaryText,
+            Margin = new Padding(0, 0, 0, 4)
         };
         paintButton.CheckedChanged += (_, _) =>
         {
@@ -205,9 +269,10 @@ public sealed class MainForm : Form
         {
             Text = "Fill",
             Width = 176,
-            Height = 26,
+            Height = 28,
             BackColor = EditorTheme.Section,
-            ForeColor = EditorTheme.PrimaryText
+            ForeColor = EditorTheme.PrimaryText,
+            Margin = new Padding(0)
         };
         fillButton.CheckedChanged += (_, _) =>
         {
@@ -221,7 +286,7 @@ public sealed class MainForm : Form
         panel.Controls.Add(paintButton);
         panel.Controls.Add(fillButton);
 
-        return CreateSection("Tool", 88, panel);
+        return CreateSection("Tool", 118, panel);
     }
 
     private Control BuildPropertiesPanel()
@@ -265,7 +330,7 @@ public sealed class MainForm : Form
         layout.Controls.Add(applyButton, 0, 3);
         layout.SetColumnSpan(applyButton, 2);
 
-        return CreateSection("Map", 172, layout);
+        return CreateSection("Map", 154, layout);
     }
 
     private Control BuildPalettePanel()
@@ -282,7 +347,7 @@ public sealed class MainForm : Form
         panel.Controls.Add(CreateTileButton("@", "Player", '@'));
         panel.Controls.Add(CreateTileButton("*", "Relic", '*'));
 
-        return CreateSection("Palette", 198, panel);
+        return CreateSection("Palette", 218, panel);
     }
 
     private Control BuildSamplePanel()
@@ -295,22 +360,22 @@ public sealed class MainForm : Form
             WrapContents = false
         };
 
-        panel.Controls.Add(CreateSampleButton("Open map", OpenSampleMap));
-        panel.Controls.Add(CreateSampleButton("Save map", () => SaveToSampleMap()));
         panel.Controls.Add(CreateEmbeddedRunButton());
         panel.Controls.Add(CreateEmbeddedResetButton());
         panel.Controls.Add(CreateSampleButton("Run external", PlaytestSample));
 
-        return CreateSection("Run", 220, panel);
+        return CreateSection("Run", 158, panel);
     }
 
     private Button CreateEmbeddedRunButton()
     {
         _runEmbeddedButton.Text = "Run in editor";
         _runEmbeddedButton.Width = 176;
-        _runEmbeddedButton.Height = 32;
-        _runEmbeddedButton.Margin = new Padding(0, 0, 0, 8);
+        _runEmbeddedButton.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+        _runEmbeddedButton.Height = 29;
+        _runEmbeddedButton.Margin = new Padding(0, 0, 0, 6);
         StyleButton(_runEmbeddedButton, true);
+        _sidebarStretchControls.Add(_runEmbeddedButton);
         _runEmbeddedButton.Click += (_, _) => ToggleEmbeddedRun();
         return _runEmbeddedButton;
     }
@@ -319,9 +384,11 @@ public sealed class MainForm : Form
     {
         _resetEmbeddedButton.Text = "Reset embedded";
         _resetEmbeddedButton.Width = 176;
-        _resetEmbeddedButton.Height = 32;
-        _resetEmbeddedButton.Margin = new Padding(0, 0, 0, 8);
+        _resetEmbeddedButton.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+        _resetEmbeddedButton.Height = 29;
+        _resetEmbeddedButton.Margin = new Padding(0, 0, 0, 6);
         StyleButton(_resetEmbeddedButton);
+        _sidebarStretchControls.Add(_resetEmbeddedButton);
         _resetEmbeddedButton.Click += (_, _) =>
         {
             _gameSurface.ResetGame();
@@ -336,11 +403,13 @@ public sealed class MainForm : Form
         {
             Text = text,
             Width = 176,
-            Height = 32,
-            Margin = new Padding(0, 0, 0, 8)
+            Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
+            Height = 29,
+            Margin = new Padding(0, 0, 0, 6)
         };
 
         StyleButton(button);
+        _sidebarStretchControls.Add(button);
         button.Click += (_, _) => action();
         return button;
     }
@@ -352,12 +421,14 @@ public sealed class MainForm : Form
             Text = $"{symbol}  {label}",
             Tag = tile,
             Width = 176,
-            Height = 36,
+            Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
+            Height = 28,
             TextAlign = ContentAlignment.MiddleLeft,
-            Margin = new Padding(0, 0, 0, 8)
+            Margin = new Padding(0, 0, 0, 5)
         };
 
         StyleButton(button);
+        _sidebarStretchControls.Add(button);
         button.Click += (_, _) =>
         {
             _canvas.SelectedTile = tile;
@@ -372,10 +443,12 @@ public sealed class MainForm : Form
         {
             Width = 216,
             Height = height,
+            AutoSize = false,
             BackColor = EditorTheme.Section,
             Padding = new Padding(12),
-            Margin = new Padding(0, 0, 0, 12)
+            Margin = new Padding(0, 0, 0, 8)
         };
+        _sidebarSections.Add(section);
         section.Paint += (_, e) =>
         {
             using var border = new Pen(EditorTheme.Border);
@@ -385,16 +458,46 @@ public sealed class MainForm : Form
         var label = new Label
         {
             Text = title,
-            Dock = DockStyle.Top,
+            Dock = DockStyle.Fill,
             Height = 24,
             Font = EditorTheme.SectionFont,
-            ForeColor = EditorTheme.PrimaryText
+            ForeColor = EditorTheme.PrimaryText,
+            TextAlign = ContentAlignment.MiddleLeft
         };
 
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            BackColor = EditorTheme.Section,
+            Padding = new Padding(0),
+            Margin = new Padding(0)
+        };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
         content.Dock = DockStyle.Fill;
-        section.Controls.Add(content);
-        section.Controls.Add(label);
+        content.Margin = new Padding(0);
+        layout.Controls.Add(label, 0, 0);
+        layout.Controls.Add(content, 0, 1);
+        section.Controls.Add(layout);
         return section;
+    }
+
+    private Button CreateCommandButton(string text, Action action)
+    {
+        var button = new Button
+        {
+            Text = text,
+            Width = text.Length > 10 ? 108 : 86,
+            Height = 30,
+            Margin = new Padding(0, 0, 8, 0)
+        };
+
+        StyleButton(button);
+        button.Click += (_, _) => action();
+        return button;
     }
 
     private static Label CreateFieldLabel(string text)
@@ -743,6 +846,21 @@ public sealed class MainForm : Form
     {
         return ActiveControl is TextBoxBase or NumericUpDown or TrackBar;
     }
+
+    private void TryUseDarkTitleBar()
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+        {
+            return;
+        }
+
+        var value = 1;
+        _ = DwmSetWindowAttribute(Handle, 20, ref value, sizeof(int));
+        _ = DwmSetWindowAttribute(Handle, 19, ref value, sizeof(int));
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int attributeValue, int attributeSize);
 }
 
 public enum EditorToolMode
@@ -753,6 +871,7 @@ public enum EditorToolMode
 
 public sealed class MapCanvas : Control
 {
+    private const int CanvasPadding = 24;
     private int _cellSize = 32;
     private MapAssetDocument _document = MapAssetDocument.CreateDefault();
     private char _selectedTile = '#';
@@ -819,7 +938,8 @@ public sealed class MapCanvas : Control
         base.OnPaint(e);
 
         e.Graphics.Clear(EditorTheme.Workspace);
-        e.Graphics.TranslateTransform(24, 24);
+        e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+        e.Graphics.TranslateTransform(CanvasPadding, CanvasPadding);
 
         for (var y = 0; y < _document.Height; y++)
         {
@@ -889,13 +1009,13 @@ public sealed class MapCanvas : Control
 
     private void PaintAt(Point location)
     {
-        if (location.X < 24 || location.Y < 24)
+        if (location.X < CanvasPadding || location.Y < CanvasPadding)
         {
             return;
         }
 
-        var x = (location.X - 24) / CellSize;
-        var y = (location.Y - 24) / CellSize;
+        var x = (location.X - CanvasPadding) / CellSize;
+        var y = (location.Y - CanvasPadding) / CellSize;
         var cell = new Point(x, y);
 
         if (!_document.Contains(x, y) || _lastPaintedCell == cell)
@@ -906,8 +1026,8 @@ public sealed class MapCanvas : Control
         _document.SetTile(x, y, _selectedTile);
         _lastPaintedCell = cell;
         Invalidate(new Rectangle(
-            24 + (x * CellSize),
-            24 + (y * CellSize),
+            CanvasPadding + (x * CellSize),
+            CanvasPadding + (y * CellSize),
             CellSize + 1,
             CellSize + 1));
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -950,13 +1070,13 @@ public sealed class MapCanvas : Control
     {
         cell = default;
 
-        if (location.X < 24 || location.Y < 24)
+        if (location.X < CanvasPadding || location.Y < CanvasPadding)
         {
             return false;
         }
 
-        var x = (location.X - 24) / CellSize;
-        var y = (location.Y - 24) / CellSize;
+        var x = (location.X - CanvasPadding) / CellSize;
+        var y = (location.Y - CanvasPadding) / CellSize;
 
         if (!_document.Contains(x, y))
         {
@@ -974,16 +1094,16 @@ public sealed class MapCanvas : Control
         using var background = new SolidBrush(GetTileColor(tile));
         using var border = new Pen(EditorTheme.GridLine);
         using var tileFont = GetTileFont();
+        using var textBrush = new SolidBrush(GetTileTextColor(tile));
+        using var format = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center,
+            FormatFlags = StringFormatFlags.NoClip
+        };
         graphics.FillRectangle(background, bounds);
         graphics.DrawRectangle(border, bounds);
-
-        TextRenderer.DrawText(
-            graphics,
-            tile.ToString(),
-            tileFont,
-            bounds,
-            GetTileTextColor(tile),
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        graphics.DrawString(tile.ToString(), tileFont, textBrush, bounds, format);
     }
 
     private static Color GetTileColor(char tile)
@@ -1013,13 +1133,13 @@ public sealed class MapCanvas : Control
     private void UpdateCanvasSize()
     {
         Size = new Size(
-            (_document.Width * CellSize) + 48,
-            (_document.Height * CellSize) + 48);
+            (_document.Width * CellSize) + (CanvasPadding * 2),
+            (_document.Height * CellSize) + (CanvasPadding * 2));
     }
 
     private Font GetTileFont()
     {
-        var size = Math.Max(8, CellSize / 2);
+        var size = Math.Max(7, CellSize * 0.45f);
         return new Font(FontFamily.GenericMonospace, size, FontStyle.Bold);
     }
 }
