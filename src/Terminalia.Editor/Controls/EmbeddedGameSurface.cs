@@ -102,6 +102,18 @@ public sealed class EmbeddedGameSurface : Control
         return true;
     }
 
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        Invalidate();
+    }
+
+    protected override void OnVisibleChanged(EventArgs e)
+    {
+        base.OnVisibleChanged(e);
+        if (Visible) Invalidate();
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
