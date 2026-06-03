@@ -4,32 +4,32 @@ namespace Terminalia.Editor;
 
 public sealed class EmbeddedGameSurface : Control
 {
-    private const int ChromeMargin = 18;
-    private const int HeaderHeight = 42;
-    private const int MapTopOffset = 66;   // HeaderHeight + 24px gap below header
-    private const int HudHeight = 104;
-    private const int HudBottomMargin = 16;
-    private const int HudInset = 18;
-    private const int MapReservedVert = MapTopOffset + HudHeight; // vertical space reserved for header+hud
-    private const int KerningAdjust = -3;  // monospace glyph spacing correction
+    private const int CanvasPadding = 24;
 
-    private readonly Font _terminalFont = new(FontFamily.GenericMonospace, 14, FontStyle.Bold);
-    private readonly Font _hudFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
-    private readonly Font _titleFont = new(FontFamily.GenericMonospace, 11, FontStyle.Bold);
     private TileMap _document = TileMap.Empty;
     private Point _playerPosition;
     private bool _hasPlayer;
+    private int _cellSize = 32;
 
     public EmbeddedGameSurface()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.AppBackground;
+        BackColor = EditorTheme.Workspace;
         DoubleBuffered = true;
-        Padding = new Padding(20);
         TabStop = true;
     }
 
     public bool IsRunning { get; private set; }
+
+    public int CellSize
+    {
+        get => _cellSize;
+        set
+        {
+            _cellSize = Math.Clamp(value, 16, 48);
+            Invalidate();
+        }
+    }
 
     public void LoadDocument(TileMap document, bool preserveRunState = false)
     {
@@ -106,114 +106,75 @@ public sealed class EmbeddedGameSurface : Control
     {
         base.OnPaint(e);
 
-        e.Graphics.Clear(EditorTheme.AppBackground);
+        e.Graphics.Clear(EditorTheme.Workspace);
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-        var chrome = new Rectangle(ChromeMargin, ChromeMargin, Width - ChromeMargin * 2, Height - ChromeMargin * 2);
-        if (chrome.Width <= 0 || chrome.Height <= 0)
+        var mapPixelWidth = (_document.Width * _cellSize) + (CanvasPadding * 2);
+        var mapPixelHeight = (_document.Height * _cellSize) + (CanvasPadding * 2);
+        var ox = Math.Max(CanvasPadding, (Width - mapPixelWidth) / 2) + CanvasPadding;
+        var oy = Math.Max(CanvasPadding, (Height - mapPixelHeight) / 4) + CanvasPadding;
+
+        e.Graphics.TranslateTransform(ox, oy);
+
+        for (var y = 0; y < _document.Height; y++)
         {
-            return;
-        }
-
-        using var panelBrush = new SolidBrush(EditorTheme.TerminalBackground);
-        using var border = new Pen(EditorTheme.Border);
-        using var chromePath = EditorTheme.CreateRoundedPath(chrome, 10);
-        e.Graphics.FillPath(panelBrush, chromePath);
-        e.Graphics.DrawPath(border, chromePath);
-
-        DrawHeader(e.Graphics, chrome);
-        DrawMap(e.Graphics, chrome);
-        DrawHud(e.Graphics, chrome);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _terminalFont.Dispose();
-            _hudFont.Dispose();
-            _titleFont.Dispose();
-        }
-
-        base.Dispose(disposing);
-    }
-
-    private void DrawHeader(Graphics graphics, Rectangle chrome)
-    {
-        var header = new Rectangle(chrome.X, chrome.Y, chrome.Width, HeaderHeight);
-        using var headerBrush = new SolidBrush(EditorTheme.TerminalHeader);
-        graphics.FillRectangle(headerBrush, header);
-
-        TextRenderer.DrawText(
-            graphics,
-            "Terminalia Runtime",
-            _titleFont,
-            new Rectangle(header.X + 16, header.Y, header.Width - 32, header.Height),
-            EditorTheme.PrimaryText,
-            TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
-    }
-
-    private void DrawMap(Graphics graphics, Rectangle chrome)
-    {
-        var origin = new Point(chrome.X + 22, chrome.Y + MapTopOffset);
-        var lineHeight = TextRenderer.MeasureText("M", _terminalFont).Height + 2;
-        var visibleRows = Math.Max(1, (chrome.Height - MapReservedVert) / lineHeight);
-        var rows = Math.Min(_document.Height, visibleRows);
-
-        for (var y = 0; y < rows; y++)
-        {
-            var xOffset = origin.X;
             for (var x = 0; x < _document.Width; x++)
             {
-                var tile = _document.GetTile(x, y);
-                var visibleTile = _hasPlayer && _playerPosition.X == x && _playerPosition.Y == y
-                    ? '@'
-                    : tile == '@' ? '.' : tile;
-                var textSize = TextRenderer.MeasureText(visibleTile.ToString(), _terminalFont);
-                TextRenderer.DrawText(
-                    graphics,
-                    visibleTile.ToString(),
-                    _terminalFont,
-                    new Point(xOffset, origin.Y + (y * lineHeight)),
-                    GetTerminalTileColor(visibleTile));
-                xOffset += textSize.Width + KerningAdjust;
-
-                if (xOffset > chrome.Right - HudInset - 6)
-                {
-                    break;
-                }
+                DrawCell(e.Graphics, x, y, GetVisibleTile(x, y));
             }
         }
     }
 
-    private void DrawHud(Graphics graphics, Rectangle chrome)
+    private char GetVisibleTile(int x, int y)
     {
-        var hudTop = Math.Max(chrome.Bottom - HudHeight, chrome.Y + MapTopOffset + HudHeight / 4);
-        var hud = new Rectangle(chrome.X + HudInset, hudTop, chrome.Width - HudInset * 2, chrome.Bottom - hudTop - HudBottomMargin);
-        using var hudBrush = new SolidBrush(EditorTheme.Section);
-        using var border = new Pen(EditorTheme.Border);
-        using var hudPath = EditorTheme.CreateRoundedPath(hud, 8);
-        graphics.FillPath(hudBrush, hudPath);
-        graphics.DrawPath(border, hudPath);
+        if (_hasPlayer && _playerPosition.X == x && _playerPosition.Y == y)
+            return '@';
+        var tile = _document.GetTile(x, y);
+        return tile == '@' ? '.' : tile;
+    }
 
-        var lines = new[]
+    private void DrawCell(Graphics graphics, int x, int y, char tile)
+    {
+        var bounds = new Rectangle(x * _cellSize, y * _cellSize, _cellSize, _cellSize);
+
+        using var background = new SolidBrush(GetTileColor(tile));
+        using var border = new Pen(EditorTheme.GridLine);
+        using var tileFont = GetTileFont();
+        using var textBrush = new SolidBrush(GetTileTextColor(tile));
+        using var format = new StringFormat
         {
-            $"Map: {_document.Name}",
-            $"Size: {_document.Width}x{_document.Height}",
-            IsRunning ? "Running in editor" : "Paused",
-            _hasPlayer ? "Move: WASD or arrows" : "Add a player spawn (@)"
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center,
+            FormatFlags = StringFormatFlags.NoClip
         };
 
-        for (var i = 0; i < lines.Length; i++)
-        {
-            TextRenderer.DrawText(
-                graphics,
-                lines[i],
-                _hudFont,
-                new Rectangle(hud.X + 12, hud.Y + 10 + (i * 20), hud.Width - 24, 20),
-                i == 0 ? EditorTheme.PrimaryText : EditorTheme.SecondaryText,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
-        }
+        graphics.FillRectangle(background, bounds);
+        graphics.DrawRectangle(border, bounds);
+        graphics.DrawString(tile.ToString(), tileFont, textBrush, bounds, format);
+    }
+
+    private static Color GetTileColor(char tile) => tile switch
+    {
+        '#' => Color.FromArgb(30, 30, 30),
+        '.' => Color.FromArgb(8, 8, 8),
+        '@' => Color.FromArgb(18, 18, 18),
+        '*' => Color.FromArgb(22, 22, 22),
+        _ => EditorTheme.Section
+    };
+
+    private static Color GetTileTextColor(char tile) => tile switch
+    {
+        '#' => Color.FromArgb(230, 230, 230),
+        '.' => Color.FromArgb(86, 86, 86),
+        '@' => Color.FromArgb(255, 255, 255),
+        '*' => Color.FromArgb(214, 214, 214),
+        _ => EditorTheme.PrimaryText
+    };
+
+    private Font GetTileFont()
+    {
+        var size = Math.Max(7, _cellSize * 0.45f);
+        return new Font(FontFamily.GenericMonospace, size, FontStyle.Bold);
     }
 
     private bool TryFindPlayerSpawn(out Point playerPosition)
@@ -238,17 +199,5 @@ public sealed class EmbeddedGameSurface : Control
     {
         StopGame();
         return Point.Empty;
-    }
-
-    private static Color GetTerminalTileColor(char tile)
-    {
-        return tile switch
-        {
-            '#' => Color.FromArgb(230, 230, 230),
-            '.' => Color.FromArgb(86, 86, 86),
-            '@' => Color.FromArgb(255, 255, 255),
-            '*' => Color.FromArgb(214, 214, 214),
-            _ => EditorTheme.PrimaryText
-        };
     }
 }

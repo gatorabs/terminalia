@@ -3,6 +3,7 @@ namespace Terminalia.Editor;
 public sealed class EditorShell : UserControl
 {
     private readonly Panel _mainHost = new();
+    private Panel _canvasScroll = new();
     private ClickOutsideFilter? _clickOutsideFilter;
 
     public EditorShell()
@@ -18,34 +19,37 @@ public sealed class EditorShell : UserControl
         Inspector.Dock = DockStyle.None;
         Canvas = new MapCanvas();
         Runtime = new EmbeddedGameSurface();
+        Runtime.Visible = false;
         StatusLabel = BuildStatusLabel();
 
-        var canvasPanel = new Panel
+        _canvasScroll = new Panel
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
             BackColor = EditorTheme.Workspace,
             Padding = new Padding(EditorTheme.CanvasPadding)
         };
-        EditorTheme.ApplyDarkScrollBars(canvasPanel);
-        canvasPanel.Controls.Add(Canvas);
-        canvasPanel.Resize += (_, _) => CenterCanvas(canvasPanel);
-        canvasPanel.MouseWheel += (_, e) => Canvas.CellSize += e.Delta > 0 ? 4 : -4;
-        Canvas.SizeChanged += (_, _) => CenterCanvas(canvasPanel);
+        EditorTheme.ApplyDarkScrollBars(_canvasScroll);
+        _canvasScroll.Controls.Add(Canvas);
+        _canvasScroll.Resize += (_, _) => CenterCanvas(_canvasScroll);
+        _canvasScroll.MouseWheel += (_, e) => Canvas.CellSize += e.Delta > 0 ? 4 : -4;
+        Canvas.SizeChanged += (_, _) => CenterCanvas(_canvasScroll);
+
+        var contentHost = new Panel { Dock = DockStyle.Fill };
+        contentHost.Controls.Add(Runtime);
+        contentHost.Controls.Add(_canvasScroll);
 
         var mainLayout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 3,
+            ColumnCount = 2,
             RowCount = 1,
             BackColor = EditorTheme.AppBackground
         };
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, EditorTheme.CommandBarWidth));
-        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72));
-        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28));
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         mainLayout.Controls.Add(CommandBar, 0, 0);
-        mainLayout.Controls.Add(canvasPanel, 1, 0);
-        mainLayout.Controls.Add(Runtime, 2, 0);
+        mainLayout.Controls.Add(contentHost, 1, 0);
 
         _mainHost.Dock = DockStyle.Fill;
         _mainHost.BackColor = EditorTheme.AppBackground;
@@ -94,6 +98,21 @@ public sealed class EditorShell : UserControl
     public void SetStatus(string text)
     {
         StatusLabel.Text = text;
+    }
+
+    public void EnterGameMode()
+    {
+        Inspector.Visible = false;
+        Runtime.CellSize = Canvas.CellSize;
+        _canvasScroll.Visible = false;
+        Runtime.Visible = true;
+        Runtime.BringToFront();
+    }
+
+    public void ExitGameMode()
+    {
+        Runtime.Visible = false;
+        _canvasScroll.Visible = true;
     }
 
     public void ToggleInspectorSection(InspectorSection section)

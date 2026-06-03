@@ -10,8 +10,8 @@ public sealed class InspectorPanel : UserControl
     private readonly NumericUpDown _heightInput = new();
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
-    private readonly Button _runEmbeddedButton = EditorTheme.CreateButton("Run in editor", primary: true);
-    private readonly Button _resetEmbeddedButton = EditorTheme.CreateButton("Reset embedded");
+    private readonly Button _runEmbeddedButton = EditorTheme.CreateButton("Run", primary: true);
+    private readonly Button _resetEmbeddedButton = EditorTheme.CreateButton("Reset");
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
@@ -49,7 +49,7 @@ public sealed class InspectorPanel : UserControl
 
     public void SetRunState(bool isRunning)
     {
-        _runEmbeddedButton.Text = isRunning ? "Pause embedded" : "Run in editor";
+        _runEmbeddedButton.Text = isRunning ? "Stop" : "Run";
     }
 
     public void SelectTile(char tile)

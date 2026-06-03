@@ -47,6 +47,8 @@ public sealed class MainForm : Form
             if (_shell.Runtime.TryHandleInput(keyCode))
             {
                 _shell.Inspector.SetRunState(_shell.Runtime.IsRunning);
+                if (!_shell.Runtime.IsRunning)
+                    _shell.ExitGameMode();
                 UpdateStatus();
                 return true;
             }
@@ -110,6 +112,13 @@ public sealed class MainForm : Form
 
     private void LoadDocument(Terminalia.Assets.Json.MapAssetDocument document, string? currentFile, bool markClean)
     {
+        if (_shell.Runtime.IsRunning)
+        {
+            _shell.Runtime.StopGame();
+            _shell.ExitGameMode();
+            _shell.Inspector.SetRunState(false);
+        }
+
         _state.Document = document;
         _state.CurrentFile = currentFile;
         _shell.Canvas.LoadDocument(document);
@@ -366,10 +375,12 @@ public sealed class MainForm : Form
         if (_shell.Runtime.IsRunning)
         {
             _shell.Runtime.StopGame();
+            _shell.ExitGameMode();
         }
         else
         {
             _shell.Runtime.StartGame();
+            _shell.EnterGameMode();
             _shell.Runtime.Focus();
         }
 
