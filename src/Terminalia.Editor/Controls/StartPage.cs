@@ -69,6 +69,8 @@ public sealed class StartPage : UserControl
 
         private int _selected = 0;
         private Rectangle[] _rowRects = [];
+        private bool _cursorVisible = true;
+        private readonly System.Windows.Forms.Timer _blinkTimer = new() { Interval = 530 };
 
         public event EventHandler<int>? ItemFired;
 
@@ -81,6 +83,15 @@ public sealed class StartPage : UserControl
 
             var totalH = LogoH + SepH + Labels.Length * RowH + Gap + SepH + NavH;
             Size = new Size(W + 24, totalH);
+
+            _blinkTimer.Tick += (_, _) => { _cursorVisible = !_cursorVisible; Invalidate(); };
+            _blinkTimer.Start();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _blinkTimer.Dispose();
+            base.Dispose(disposing);
         }
 
         protected override bool IsInputKey(Keys keyData) =>
@@ -92,11 +103,11 @@ public sealed class StartPage : UserControl
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    if (_selected > 0) { _selected--; Invalidate(); }
+                    if (_selected > 0) { _selected--; ResetBlink(); }
                     e.Handled = true;
                     break;
                 case Keys.Down:
-                    if (_selected < Labels.Length - 1) { _selected++; Invalidate(); }
+                    if (_selected < Labels.Length - 1) { _selected++; ResetBlink(); }
                     e.Handled = true;
                     break;
                 case Keys.Enter:
@@ -113,7 +124,7 @@ public sealed class StartPage : UserControl
             {
                 if (!_rowRects[i].Contains(e.Location)) continue;
                 Cursor = Cursors.Hand;
-                if (_selected != i) { _selected = i; Invalidate(); }
+                if (_selected != i) { _selected = i; ResetBlink(); }
                 return;
             }
             Cursor = Cursors.Default;
@@ -158,7 +169,7 @@ public sealed class StartPage : UserControl
                 _rowRects[i] = new Rectangle(-4, y, W + 4, RowH);
                 var sel = i == _selected;
 
-                if (sel)
+                if (sel && _cursorVisible)
                 {
                     TextRenderer.DrawText(g, ">", CmdFont,
                         new Rectangle(0, y, 16, RowH),
@@ -185,6 +196,14 @@ public sealed class StartPage : UserControl
                 new Rectangle(0, y, W, NavH),
                 Color.FromArgb(38, 255, 255, 255),
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+
+        private void ResetBlink()
+        {
+            _cursorVisible = true;
+            _blinkTimer.Stop();
+            _blinkTimer.Start();
+            Invalidate();
         }
 
         private static void DrawSep(Graphics g, int x, int y, int width)
