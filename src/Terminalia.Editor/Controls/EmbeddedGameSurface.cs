@@ -108,8 +108,9 @@ public sealed class EmbeddedGameSurface : Control
 
         using var panelBrush = new SolidBrush(EditorTheme.TerminalBackground);
         using var border = new Pen(EditorTheme.Border);
-        e.Graphics.FillRectangle(panelBrush, chrome);
-        e.Graphics.DrawRectangle(border, chrome);
+        using var chromePath = EditorTheme.CreateRoundedPath(chrome, 10);
+        e.Graphics.FillPath(panelBrush, chromePath);
+        e.Graphics.DrawPath(border, chromePath);
 
         DrawHeader(e.Graphics, chrome);
         DrawMap(e.Graphics, chrome);
@@ -180,10 +181,11 @@ public sealed class EmbeddedGameSurface : Control
     {
         var hudTop = Math.Max(chrome.Bottom - 104, chrome.Y + 120);
         var hud = new Rectangle(chrome.X + 18, hudTop, chrome.Width - 36, chrome.Bottom - hudTop - 16);
-        using var hudBrush = new SolidBrush(Color.FromArgb(24, 33, 42));
-        using var border = new Pen(Color.FromArgb(53, 65, 80));
-        graphics.FillRectangle(hudBrush, hud);
-        graphics.DrawRectangle(border, hud);
+        using var hudBrush = new SolidBrush(EditorTheme.Section);
+        using var border = new Pen(EditorTheme.Border);
+        using var hudPath = EditorTheme.CreateRoundedPath(hud, 8);
+        graphics.FillPath(hudBrush, hudPath);
+        graphics.DrawPath(border, hudPath);
 
         var lines = new[]
         {
@@ -200,7 +202,7 @@ public sealed class EmbeddedGameSurface : Control
                 lines[i],
                 _hudFont,
                 new Rectangle(hud.X + 12, hud.Y + 10 + (i * 20), hud.Width - 24, 20),
-                i == 0 ? Color.FromArgb(147, 197, 253) : Color.FromArgb(203, 213, 225),
+                i == 0 ? EditorTheme.PrimaryText : EditorTheme.SecondaryText,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
     }
@@ -233,10 +235,10 @@ public sealed class EmbeddedGameSurface : Control
     {
         return tile switch
         {
-            '#' => Color.FromArgb(148, 163, 184),
-            '.' => Color.FromArgb(71, 85, 105),
-            '@' => Color.FromArgb(96, 165, 250),
-            '*' => Color.FromArgb(250, 204, 21),
+            '#' => Color.FromArgb(230, 230, 230),
+            '.' => Color.FromArgb(86, 86, 86),
+            '@' => Color.FromArgb(255, 255, 255),
+            '*' => Color.FromArgb(214, 214, 214),
             _ => EditorTheme.PrimaryText
         };
     }

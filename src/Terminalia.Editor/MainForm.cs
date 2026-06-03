@@ -6,6 +6,8 @@ public sealed class MainForm : Form
 {
     private readonly EditorFileService _fileService = new();
     private readonly EditorShell _shell = new();
+    private readonly StartPage _startPage = new();
+    private readonly LoadingOverlay _loadingOverlay = new();
     private readonly EditorState _state = new();
 
     public MainForm()
@@ -18,9 +20,12 @@ public sealed class MainForm : Form
         KeyPreview = true;
         TryUseDarkTitleBar();
 
+        _shell.Visible = false;
         Controls.Add(_shell);
+        Controls.Add(_startPage);
+        Controls.Add(_loadingOverlay);
+        _loadingOverlay.BringToFront();
         WireEvents();
-        LoadDocument(_fileService.CreateDefaultMap(), currentFile: null, markClean: true);
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
@@ -56,9 +61,13 @@ public sealed class MainForm : Form
         _shell.CommandBar.OpenRequested += (_, _) => OpenMap();
         _shell.CommandBar.SaveRequested += (_, _) => SaveMap();
         _shell.CommandBar.SaveAsRequested += (_, _) => SaveMapAs();
-        _shell.CommandBar.OpenSampleRequested += (_, _) => OpenSampleMap();
-        _shell.CommandBar.SaveSampleRequested += (_, _) => SaveToSampleMap(showConfirmation: true);
-        _shell.CommandBar.RunExternalRequested += (_, _) => PlaytestSample();
+        _shell.CommandBar.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
+        _shell.CommandBar.SaveSampleRequested += async (_, _) => await SaveSampleMapWithLoadingAsync();
+        _shell.CommandBar.RunExternalRequested += async (_, _) => await PlaytestSampleWithLoadingAsync();
+
+        _startPage.NewMapRequested += (_, _) => NewMap();
+        _startPage.OpenMapRequested += (_, _) => OpenMap();
+        _startPage.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
 
         _shell.Inspector.ApplyMapPropertiesRequested += (_, args) => ApplyMapProperties(args);
         _shell.Inspector.ZoomChanged += (_, zoom) => _shell.Canvas.CellSize = zoom;
@@ -103,6 +112,7 @@ public sealed class MainForm : Form
         _shell.Canvas.LoadDocument(document);
         _shell.Runtime.LoadDocument(document);
         _shell.Inspector.LoadDocument(document);
+        ShowEditor();
 
         if (markClean)
         {
@@ -198,12 +208,44 @@ public sealed class MainForm : Form
         LoadDocument(_fileService.LoadMap(sampleMapPath), sampleMapPath, markClean: true);
     }
 
+    private async Task OpenSampleMapWithLoadingAsync()
+    {
+        if (!ConfirmCanDiscardChanges())
+        {
+            return;
+        }
+
+        await RunWithLoadingAsync(
+            "Opening sample...",
+            () =>
+            {
+                var sampleMapPath = _fileService.GetSampleMapPath();
+                if (sampleMapPath is null)
+                {
+                    return false;
+                }
+
+                LoadDocument(_fileService.LoadMap(sampleMapPath), sampleMapPath, markClean: true);
+                return true;
+            },
+            ShowRepositoryNotFound);
+    }
+
     private bool SaveToSampleMap(bool showConfirmation)
+    {
+        return SaveToSampleMap(showConfirmation, showRepositoryMessage: true);
+    }
+
+    private bool SaveToSampleMap(bool showConfirmation, bool showRepositoryMessage)
     {
         var sampleMapPath = _fileService.GetSampleMapPath();
         if (sampleMapPath is null)
         {
-            ShowRepositoryNotFound();
+            if (showRepositoryMessage)
+            {
+                ShowRepositoryNotFound();
+            }
+
             return false;
         }
 
@@ -220,6 +262,15 @@ public sealed class MainForm : Form
         return true;
     }
 
+    private async Task SaveSampleMapWithLoadingAsync()
+    {
+        var saved = await RunWithLoadingAsync("Saving sample...", () => SaveToSampleMap(showConfirmation: false, showRepositoryMessage: false), ShowRepositoryNotFound);
+        if (saved)
+        {
+            MessageBox.Show(this, "Sample map saved.", "Terminalia Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+
     private void PlaytestSample()
     {
         if (!SaveToSampleMap(showConfirmation: false))
@@ -231,6 +282,69 @@ public sealed class MainForm : Form
         {
             ShowRepositoryNotFound();
         }
+    }
+
+    private async Task PlaytestSampleWithLoadingAsync()
+    {
+        await RunWithLoadingAsync("Launching game...", PlaytestSampleStarted, ShowRepositoryNotFound);
+    }
+
+    private bool PlaytestSampleStarted()
+    {
+        return SaveToSampleMap(showConfirmation: false, showRepositoryMessage: false) && _fileService.PlaytestSample();
+    }
+
+    private async Task<bool> RunWithLoadingAsync(string message, Func<bool> action, Action onFailure)
+    {
+        _loadingOverlay.ShowLoading(message);
+        _shell.Enabled = false;
+        _startPage.Enabled = false;
+        var succeeded = false;
+        Exception? failure = null;
+
+        try
+        {
+            await Task.Delay(140);
+            succeeded = action();
+            await Task.Delay(120);
+        }
+        catch (Exception ex)
+        {
+            failure = ex;
+        }
+        finally
+        {
+            _shell.Enabled = true;
+            _startPage.Enabled = true;
+            _loadingOverlay.HideLoading();
+            _loadingOverlay.SendToBack();
+        }
+
+        if (failure is not null)
+        {
+            MessageBox.Show(this, failure.Message, "Terminalia Editor", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+
+        if (!succeeded)
+        {
+            onFailure();
+        }
+
+        return succeeded;
+    }
+
+    private void ShowEditor()
+    {
+        if (_shell.Visible)
+        {
+            return;
+        }
+
+        _shell.Visible = true;
+        _startPage.Visible = false;
+        _shell.BringToFront();
+        _loadingOverlay.BringToFront();
     }
 
     private void ApplyMapProperties(MapPropertiesChangedEventArgs args)

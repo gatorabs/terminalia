@@ -21,6 +21,8 @@ public sealed class EditorShell : UserControl
             Padding = new Padding(22)
         };
         canvasPanel.Controls.Add(Canvas);
+        canvasPanel.Resize += (_, _) => CenterCanvas(canvasPanel);
+        Canvas.SizeChanged += (_, _) => CenterCanvas(canvasPanel);
 
         var mainLayout = new TableLayoutPanel
         {
@@ -31,7 +33,7 @@ public sealed class EditorShell : UserControl
         };
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 380));
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 370));
         mainLayout.Controls.Add(Inspector, 0, 0);
         mainLayout.Controls.Add(canvasPanel, 1, 0);
         mainLayout.Controls.Add(Runtime, 2, 0);
@@ -79,5 +81,12 @@ public sealed class EditorShell : UserControl
             BackColor = EditorTheme.StatusBar,
             ForeColor = EditorTheme.SecondaryText
         };
+    }
+
+    private void CenterCanvas(ScrollableControl canvasPanel)
+    {
+        var x = Math.Max(22, (canvasPanel.ClientSize.Width - Canvas.Width) / 2);
+        var y = Math.Max(22, (canvasPanel.ClientSize.Height - Canvas.Height) / 4);
+        Canvas.Location = new Point(x, y);
     }
 }

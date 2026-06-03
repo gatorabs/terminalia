@@ -232,10 +232,10 @@ public sealed class MapCanvas : Control
     {
         return tile switch
         {
-            '#' => Color.FromArgb(30, 41, 54),
-            '.' => Color.FromArgb(15, 23, 32),
-            '@' => Color.FromArgb(16, 42, 66),
-            '*' => Color.FromArgb(58, 45, 15),
+            '#' => Color.FromArgb(30, 30, 30),
+            '.' => Color.FromArgb(8, 8, 8),
+            '@' => Color.FromArgb(18, 18, 18),
+            '*' => Color.FromArgb(22, 22, 22),
             _ => EditorTheme.Section
         };
     }
@@ -244,10 +244,10 @@ public sealed class MapCanvas : Control
     {
         return tile switch
         {
-            '#' => Color.FromArgb(148, 163, 184),
-            '.' => Color.FromArgb(71, 85, 105),
-            '@' => Color.FromArgb(96, 165, 250),
-            '*' => Color.FromArgb(250, 204, 21),
+            '#' => Color.FromArgb(230, 230, 230),
+            '.' => Color.FromArgb(86, 86, 86),
+            '@' => Color.FromArgb(255, 255, 255),
+            '*' => Color.FromArgb(214, 214, 214),
             _ => EditorTheme.PrimaryText
         };
     }

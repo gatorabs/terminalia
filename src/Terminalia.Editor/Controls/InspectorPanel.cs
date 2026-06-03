@@ -183,8 +183,13 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 4,
-            Padding = new Padding(0, 6, 0, 0)
+            Padding = new Padding(0, 6, 0, 0),
+            BackColor = EditorTheme.Section
         };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
 
         layout.Controls.Add(CreateTileButton("#  Wall", '#'), 0, 0);
         layout.Controls.Add(CreateTileButton(".  Floor", '.'), 0, 1);
@@ -200,8 +205,11 @@ public sealed class InspectorPanel : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
-            Padding = new Padding(0, 6, 0, 0)
+            Padding = new Padding(0, 6, 0, 0),
+            BackColor = EditorTheme.Section
         };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
 
         _runEmbeddedButton.Dock = DockStyle.Top;
         _resetEmbeddedButton.Dock = DockStyle.Top;
@@ -215,18 +223,15 @@ public sealed class InspectorPanel : UserControl
 
     private static Panel CreateSection(string title, Control content, int height)
     {
-        var section = new Panel
+        var section = new RoundedPanel
         {
             Dock = DockStyle.Top,
             Height = height,
-            BackColor = EditorTheme.Section,
+            FillColor = EditorTheme.Section,
+            BorderColor = EditorTheme.BorderSoft,
+            CornerRadius = EditorTheme.CornerRadius,
             Padding = new Padding(12),
             Margin = new Padding(0, 0, 0, 10)
-        };
-        section.Paint += (_, e) =>
-        {
-            using var border = new Pen(EditorTheme.Border);
-            e.Graphics.DrawRectangle(border, 0, 0, section.Width - 1, section.Height - 1);
         };
 
         var label = new Label
@@ -236,6 +241,7 @@ public sealed class InspectorPanel : UserControl
             Height = 24,
             Font = EditorTheme.SectionFont,
             ForeColor = EditorTheme.PrimaryText,
+            BackColor = EditorTheme.Section,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
