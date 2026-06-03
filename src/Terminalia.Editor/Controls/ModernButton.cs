@@ -25,6 +25,7 @@ public sealed class ModernButton : Button
         BackColor = Color.Transparent;
         ForeColor = EditorTheme.PrimaryText;
         Cursor = Cursors.Hand;
+        Font = EditorTheme.UiFont;
         UseVisualStyleBackColor = false;
         TextAlign = ContentAlignment.MiddleCenter;
 

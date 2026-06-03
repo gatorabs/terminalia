@@ -13,7 +13,7 @@ public sealed class MainForm : Form
     public MainForm()
     {
         Text = "Terminalia Editor";
-        MinimumSize = new Size(1180, 720);
+        MinimumSize = new Size(900, 600);
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = EditorTheme.AppBackground;
         Font = EditorTheme.UiFont;
@@ -64,6 +64,11 @@ public sealed class MainForm : Form
         _shell.CommandBar.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
         _shell.CommandBar.SaveSampleRequested += async (_, _) => await SaveSampleMapWithLoadingAsync();
         _shell.CommandBar.RunExternalRequested += async (_, _) => await PlaytestSampleWithLoadingAsync();
+        _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
+        _shell.CommandBar.ViewPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.View);
+        _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
+        _shell.CommandBar.PalettePanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Palette);
+        _shell.CommandBar.RunPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Run);
 
         _startPage.NewMapRequested += (_, _) => NewMap();
         _startPage.OpenMapRequested += (_, _) => OpenMap();

@@ -30,7 +30,7 @@ public sealed class StartPage : UserControl
     };
     private readonly Font _titleFont = new(FontFamily.GenericMonospace, 22, FontStyle.Bold);
     private readonly Font _subtitleFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
-    private readonly Font _bodyFont = new("Segoe UI", 9, FontStyle.Regular);
+    private readonly Font _bodyFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
 
     public StartPage()
     {
@@ -60,7 +60,7 @@ public sealed class StartPage : UserControl
         base.OnLayout(e);
 
         var panelWidth = Math.Min(560, Width - 80);
-        var panelHeight = 360;
+        var panelHeight = Math.Min(360, (int)(Height * 0.65));
         _panel.Bounds = new Rectangle(
             Math.Max(40, (Width - panelWidth) / 2),
             Math.Max(60, (Height - panelHeight) / 2),
@@ -69,10 +69,12 @@ public sealed class StartPage : UserControl
 
         var buttonWidth = Math.Min(240, _panel.Width - 56);
         var buttonLeft = _panel.Width - _panel.Padding.Right - buttonWidth;
-        var buttonTop = 184;
-        _newButton.Bounds = new Rectangle(buttonLeft, buttonTop, buttonWidth, 38);
-        _openButton.Bounds = new Rectangle(buttonLeft, buttonTop + 50, buttonWidth, 38);
-        _sampleButton.Bounds = new Rectangle(buttonLeft, buttonTop + 100, buttonWidth, 38);
+        var buttonTop = Math.Max(100, _panel.Height - 176);
+        var buttonHeight = _newButton.Height;
+        var buttonStep = buttonHeight + 12;
+        _newButton.Bounds = new Rectangle(buttonLeft, buttonTop, buttonWidth, buttonHeight);
+        _openButton.Bounds = new Rectangle(buttonLeft, buttonTop + buttonStep, buttonWidth, buttonHeight);
+        _sampleButton.Bounds = new Rectangle(buttonLeft, buttonTop + buttonStep * 2, buttonWidth, buttonHeight);
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -154,7 +156,7 @@ public sealed class StartPage : UserControl
                 graphics,
                 lines[i],
                 i == 0 ? _subtitleFont : _bodyFont,
-                new Rectangle(32, 128 + (i * 22), _panel.Width - 312, 22),
+                new Rectangle(32, 128 + (i * 22), _panel.Width / 2 - 20, 22),
                 i == 0 ? EditorTheme.PrimaryText : EditorTheme.SecondaryText,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }

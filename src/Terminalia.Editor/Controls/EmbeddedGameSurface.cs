@@ -4,9 +4,18 @@ namespace Terminalia.Editor;
 
 public sealed class EmbeddedGameSurface : Control
 {
+    private const int ChromeMargin = 18;
+    private const int HeaderHeight = 42;
+    private const int MapTopOffset = 66;   // HeaderHeight + 24px gap below header
+    private const int HudHeight = 104;
+    private const int HudBottomMargin = 16;
+    private const int HudInset = 18;
+    private const int MapReservedVert = MapTopOffset + HudHeight; // vertical space reserved for header+hud
+    private const int KerningAdjust = -3;  // monospace glyph spacing correction
+
     private readonly Font _terminalFont = new(FontFamily.GenericMonospace, 14, FontStyle.Bold);
-    private readonly Font _hudFont = new("Segoe UI", 9, FontStyle.Regular);
-    private readonly Font _titleFont = new("Segoe UI Semibold", 11, FontStyle.Bold);
+    private readonly Font _hudFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
+    private readonly Font _titleFont = new(FontFamily.GenericMonospace, 11, FontStyle.Bold);
     private MapAssetDocument _document = MapAssetDocument.CreateDefault();
     private Point _playerPosition;
     private bool _hasPlayer;
@@ -100,7 +109,7 @@ public sealed class EmbeddedGameSurface : Control
         e.Graphics.Clear(EditorTheme.AppBackground);
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-        var chrome = new Rectangle(18, 18, Width - 36, Height - 36);
+        var chrome = new Rectangle(ChromeMargin, ChromeMargin, Width - ChromeMargin * 2, Height - ChromeMargin * 2);
         if (chrome.Width <= 0 || chrome.Height <= 0)
         {
             return;
@@ -131,7 +140,7 @@ public sealed class EmbeddedGameSurface : Control
 
     private void DrawHeader(Graphics graphics, Rectangle chrome)
     {
-        var header = new Rectangle(chrome.X, chrome.Y, chrome.Width, 42);
+        var header = new Rectangle(chrome.X, chrome.Y, chrome.Width, HeaderHeight);
         using var headerBrush = new SolidBrush(EditorTheme.TerminalHeader);
         graphics.FillRectangle(headerBrush, header);
 
@@ -146,9 +155,9 @@ public sealed class EmbeddedGameSurface : Control
 
     private void DrawMap(Graphics graphics, Rectangle chrome)
     {
-        var origin = new Point(chrome.X + 22, chrome.Y + 66);
+        var origin = new Point(chrome.X + 22, chrome.Y + MapTopOffset);
         var lineHeight = TextRenderer.MeasureText("M", _terminalFont).Height + 2;
-        var visibleRows = Math.Max(1, (chrome.Height - 170) / lineHeight);
+        var visibleRows = Math.Max(1, (chrome.Height - MapReservedVert) / lineHeight);
         var rows = Math.Min(_document.Height, visibleRows);
 
         for (var y = 0; y < rows; y++)
@@ -167,9 +176,9 @@ public sealed class EmbeddedGameSurface : Control
                     _terminalFont,
                     new Point(xOffset, origin.Y + (y * lineHeight)),
                     GetTerminalTileColor(visibleTile));
-                xOffset += textSize.Width - 3;
+                xOffset += textSize.Width + KerningAdjust;
 
-                if (xOffset > chrome.Right - 24)
+                if (xOffset > chrome.Right - HudInset - 6)
                 {
                     break;
                 }
@@ -179,8 +188,8 @@ public sealed class EmbeddedGameSurface : Control
 
     private void DrawHud(Graphics graphics, Rectangle chrome)
     {
-        var hudTop = Math.Max(chrome.Bottom - 104, chrome.Y + 120);
-        var hud = new Rectangle(chrome.X + 18, hudTop, chrome.Width - 36, chrome.Bottom - hudTop - 16);
+        var hudTop = Math.Max(chrome.Bottom - HudHeight, chrome.Y + MapTopOffset + HudHeight / 4);
+        var hud = new Rectangle(chrome.X + HudInset, hudTop, chrome.Width - HudInset * 2, chrome.Bottom - hudTop - HudBottomMargin);
         using var hudBrush = new SolidBrush(EditorTheme.Section);
         using var border = new Pen(EditorTheme.Border);
         using var hudPath = EditorTheme.CreateRoundedPath(hud, 8);

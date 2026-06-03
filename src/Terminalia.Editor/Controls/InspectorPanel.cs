@@ -4,6 +4,9 @@ namespace Terminalia.Editor;
 
 public sealed class InspectorPanel : UserControl
 {
+    private readonly Dictionary<InspectorSection, Control> _sections = [];
+    private readonly Dictionary<InspectorSection, int> _sectionHeights = [];
+    private readonly TableLayoutPanel _stack = new();
     private readonly TextBox _nameTextBox = new();
     private readonly NumericUpDown _widthInput = new();
     private readonly NumericUpDown _heightInput = new();
@@ -24,6 +27,7 @@ public sealed class InspectorPanel : UserControl
     {
         Dock = DockStyle.Fill;
         BackColor = EditorTheme.Navigation;
+        Font = EditorTheme.UiFont;
         Padding = new Padding(12);
 
         var scrollHost = new Panel
@@ -34,25 +38,23 @@ public sealed class InspectorPanel : UserControl
             Padding = new Padding(0)
         };
 
-        var stack = new TableLayoutPanel
-        {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            ColumnCount = 1,
-            BackColor = EditorTheme.Navigation,
-            Padding = new Padding(0)
-        };
+        _stack.Dock = DockStyle.Top;
+        _stack.AutoSize = true;
+        _stack.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _stack.ColumnCount = 1;
+        _stack.BackColor = EditorTheme.Navigation;
+        _stack.Padding = new Padding(0);
 
-        stack.Controls.Add(BuildMapSection());
-        stack.Controls.Add(BuildViewSection());
-        stack.Controls.Add(BuildToolSection());
-        stack.Controls.Add(BuildPaletteSection());
-        stack.Controls.Add(BuildRunSection());
+        AddSection(InspectorSection.Map, BuildMapSection(), 156);
+        AddSection(InspectorSection.View, BuildViewSection(), 112);
+        AddSection(InspectorSection.Tool, BuildToolSection(), 122);
+        AddSection(InspectorSection.Palette, BuildPaletteSection(), 202);
+        AddSection(InspectorSection.Run, BuildRunSection(), 132);
 
-        scrollHost.Controls.Add(stack);
-        scrollHost.Resize += (_, _) => stack.Width = scrollHost.ClientSize.Width;
+        scrollHost.Controls.Add(_stack);
+        scrollHost.Resize += (_, _) => _stack.Width = scrollHost.ClientSize.Width;
         Controls.Add(scrollHost);
+        SetActiveSection(InspectorSection.Map);
     }
 
     public void LoadDocument(MapAssetDocument document)
@@ -70,6 +72,24 @@ public sealed class InspectorPanel : UserControl
     public void SelectTile(char tile)
     {
         TileSelected?.Invoke(this, tile);
+    }
+
+    public InspectorSection ActiveSection { get; private set; } = InspectorSection.Map;
+
+    public int ActiveSectionHeight => _sectionHeights.TryGetValue(ActiveSection, out var height)
+        ? height + Padding.Vertical
+        : 220;
+
+    public void SetActiveSection(InspectorSection section)
+    {
+        ActiveSection = section;
+        foreach (var (key, control) in _sections)
+        {
+            control.Visible = key == section;
+        }
+
+        Height = ActiveSectionHeight;
+        Invalidate();
     }
 
     private Control BuildMapSection()
@@ -267,6 +287,7 @@ public sealed class InspectorPanel : UserControl
         radioButton.Text = text;
         radioButton.Checked = isChecked;
         radioButton.Dock = DockStyle.Fill;
+        radioButton.Font = EditorTheme.UiFont;
         radioButton.BackColor = EditorTheme.Section;
         radioButton.ForeColor = EditorTheme.PrimaryText;
         radioButton.Margin = new Padding(0, 0, 0, 4);
@@ -281,6 +302,22 @@ public sealed class InspectorPanel : UserControl
         button.Click += (_, _) => TileSelected?.Invoke(this, tile);
         return button;
     }
+
+    private void AddSection(InspectorSection section, Control control, int height)
+    {
+        _sections[section] = control;
+        _sectionHeights[section] = height;
+        _stack.Controls.Add(control);
+    }
+}
+
+public enum InspectorSection
+{
+    Map,
+    View,
+    Tool,
+    Palette,
+    Run
 }
 
 public sealed class MapPropertiesChangedEventArgs(string name, int width, int height) : EventArgs

@@ -30,18 +30,29 @@ internal static class EditorTheme
     public static readonly Color AccentPressed = Color.FromArgb(188, 188, 188);
     public static readonly Color TerminalBackground = Color.FromArgb(2, 2, 2);
     public static readonly Color TerminalHeader = Color.FromArgb(12, 12, 12);
-    public static readonly Font UiFont = new("Segoe UI", 9, FontStyle.Regular);
-    public static readonly Font SectionFont = new("Segoe UI Semibold", 9, FontStyle.Bold);
+    public static readonly Font UiFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
+    public static readonly Font SectionFont = new(FontFamily.GenericMonospace, 9, FontStyle.Bold);
+    public static readonly Font SmallFont = new(FontFamily.GenericMonospace, 8, FontStyle.Regular);
+    public static readonly Font TitleFont = new(FontFamily.GenericMonospace, 14, FontStyle.Bold);
     public const int CornerRadius = 10;
     public const int ButtonRadius = 8;
     public const int AnimationInterval = 15;
+
+    // Layout
+    public const int CommandBarWidth = 76;
+    public const int CommandSize = 42;
+    public const int CommandGap = 8;
+    public const int CommandPadding = 12;
+    public const int BrandSectionHeight = 88;
+    public const int InspectorWidth = 282;
+    public const int StatusBarHeight = 30;
+    public const int CanvasPadding = 16;
 
     public static Button CreateButton(string text, bool primary = false)
     {
         return new ModernButton
         {
             Text = text,
-            Height = 32,
             Font = UiFont,
             Padding = new Padding(8, 0, 8, 0),
             IsPrimary = primary
@@ -88,6 +99,7 @@ internal static class EditorTheme
             Text = text,
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleLeft,
+            Font = UiFont,
             ForeColor = SecondaryText
         };
     }
@@ -97,6 +109,7 @@ internal static class EditorTheme
         textBox.BorderStyle = BorderStyle.FixedSingle;
         textBox.BackColor = InputBackground;
         textBox.ForeColor = PrimaryText;
+        textBox.Font = UiFont;
     }
 
     public static void StyleNumberInput(NumericUpDown input)
@@ -104,5 +117,6 @@ internal static class EditorTheme
         input.BorderStyle = BorderStyle.FixedSingle;
         input.BackColor = InputBackground;
         input.ForeColor = PrimaryText;
+        input.Font = UiFont;
     }
 }

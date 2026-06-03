@@ -25,8 +25,8 @@ public sealed class ToolbarCommand : Control
         ForeColor = EditorTheme.PrimaryText;
         Cursor = Cursors.Hand;
         Font = EditorTheme.UiFont;
-        Size = new Size(96, 34);
-        MinimumSize = new Size(72, 34);
+        Size = new Size(EditorTheme.CommandSize, EditorTheme.CommandSize);
+        MinimumSize = Size.Empty;
 
         _currentBackColor = EditorTheme.CommandBackground;
         _targetBackColor = _currentBackColor;
@@ -38,6 +38,8 @@ public sealed class ToolbarCommand : Control
     public string Caption { get; set; } = string.Empty;
 
     public string Shortcut { get; set; } = string.Empty;
+
+    public string IconGlyph { get; set; } = string.Empty;
 
     public bool IsPrimary
     {
@@ -102,6 +104,13 @@ public sealed class ToolbarCommand : Control
     {
         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
+        if (!Enabled && Tag is not null)
+        {
+            using var separator = new Pen(EditorTheme.BorderSoft);
+            e.Graphics.DrawLine(separator, 10, Height / 2, Width - 10, Height / 2);
+            return;
+        }
+
         var bounds = ClientRectangle;
         bounds.Inflate(-1, -1);
         if (_isPressed)
@@ -122,9 +131,18 @@ public sealed class ToolbarCommand : Control
 
         e.Graphics.DrawPath(border, path);
 
-        var dotBounds = new Rectangle(bounds.Left + 12, bounds.Top + 13, 7, 7);
-        using var dotBrush = new SolidBrush(IsPrimary ? Color.Black : EditorTheme.PrimaryText);
-        e.Graphics.FillEllipse(dotBrush, dotBounds);
+        if (!string.IsNullOrWhiteSpace(IconGlyph))
+        {
+            using var iconFont = new Font(FontFamily.GenericMonospace, IconGlyph.Length > 2 ? 9 : 10, FontStyle.Bold);
+            TextRenderer.DrawText(
+                e.Graphics,
+                IconGlyph,
+                iconFont,
+                bounds,
+                Enabled ? (IsPrimary ? Color.Black : EditorTheme.PrimaryText) : EditorTheme.SecondaryText,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+            return;
+        }
 
         var textBounds = new Rectangle(bounds.Left + 28, bounds.Top + 2, bounds.Width - 38, bounds.Height - 4);
         TextRenderer.DrawText(
