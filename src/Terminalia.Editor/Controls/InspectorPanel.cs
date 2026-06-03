@@ -6,8 +6,7 @@ public sealed class InspectorPanel : UserControl
 {
     private readonly Dictionary<InspectorSection, Control> _sections = [];
     private readonly Dictionary<InspectorSection, int> _sectionHeights = [];
-    private readonly TableLayoutPanel _stack = new();
-    private readonly Panel _scrollHost = new();
+    private readonly Panel _stack = new();
     private readonly TextBox _nameTextBox = new();
     private readonly NumericUpDown _widthInput = new();
     private readonly NumericUpDown _heightInput = new();
@@ -25,20 +24,13 @@ public sealed class InspectorPanel : UserControl
     public InspectorPanel()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.Navigation;
+        BackColor = Color.Transparent;
         Font = EditorTheme.UiFont;
-        Padding = new Padding(12);
-
-        _scrollHost.Dock = DockStyle.Fill;
-        _scrollHost.AutoScroll = true;
-        _scrollHost.BackColor = EditorTheme.Navigation;
-        _scrollHost.Padding = new Padding(0);
 
         _stack.Dock = DockStyle.Top;
         _stack.AutoSize = true;
         _stack.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _stack.ColumnCount = 1;
-        _stack.BackColor = EditorTheme.Navigation;
+        _stack.BackColor = EditorTheme.Section;
         _stack.Padding = new Padding(0);
 
         AddSection(InspectorSection.Map, BuildMapSection(), 160);
@@ -46,9 +38,7 @@ public sealed class InspectorPanel : UserControl
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 210);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
-        _scrollHost.Controls.Add(_stack);
-        _scrollHost.Resize += (_, _) => _stack.Width = _scrollHost.ClientSize.Width;
-        Controls.Add(_scrollHost);
+        Controls.Add(_stack);
         SetActiveSection(InspectorSection.Map);
     }
 
@@ -72,7 +62,7 @@ public sealed class InspectorPanel : UserControl
     public InspectorSection ActiveSection { get; private set; } = InspectorSection.Map;
 
     public int ActiveSectionHeight => _sectionHeights.TryGetValue(ActiveSection, out var height)
-        ? height + Padding.Vertical
+        ? height
         : 220;
 
     public void SetActiveSection(InspectorSection section)
@@ -83,7 +73,6 @@ public sealed class InspectorPanel : UserControl
             control.Visible = key == section;
         }
 
-        _scrollHost.AutoScrollPosition = Point.Empty;
         Height = ActiveSectionHeight;
         Invalidate();
     }
@@ -218,7 +207,6 @@ public sealed class InspectorPanel : UserControl
             Height = height,
             FillColor = EditorTheme.Section,
             BorderColor = EditorTheme.BorderSoft,
-            CornerRadius = EditorTheme.CornerRadius,
             Padding = new Padding(12),
             Margin = new Padding(0, 0, 0, 10)
         };

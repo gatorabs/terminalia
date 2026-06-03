@@ -310,6 +310,27 @@ public sealed class CommandBar : UserControl
             EditorTheme.PrimaryText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
+    public Rectangle GetPanelItemBounds(InspectorSection section)
+    {
+        var index = section switch
+        {
+            InspectorSection.Map => 0,
+            InspectorSection.Tool => 1,
+            InspectorSection.Palette => 2,
+            InspectorSection.Run => 3,
+            _ => -1
+        };
+        if (index < 0) return Rectangle.Empty;
+        var buttonIndex = 0;
+        foreach (var item in _items)
+        {
+            if (item.IsSeparator) continue;
+            if (buttonIndex == index) return item.Bounds;
+            buttonIndex++;
+        }
+        return Rectangle.Empty;
+    }
+
     private ToolbarCommand? HitTest(Point p)
     {
         foreach (var item in _items)

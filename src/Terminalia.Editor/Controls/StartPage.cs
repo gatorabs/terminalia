@@ -6,7 +6,6 @@ public sealed class StartPage : UserControl
     {
         FillColor = EditorTheme.Surface,
         BorderColor = EditorTheme.Border,
-        CornerRadius = 16,
         Padding = new Padding(28)
     };
 

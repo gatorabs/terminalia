@@ -3,6 +3,7 @@ namespace Terminalia.Editor;
 public sealed class EditorShell : UserControl
 {
     private readonly Panel _mainHost = new();
+    private ClickOutsideFilter? _clickOutsideFilter;
 
     public EditorShell()
     {
@@ -64,6 +65,19 @@ public sealed class EditorShell : UserControl
         shellLayout.Controls.Add(StatusLabel, 0, 1);
 
         Controls.Add(shellLayout);
+
+        HandleCreated += (_, _) =>
+        {
+            _clickOutsideFilter = new ClickOutsideFilter(Inspector, CommandBar);
+            Application.AddMessageFilter(_clickOutsideFilter);
+        };
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _clickOutsideFilter is not null)
+            Application.RemoveMessageFilter(_clickOutsideFilter);
+        base.Dispose(disposing);
     }
 
     public CommandBar CommandBar { get; }
@@ -114,6 +128,32 @@ public sealed class EditorShell : UserControl
         };
     }
 
+    private sealed class ClickOutsideFilter : IMessageFilter
+    {
+        private const int WM_LBUTTONDOWN = 0x0201;
+        private readonly InspectorPanel _inspector;
+        private readonly CommandBar _commandBar;
+
+        public ClickOutsideFilter(InspectorPanel inspector, CommandBar commandBar)
+        {
+            _inspector = inspector;
+            _commandBar = commandBar;
+        }
+
+        public bool PreFilterMessage(ref Message m)
+        {
+            if (m.Msg == WM_LBUTTONDOWN && _inspector.Visible)
+            {
+                var cursor = Cursor.Position;
+                var inspectorBounds = new Rectangle(_inspector.PointToScreen(Point.Empty), _inspector.Size);
+                var commandBarBounds = new Rectangle(_commandBar.PointToScreen(Point.Empty), _commandBar.Size);
+                if (!inspectorBounds.Contains(cursor) && !commandBarBounds.Contains(cursor))
+                    _inspector.Visible = false;
+            }
+            return false;
+        }
+    }
+
     private void CenterCanvas(ScrollableControl canvasPanel)
     {
         var p = EditorTheme.CanvasPadding;
@@ -124,14 +164,14 @@ public sealed class EditorShell : UserControl
 
     private void PlaceInspector()
     {
-        if (!Inspector.Visible)
-        {
-            return;
-        }
+        if (!Inspector.Visible) return;
 
-        var margin = EditorTheme.CanvasPadding;
-        var top = Math.Max(margin, Math.Min(_mainHost.Height - Inspector.ActiveSectionHeight - margin, margin * 2 + 10));
-        var x = EditorTheme.CommandBarWidth + margin;
+        const int flyoutGap = 6;
+
+        // CommandBar sits at (0,0) inside _mainHost, so itemBounds.Top maps directly.
+        var anchorY = itemBounds.Top;
+        var maxTop = _mainHost.Height - Inspector.ActiveSectionHeight - flyoutGap;
+        var top = Math.Max(flyoutGap, Math.Min(maxTop, anchorY));
         Inspector.Bounds = new Rectangle(x, top, EditorTheme.InspectorWidth, Inspector.ActiveSectionHeight);
     }
 }

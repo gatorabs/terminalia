@@ -8,14 +8,11 @@ public sealed class RoundedPanel : Panel
             ControlStyles.UserPaint |
             ControlStyles.AllPaintingInWmPaint |
             ControlStyles.OptimizedDoubleBuffer |
-            ControlStyles.ResizeRedraw |
-            ControlStyles.SupportsTransparentBackColor,
+            ControlStyles.ResizeRedraw,
             true);
 
-        BackColor = Color.Transparent;
         FillColor = EditorTheme.Section;
         BorderColor = EditorTheme.BorderSoft;
-        CornerRadius = EditorTheme.CornerRadius;
         BorderThickness = 1;
     }
 
@@ -23,26 +20,23 @@ public sealed class RoundedPanel : Panel
 
     public Color BorderColor { get; set; }
 
-    public int CornerRadius { get; set; }
-
     public int BorderThickness { get; set; }
+
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        e.Graphics.Clear(FillColor);
+    }
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
         var bounds = ClientRectangle;
         bounds.Width -= 1;
         bounds.Height -= 1;
 
-        using var path = EditorTheme.CreateRoundedPath(bounds, CornerRadius);
-        using var fill = new SolidBrush(FillColor);
-        e.Graphics.FillPath(fill, path);
-
         if (BorderThickness > 0)
         {
             using var border = new Pen(BorderColor, BorderThickness);
-            e.Graphics.DrawPath(border, path);
+            e.Graphics.DrawRectangle(border, bounds);
         }
 
         base.OnPaint(e);
