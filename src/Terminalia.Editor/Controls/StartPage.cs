@@ -2,162 +2,195 @@ namespace Terminalia.Editor;
 
 public sealed class StartPage : UserControl
 {
-    private readonly CardPanel _panel = new()
-    {
-        FillColor = EditorTheme.Surface,
-        BorderColor = EditorTheme.Border,
-        Padding = new Padding(28)
-    };
+    private static readonly string[] Labels = ["new map", "open map", "open sample"];
 
-    private readonly ModernButton _newButton = new()
-    {
-        Text = "Create new map",
-        IsPrimary = true,
-        Height = 38
-    };
-
-    private readonly ModernButton _openButton = new()
-    {
-        Text = "Open map",
-        Height = 38
-    };
-
-    private readonly ModernButton _sampleButton = new()
-    {
-        Text = "Open sample",
-        Height = 38
-    };
-    private readonly Font _titleFont = new(FontFamily.GenericMonospace, 22, FontStyle.Bold);
-    private readonly Font _subtitleFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
-    private readonly Font _bodyFont = new(FontFamily.GenericMonospace, 9, FontStyle.Regular);
+    private readonly TerminalMenu _menu;
 
     public StartPage()
     {
         Dock = DockStyle.Fill;
-        BackColor = EditorTheme.AppBackground;
-        DoubleBuffered = true;
+        BackColor = Color.Black;
 
-        _newButton.Click += (_, _) => NewMapRequested?.Invoke(this, EventArgs.Empty);
-        _openButton.Click += (_, _) => OpenMapRequested?.Invoke(this, EventArgs.Empty);
-        _sampleButton.Click += (_, _) => OpenSampleRequested?.Invoke(this, EventArgs.Empty);
-        _panel.Paint += (_, e) => DrawStartCard(e.Graphics);
+        _menu = new TerminalMenu();
+        _menu.ItemFired += (_, i) => Fire(i);
 
-        _panel.Controls.Add(_newButton);
-        _panel.Controls.Add(_openButton);
-        _panel.Controls.Add(_sampleButton);
-        Controls.Add(_panel);
+        // TableLayoutPanel keeps _menu anchored to upper-left with percentage margins
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 2,
+            BackColor = Color.Black
+        };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7f));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 93f));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 20f));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 80f));
+        layout.Controls.Add(_menu, 1, 1);
+
+        Controls.Add(layout);
     }
 
     public event EventHandler? NewMapRequested;
-
     public event EventHandler? OpenMapRequested;
-
     public event EventHandler? OpenSampleRequested;
 
-    protected override void OnLayout(LayoutEventArgs e)
+    protected override void OnVisibleChanged(EventArgs e)
     {
-        base.OnLayout(e);
-
-        var panelWidth = Math.Min(560, Width - 80);
-        var panelHeight = Math.Min(360, (int)(Height * 0.65));
-        _panel.Bounds = new Rectangle(
-            Math.Max(40, (Width - panelWidth) / 2),
-            Math.Max(60, (Height - panelHeight) / 2),
-            panelWidth,
-            panelHeight);
-
-        var buttonWidth = Math.Min(240, _panel.Width - 56);
-        var buttonLeft = _panel.Width - _panel.Padding.Right - buttonWidth;
-        var buttonTop = Math.Max(100, _panel.Height - 176);
-        var buttonHeight = _newButton.Height;
-        var buttonStep = buttonHeight + 12;
-        _newButton.Bounds = new Rectangle(buttonLeft, buttonTop, buttonWidth, buttonHeight);
-        _openButton.Bounds = new Rectangle(buttonLeft, buttonTop + buttonStep, buttonWidth, buttonHeight);
-        _sampleButton.Bounds = new Rectangle(buttonLeft, buttonTop + buttonStep * 2, buttonWidth, buttonHeight);
+        base.OnVisibleChanged(e);
+        if (Visible) _menu.Focus();
     }
 
-    protected override void OnPaint(PaintEventArgs e)
+    private void Fire(int index)
     {
-        base.OnPaint(e);
-        e.Graphics.Clear(EditorTheme.AppBackground);
-        e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-        DrawNoiseGrid(e.Graphics);
-    }
-
-    protected override void OnPaintBackground(PaintEventArgs e)
-    {
-        e.Graphics.Clear(EditorTheme.AppBackground);
-    }
-
-    private void DrawNoiseGrid(Graphics graphics)
-    {
-        using var gridPen = new Pen(Color.FromArgb(18, 255, 255, 255));
-        for (var x = 0; x < Width; x += 28)
+        var handler = index switch
         {
-            graphics.DrawLine(gridPen, x, 0, x, Height);
-        }
-
-        for (var y = 0; y < Height; y += 28)
-        {
-            graphics.DrawLine(gridPen, 0, y, Width, y);
-        }
-    }
-
-    protected override void OnResize(EventArgs e)
-    {
-        base.OnResize(e);
-        Invalidate();
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _titleFont.Dispose();
-            _subtitleFont.Dispose();
-            _bodyFont.Dispose();
-        }
-
-        base.Dispose(disposing);
-    }
-
-    private void DrawStartCard(Graphics graphics)
-    {
-        graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
-        TextRenderer.DrawText(
-            graphics,
-            "> TERMINALIA",
-            _titleFont,
-            new Rectangle(28, 34, _panel.Width - 56, 40),
-            EditorTheme.PrimaryText,
-            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-
-        TextRenderer.DrawText(
-            graphics,
-            "terminal game engine editor",
-            _subtitleFont,
-            new Rectangle(31, 76, _panel.Width - 62, 22),
-            EditorTheme.SecondaryText,
-            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-
-        var lines = new[]
-        {
-            "READY.",
-            "Select a map workflow to continue.",
-            "Create a blank document, open a saved map,",
-            "or load the bundled sample dungeon."
+            0 => NewMapRequested,
+            1 => OpenMapRequested,
+            2 => OpenSampleRequested,
+            _ => null
         };
+        handler?.Invoke(this, EventArgs.Empty);
+    }
 
-        for (var i = 0; i < lines.Length; i++)
+    // Inner control — owns the terminal rendering and keyboard/mouse logic
+    private sealed class TerminalMenu : Control
+    {
+        private static readonly Font LogoFont = new(FontFamily.GenericMonospace, 22, FontStyle.Bold);
+        private static readonly Font CmdFont  = new(FontFamily.GenericMonospace, 12, FontStyle.Regular);
+        private static readonly Font NavFont  = new(FontFamily.GenericMonospace, 9,  FontStyle.Regular);
+
+        private const int LogoH = 48;
+        private const int SepH  = 28;
+        private const int RowH  = 36;
+        private const int NavH  = 24;
+        private const int Gap   = 10;
+        private const int W     = 300;
+
+        private int _selected = 0;
+        private Rectangle[] _rowRects = [];
+
+        public event EventHandler<int>? ItemFired;
+
+        public TerminalMenu()
         {
-            TextRenderer.DrawText(
-                graphics,
-                lines[i],
-                i == 0 ? _subtitleFont : _bodyFont,
-                new Rectangle(32, 128 + (i * 22), _panel.Width / 2 - 20, 22),
-                i == 0 ? EditorTheme.PrimaryText : EditorTheme.SecondaryText,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            BackColor = Color.Black;
+            DoubleBuffered = true;
+            TabStop = true;
+            Cursor = Cursors.Default;
+
+            var totalH = LogoH + SepH + Labels.Length * RowH + Gap + SepH + NavH;
+            Size = new Size(W + 24, totalH);
+        }
+
+        protected override bool IsInputKey(Keys keyData) =>
+            keyData is Keys.Up or Keys.Down or Keys.Enter || base.IsInputKey(keyData);
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            switch (e.KeyCode)
+            {
+                case Keys.Up:
+                    if (_selected > 0) { _selected--; Invalidate(); }
+                    e.Handled = true;
+                    break;
+                case Keys.Down:
+                    if (_selected < Labels.Length - 1) { _selected++; Invalidate(); }
+                    e.Handled = true;
+                    break;
+                case Keys.Enter:
+                    ItemFired?.Invoke(this, _selected);
+                    e.Handled = true;
+                    break;
+            }
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            for (var i = 0; i < _rowRects.Length; i++)
+            {
+                if (!_rowRects[i].Contains(e.Location)) continue;
+                Cursor = Cursors.Hand;
+                if (_selected != i) { _selected = i; Invalidate(); }
+                return;
+            }
+            Cursor = Cursors.Default;
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            Cursor = Cursors.Default;
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            if (e.Button == MouseButtons.Left) ItemFired?.Invoke(this, _selected);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+            g.Clear(Color.Black);
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            var y = 0;
+
+            // Logo
+            TextRenderer.DrawText(g, "terminalia", LogoFont,
+                new Rectangle(0, y, W, LogoH),
+                Color.White,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            y += LogoH;
+
+            // Top separator
+            DrawSep(g, 0, y + SepH / 2, W);
+            y += SepH;
+
+            // Rows
+            _rowRects = new Rectangle[Labels.Length];
+            for (var i = 0; i < Labels.Length; i++)
+            {
+                _rowRects[i] = new Rectangle(-4, y, W + 4, RowH);
+                var sel = i == _selected;
+
+                if (sel)
+                {
+                    TextRenderer.DrawText(g, ">", CmdFont,
+                        new Rectangle(0, y, 16, RowH),
+                        Color.White,
+                        TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+                }
+
+                TextRenderer.DrawText(g, Labels[i], CmdFont,
+                    new Rectangle(20, y, W - 20, RowH),
+                    sel ? Color.White : Color.FromArgb(80, 255, 255, 255),
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+
+                y += RowH;
+            }
+
+            y += Gap;
+
+            // Bottom separator
+            DrawSep(g, 0, y + SepH / 2, W);
+            y += SepH;
+
+            // Nav hint
+            TextRenderer.DrawText(g, "↑↓ navigate   ↵ open", NavFont,
+                new Rectangle(0, y, W, NavH),
+                Color.FromArgb(38, 255, 255, 255),
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        }
+
+        private static void DrawSep(Graphics g, int x, int y, int width)
+        {
+            using var pen = new Pen(Color.FromArgb(22, 255, 255, 255));
+            g.DrawLine(pen, x, y, x + width, y);
         }
     }
 }
