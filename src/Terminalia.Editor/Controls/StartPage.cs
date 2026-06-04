@@ -2,7 +2,7 @@ namespace Terminalia.Editor;
 
 public sealed class StartPage : UserControl
 {
-    private static readonly string[] Labels = ["new map", "open map", "open sample"];
+    private static readonly string[] Labels = ["new map", "open map"];
 
     private readonly TerminalMenu _menu;
 
@@ -33,7 +33,6 @@ public sealed class StartPage : UserControl
 
     public event EventHandler? NewMapRequested;
     public event EventHandler? OpenMapRequested;
-    public event EventHandler? OpenSampleRequested;
 
     protected override void OnVisibleChanged(EventArgs e)
     {
@@ -47,7 +46,6 @@ public sealed class StartPage : UserControl
         {
             0 => NewMapRequested,
             1 => OpenMapRequested,
-            2 => OpenSampleRequested,
             _ => null
         };
         handler?.Invoke(this, EventArgs.Empty);

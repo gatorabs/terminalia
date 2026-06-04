@@ -10,8 +10,6 @@ public sealed partial class MainForm
         _shell.CommandBar.OpenRequested += (_, _) => OpenMap();
         _shell.CommandBar.SaveRequested += (_, _) => SaveMap();
         _shell.CommandBar.SaveAsRequested += (_, _) => SaveMapAs();
-        _shell.CommandBar.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
-        _shell.CommandBar.SaveSampleRequested += async (_, _) => await SaveSampleMapWithLoadingAsync();
         _shell.CommandBar.RunExternalRequested += async (_, _) => await PlaytestSampleWithLoadingAsync();
         _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
         _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
@@ -20,7 +18,6 @@ public sealed partial class MainForm
 
         _startPage.NewMapRequested += (_, _) => NewMap();
         _startPage.OpenMapRequested += (_, _) => OpenMap();
-        _startPage.OpenSampleRequested += async (_, _) => await OpenSampleMapWithLoadingAsync();
 
         _shell.Inspector.ApplyMapPropertiesRequested += (_, args) => ApplyMapProperties(args);
         _shell.Inspector.ToolChanged += (_, tool) =>
@@ -39,6 +36,13 @@ public sealed partial class MainForm
         _shell.Inspector.ResetEmbeddedRequested += (_, _) =>
         {
             _shell.Runtime.ResetGame();
+            UpdateStatus();
+        };
+
+        _shell.Runtime.GameStopped += (_, _) =>
+        {
+            _shell.ExitGameMode();
+            _shell.Inspector.SetRunState(false);
             UpdateStatus();
         };
 

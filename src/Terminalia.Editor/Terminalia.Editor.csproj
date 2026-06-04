@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
+    <ProjectReference Include="..\Terminalia.Runtime\Terminalia.Runtime.csproj" />
   </ItemGroup>
 
 </Project>

@@ -11,30 +11,24 @@ public sealed class EditorFileService
 
     public void SaveMap(MapAssetDocument document, string path) => document.Save(path);
 
-    public string? GetSampleMapPath()
+    public bool RunInConsole(MapAssetDocument document)
     {
-        var repositoryRoot = FindRepositoryRoot();
-        return repositoryRoot is null
-            ? null
-            : Path.Combine(repositoryRoot, "src", "Samples", "Terminalia.Sample.Rpg", "assets", "maps", "first_dungeon.json");
-    }
+        var repoRoot = FindRepositoryRoot();
+        if (repoRoot is null) return false;
 
-    public bool PlaytestSample()
-    {
-        var repositoryRoot = FindRepositoryRoot();
-        if (repositoryRoot is null)
-        {
-            return false;
-        }
+        var projectPath = Path.Combine(repoRoot, "src", "Terminalia.Runtime.Console", "Terminalia.Runtime.Console.csproj");
+        if (!File.Exists(projectPath)) return false;
 
-        var projectPath = Path.Combine(repositoryRoot, "src", "Samples", "Terminalia.Sample.Rpg", "Terminalia.Sample.Rpg.csproj");
+        var tempMapsDir = Path.Combine(Path.GetTempPath(), "terminalia_run", "assets", "maps");
+        Directory.CreateDirectory(tempMapsDir);
+        var mapFile = Path.Combine(tempMapsDir, $"{document.Name}.json");
+        document.Save(mapFile);
+
         Process.Start(new ProcessStartInfo
         {
-            FileName = "dotnet",
-            Arguments = $"run --project \"{projectPath}\" --no-restore",
-            WorkingDirectory = repositoryRoot,
-            UseShellExecute = false,
-            CreateNoWindow = true
+            FileName = "cmd.exe",
+            Arguments = $"/k dotnet run --project \"{projectPath}\" -- \"{mapFile}\"",
+            UseShellExecute = true
         });
 
         return true;
@@ -47,9 +41,7 @@ public sealed class EditorFileService
         while (directory is not null)
         {
             if (File.Exists(Path.Combine(directory.FullName, "Terminalia.sln")))
-            {
                 return directory.FullName;
-            }
 
             directory = directory.Parent;
         }

@@ -5,5 +5,9 @@ public enum InputCommand
     None,
     Confirm,
     Cancel,
-    Exit
+    Exit,
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight
 }

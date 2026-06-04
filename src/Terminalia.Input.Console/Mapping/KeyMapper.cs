@@ -13,6 +13,15 @@ public sealed class KeyMapper
         keyMapper.Map(ConsoleKey.Enter, InputCommand.Confirm);
         keyMapper.Map(ConsoleKey.Escape, InputCommand.Exit);
 
+        keyMapper.Map(ConsoleKey.UpArrow, InputCommand.MoveUp);
+        keyMapper.Map(ConsoleKey.DownArrow, InputCommand.MoveDown);
+        keyMapper.Map(ConsoleKey.LeftArrow, InputCommand.MoveLeft);
+        keyMapper.Map(ConsoleKey.RightArrow, InputCommand.MoveRight);
+        keyMapper.Map(ConsoleKey.W, InputCommand.MoveUp);
+        keyMapper.Map(ConsoleKey.S, InputCommand.MoveDown);
+        keyMapper.Map(ConsoleKey.A, InputCommand.MoveLeft);
+        keyMapper.Map(ConsoleKey.D, InputCommand.MoveRight);
+
         return keyMapper;
     }
 

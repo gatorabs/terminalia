@@ -84,74 +84,10 @@ public sealed partial class MainForm
         return true;
     }
 
-    private async Task OpenSampleMapWithLoadingAsync()
-    {
-        if (!ConfirmCanDiscardChanges())
-            return;
-
-        await RunWithLoadingAsync(
-            "Opening sample...",
-            () =>
-            {
-                var sampleMapPath = _fileService.GetSampleMapPath();
-                if (sampleMapPath is null)
-                    return false;
-
-                LoadDocument(_fileService.LoadMap(sampleMapPath), sampleMapPath, markClean: true);
-                return true;
-            },
-            ShowRepositoryNotFound);
-    }
-
-    private bool SaveToSampleMap(bool showConfirmation) =>
-        SaveToSampleMap(showConfirmation, showRepositoryMessage: true);
-
-    private bool SaveToSampleMap(bool showConfirmation, bool showRepositoryMessage)
-    {
-        var sampleMapPath = _fileService.GetSampleMapPath();
-        if (sampleMapPath is null)
-        {
-            if (showRepositoryMessage)
-                ShowRepositoryNotFound();
-            return false;
-        }
-
-        _fileService.SaveMap(_state.Document, sampleMapPath);
-        _state.CurrentFile = sampleMapPath;
-        MarkClean();
-        UpdateStatus();
-
-        if (showConfirmation)
-            MessageBox.Show(this, "Sample map saved.", "Terminalia Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-        return true;
-    }
-
-    private async Task SaveSampleMapWithLoadingAsync()
-    {
-        var saved = await RunWithLoadingAsync(
-            "Saving sample...",
-            () => SaveToSampleMap(showConfirmation: false, showRepositoryMessage: false),
-            ShowRepositoryNotFound);
-
-        if (saved)
-            MessageBox.Show(this, "Sample map saved.", "Terminalia Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
-    }
-
-    private void PlaytestSample()
-    {
-        if (!SaveToSampleMap(showConfirmation: false))
-            return;
-
-        if (!_fileService.PlaytestSample())
-            ShowRepositoryNotFound();
-    }
-
     private async Task PlaytestSampleWithLoadingAsync() =>
         await RunWithLoadingAsync("Launching game...", PlaytestSampleStarted, ShowRepositoryNotFound);
 
-    private bool PlaytestSampleStarted() =>
-        SaveToSampleMap(showConfirmation: false, showRepositoryMessage: false) && _fileService.PlaytestSample();
+    private bool PlaytestSampleStarted() => _fileService.RunInConsole(_state.Document);
 
     private async Task<bool> RunWithLoadingAsync(string message, Func<bool> action, Action onFailure)
     {
@@ -222,8 +158,8 @@ public sealed partial class MainForm
         }
         else
         {
-            _shell.Runtime.StartGame();
             _shell.EnterGameMode();
+            _shell.Runtime.StartGame();
             _shell.Runtime.Focus();
         }
 

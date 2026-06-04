@@ -23,8 +23,6 @@ public sealed class CommandBar : UserControl
     public event EventHandler? OpenRequested;
     public event EventHandler? SaveRequested;
     public event EventHandler? SaveAsRequested;
-    public event EventHandler? OpenSampleRequested;
-    public event EventHandler? SaveSampleRequested;
     public event EventHandler? RunExternalRequested;
     public event EventHandler? MapPanelRequested;
     public event EventHandler? ToolPanelRequested;
@@ -54,9 +52,7 @@ public sealed class CommandBar : UserControl
         AddCmd("[S]", "Save", () => SaveRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[A]", "Save As", () => SaveAsRequested?.Invoke(this, EventArgs.Empty));
         AddSep();
-        AddCmd("[L]", "Open Sample", () => OpenSampleRequested?.Invoke(this, EventArgs.Empty));
-        AddCmd("[W]", "Save Sample", () => SaveSampleRequested?.Invoke(this, EventArgs.Empty));
-        AddCmd("[>]", "Run External", () => RunExternalRequested?.Invoke(this, EventArgs.Empty), isPrimary: true);
+        AddCmd("[>]", "Run in Console", () => RunExternalRequested?.Invoke(this, EventArgs.Empty), isPrimary: true);
 
         foreach (var item in _items)
             item.BackColor = item.TargetColor = NormalColor(item);

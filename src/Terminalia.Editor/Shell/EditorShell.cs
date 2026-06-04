@@ -27,7 +27,7 @@ public sealed class EditorShell : UserControl
         Inspector.Width = EditorLayout.InspectorWidth;
         Inspector.Dock = DockStyle.None;
         Canvas = new MapCanvas();
-        Runtime = new EmbeddedCanvas();
+        Runtime = new EngineCanvas();
         Runtime.Visible = false;
         StatusLabel = BuildStatusLabel();
 
@@ -100,7 +100,7 @@ public sealed class EditorShell : UserControl
 
     public MapCanvas Canvas { get; }
 
-    public EmbeddedCanvas Runtime { get; }
+    public EngineCanvas Runtime { get; }
 
     public Label StatusLabel { get; }
 
