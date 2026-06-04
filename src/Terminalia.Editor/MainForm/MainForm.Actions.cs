@@ -84,47 +84,12 @@ public sealed partial class MainForm
         return true;
     }
 
-    private async Task PlaytestSampleWithLoadingAsync() =>
-        await RunWithLoadingAsync("Launching game...", PlaytestSampleStarted, ShowRepositoryNotFound);
-
-    private bool PlaytestSampleStarted() => _fileService.RunInConsole(_state.Document);
-
-    private async Task<bool> RunWithLoadingAsync(string message, Func<bool> action, Action onFailure)
+    private void LaunchGameWindow()
     {
-        _loadingOverlay.ShowLoading(message);
-        _shell.Enabled = false;
-        _startPage.Enabled = false;
-        var succeeded = false;
-        Exception? failure = null;
-
-        try
-        {
-            await Task.Delay(140);
-            succeeded = action();
-            await Task.Delay(120);
-        }
-        catch (Exception ex)
-        {
-            failure = ex;
-        }
-        finally
-        {
-            _shell.Enabled = true;
-            _startPage.Enabled = true;
-            _loadingOverlay.HideLoading();
-            _loadingOverlay.SendToBack();
-        }
-
-        if (failure is not null)
-        {
-            MessageBox.Show(this, failure.Message, "Terminalia Editor", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return false;
-        }
-
-        if (!succeeded)
-            onFailure();
-
-        return succeeded;
+        var window = new Terminalia.Runtime.Windows.GameWindow(
+            _state.Document.ToTileMap(),
+            cellSize: _shell.Canvas.CellSize);
+        window.Show(this);
     }
 
     private void ShowEditor()
@@ -212,11 +177,4 @@ public sealed partial class MainForm
         };
     }
 
-    private void ShowRepositoryNotFound() =>
-        MessageBox.Show(
-            this,
-            "Could not find Terminalia.sln from the editor output folder.",
-            "Terminalia Editor",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Warning);
 }

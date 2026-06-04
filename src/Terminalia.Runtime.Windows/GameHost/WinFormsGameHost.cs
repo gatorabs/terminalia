@@ -2,16 +2,16 @@ using Terminalia.Core.Assets;
 using Terminalia.Runtime;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Terminalia.Editor.GameHost;
+namespace Terminalia.Runtime.Windows.GameHost;
 
-internal sealed class EditorGameHost : IDisposable
+public sealed class WinFormsGameHost : IDisposable
 {
     private readonly WinFormsRenderer _renderer = new();
     private readonly WinFormsInputProvider _inputProvider = new();
     private readonly WinFormsGameClock _clock = new();
     private readonly Timer _timer;
     private TileMapGame? _game;
-    private Control? _surface;
+    private Action? _onFrameReady;
 
     public event EventHandler? GameStopped;
 
@@ -19,15 +19,15 @@ internal sealed class EditorGameHost : IDisposable
 
     public int CellSize { get; set; } = 32;
 
-    public EditorGameHost()
+    public WinFormsGameHost()
     {
         _timer = new Timer { Interval = 1000 / 30 };
         _timer.Tick += OnTick;
     }
 
-    public void Start(TileMap map, Control surface)
+    public void Start(TileMap map, Action onFrameReady)
     {
-        _surface = surface;
+        _onFrameReady = onFrameReady;
         _renderer.Configure(map.Width, map.Height, CellSize);
         var scene = SceneAssembler.Assemble(map, _renderer);
         _game = new TileMapGame(scene, _renderer, _inputProvider);
@@ -47,8 +47,8 @@ internal sealed class EditorGameHost : IDisposable
         var wasRunning = IsRunning;
         _timer.Stop();
         _game = null;
-        if (wasRunning && _surface is not null)
-            Start(map, _surface);
+        if (wasRunning && _onFrameReady is not null)
+            Start(map, _onFrameReady);
     }
 
     public void HandleKey(Keys key) => _inputProvider.HandleKey(key);
@@ -73,6 +73,6 @@ internal sealed class EditorGameHost : IDisposable
         _game.HandleInput();
         _game.Update(time);
         _game.Render();
-        _surface?.Invalidate();
+        _onFrameReady?.Invoke();
     }
 }

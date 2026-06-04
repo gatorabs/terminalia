@@ -1,7 +1,6 @@
 using Terminalia.Core.Abstractions.Rendering;
-using Terminalia.Editor.Styling.Colors;
 
-namespace Terminalia.Editor.GameHost;
+namespace Terminalia.Runtime.Windows.GameHost;
 
 internal sealed class WinFormsRenderer : IRenderer, IDisposable
 {
@@ -43,7 +42,7 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         _frameGraphics?.Dispose();
         _frameGraphics = Graphics.FromImage(_backBuffer);
         _frameGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-        _frameGraphics.Clear(EditorColors.TerminalBackground);
+        _frameGraphics.Clear(Color.FromArgb(2, 2, 2));
     }
 
     public void Draw(int x, int y, char character)
@@ -57,7 +56,7 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
     public void DrawText(int x, int y, string text)
     {
         if (_frameGraphics is null) return;
-        using var brush = new SolidBrush(EditorColors.PrimaryText);
+        using var brush = new SolidBrush(Color.FromArgb(238, 238, 238));
         _frameGraphics.DrawString(text, _font, brush, x * _cellSize, y * _cellSize);
     }
 
@@ -81,6 +80,6 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         '.' => Color.FromArgb(71, 85, 105),
         '@' => Color.FromArgb(96, 165, 250),
         '*' => Color.FromArgb(250, 204, 21),
-        _ => EditorColors.PrimaryText
+        _   => Color.FromArgb(238, 238, 238)
     };
 }

@@ -1,7 +1,7 @@
 using Terminalia.Core.Abstractions.Runtime;
 using Terminalia.Core.Runtime;
 
-namespace Terminalia.Editor.GameHost;
+namespace Terminalia.Runtime.Windows.GameHost;
 
 internal sealed class WinFormsGameClock : IClock
 {

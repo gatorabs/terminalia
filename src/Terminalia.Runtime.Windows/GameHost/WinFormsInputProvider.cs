@@ -1,7 +1,7 @@
 using Terminalia.Core.Abstractions.Input;
 using Terminalia.Core.Input;
 
-namespace Terminalia.Editor.GameHost;
+namespace Terminalia.Runtime.Windows.GameHost;
 
 internal sealed class WinFormsInputProvider : IInputProvider
 {
@@ -26,9 +26,7 @@ internal sealed class WinFormsInputProvider : IInputProvider
 
     public IReadOnlyCollection<InputCommand> GetCommands()
     {
-        if (_pending.Count == 0)
-            return [];
-
+        if (_pending.Count == 0) return [];
         var commands = _pending.ToArray();
         _pending.Clear();
         return commands;

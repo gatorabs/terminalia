@@ -10,7 +10,7 @@ public sealed partial class MainForm
         _shell.CommandBar.OpenRequested += (_, _) => OpenMap();
         _shell.CommandBar.SaveRequested += (_, _) => SaveMap();
         _shell.CommandBar.SaveAsRequested += (_, _) => SaveMapAs();
-        _shell.CommandBar.RunExternalRequested += async (_, _) => await PlaytestSampleWithLoadingAsync();
+        _shell.CommandBar.RunExternalRequested += (_, _) => LaunchGameWindow();
         _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
         _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
         _shell.CommandBar.PalettePanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Palette);
