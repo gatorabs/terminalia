@@ -42,6 +42,11 @@ public sealed class CommandBar : UserControl
         _toolTip.ForeColor = EditorColors.PrimaryText;
         _toolTip.OwnerDraw = true;
         _toolTip.Draw += DrawToolTip;
+        _toolTip.Popup += (_, e) =>
+        {
+            var measured = TextRenderer.MeasureText(_hoverItem?.Caption ?? "", EditorFonts.UiFont);
+            e.ToolTipSize = new Size(measured.Width + 16, measured.Height + 8);
+        };
 
         AddCmd("[#]", "Map", () => MapPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[T]", "Tool", () => ToolPanelRequested?.Invoke(this, EventArgs.Empty));
@@ -291,10 +296,10 @@ public sealed class CommandBar : UserControl
         using var smallFont = new Font(FontFamily.GenericMonospace, 7, FontStyle.Regular);
 
         TextRenderer.DrawText(g, ">_", titleFont,
-            new Rectangle(0, 28, Width, 24), EditorColors.PrimaryText,
+            new Rectangle(0, 38, Width, 24), EditorColors.PrimaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         TextRenderer.DrawText(g, "TERM", smallFont,
-            new Rectangle(0, 52, Width, 16), EditorColors.SecondaryText,
+            new Rectangle(0, 62, Width, 16), EditorColors.SecondaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
