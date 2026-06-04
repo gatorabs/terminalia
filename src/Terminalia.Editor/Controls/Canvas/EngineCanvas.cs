@@ -1,6 +1,7 @@
 using Terminalia.Core.Assets;
 using Terminalia.Editor.GameHost;
 using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Layout;
 
 namespace Terminalia.Editor.Controls.Canvas;
 
@@ -80,9 +81,13 @@ public sealed class EngineCanvas : Control
         var frame = _host.GetFrame();
         if (frame is null) return;
 
-        var x = Math.Max(0, (Width - frame.Width) / 2);
-        var y = Math.Max(0, (Height - frame.Height) / 4);
-        e.Graphics.DrawImage(frame, x, y);
+        const int p = EditorLayout.CanvasPadding;   // min margin = 16
+        const int tp = 24;                           // MapCanvas.CanvasPadding
+        var canvasW = frame.Width + 2 * tp;
+        var canvasH = frame.Height + 2 * tp;
+        var cx = Math.Max(p, (Width - canvasW) / 2);
+        var cy = Math.Max(p, (Height - canvasH) / 4);
+        e.Graphics.DrawImage(frame, cx + tp, cy + tp);
     }
 
     protected override bool IsInputKey(Keys keyData) =>
