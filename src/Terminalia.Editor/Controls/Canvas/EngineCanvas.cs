@@ -90,8 +90,7 @@ public sealed class EngineCanvas : Control
         e.Graphics.DrawImage(frame, cx + tp, cy + tp);
     }
 
-    protected override bool IsInputKey(Keys keyData) =>
-        keyData is Keys.Up or Keys.Down or Keys.Left or Keys.Right || base.IsInputKey(keyData);
+    protected override bool IsInputKey(Keys keyData) => keyData is Keys.Up or Keys.Down or Keys.Left or Keys.Right || base.IsInputKey(keyData);
 
     protected override void Dispose(bool disposing)
     {
