@@ -16,13 +16,11 @@ public sealed class InspectorPanel : UserControl
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
     private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
-    private readonly Button _resetEmbeddedButton = EditorControls.CreateButton("Reset");
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
     public event EventHandler<char>? TileSelected;
     public event EventHandler? RunEmbeddedRequested;
-    public event EventHandler? ResetEmbeddedRequested;
 
     public InspectorPanel()
     {
@@ -181,21 +179,17 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 2,
+            RowCount = 1,
             Padding = new Padding(0, 4, 0, 0),
             BackColor = EditorColors.Section
         };
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
 
         _runEmbeddedButton.Dock = DockStyle.Fill;
-        _resetEmbeddedButton.Dock = DockStyle.Fill;
         _runEmbeddedButton.Click += (_, _) => RunEmbeddedRequested?.Invoke(this, EventArgs.Empty);
-        _resetEmbeddedButton.Click += (_, _) => ResetEmbeddedRequested?.Invoke(this, EventArgs.Empty);
 
         layout.Controls.Add(_runEmbeddedButton, 0, 0);
-        layout.Controls.Add(_resetEmbeddedButton, 0, 1);
-        return CreateSection("Run", layout, 138);
+        return CreateSection("Run", layout, 100);
     }
 
     private static Panel CreateSection(string title, Control content, int height)

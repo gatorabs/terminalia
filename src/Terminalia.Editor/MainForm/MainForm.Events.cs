@@ -33,11 +33,6 @@ public sealed partial class MainForm
             UpdateStatus();
         };
         _shell.Inspector.RunEmbeddedRequested += (_, _) => ToggleEmbeddedRun();
-        _shell.Inspector.ResetEmbeddedRequested += (_, _) =>
-        {
-            _shell.Runtime.ResetGame();
-            UpdateStatus();
-        };
 
         _shell.Runtime.GameStopped += (_, _) =>
         {

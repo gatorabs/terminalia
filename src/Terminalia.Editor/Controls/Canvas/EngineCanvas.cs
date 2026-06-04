@@ -51,14 +51,6 @@ public sealed class EngineCanvas : Control
         Invalidate();
     }
 
-    public void ResetGame()
-    {
-        _host.Stop();
-        _host.Start(_document, Invalidate);
-        Focus();
-        Invalidate();
-    }
-
     public bool TryHandleInput(Keys key)
     {
         if (!IsRunning) return false;
