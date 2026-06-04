@@ -154,7 +154,7 @@ public sealed class CommandBar : UserControl
 
         if (hit is not null)
         {
-            _toolTip.Show(hit.Caption, this, new Point(Width + 4, hit.Bounds.Top), 3000);
+            _toolTip.Show(hit.Caption, this, new Point(Width - 8, hit.Bounds.Top + 8), 3000);
         }
         else
         {
