@@ -5,7 +5,7 @@ using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;
 
-namespace Terminalia.Core.Tests.Ecs;
+namespace Terminalia.UnitTests.Core.Ecs;
 
 public sealed class CollisionSystemTests
 {

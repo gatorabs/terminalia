@@ -261,15 +261,19 @@ src/Terminalia.Editor/Screens/StartPage/TerminalMenu.cs
 
 ## Testes
 
-### O que testar
+### O que testar e por quê faz sentido numa engine de jogo
 
-| Projeto | Estratégia |
-|---------|-----------|
-| `Core` | Unit tests; usar fakes inline (sem mocks de framework) |
-| `Rendering.Terminal` | Unit tests no frame buffer e delta de células |
-| `Input.Console` | Unit tests no mapeamento de teclas |
-| `Assets.Json` | Unit tests de serialização/deserialização |
-| `Editor` | **Sem testes de UI**; testar apenas `Services/` e `State/` |
+A lógica da engine é **pura e determinística**: dado um estado de entrada (componentes + `GameTime`), o sistema produz o mesmo estado de saída toda vez. Isso torna cada sistema ECS, o frame buffer e os mappers de input candidatos ideais a unit tests — sem precisar de terminal, janela ou frame rate real.
+
+| Módulo | O que testar | Por que vale a pena |
+|--------|-------------|---------------------|
+| `Core/Ecs/Systems` | Comportamento por frame (movimento, colisão, animação) | Lógica determinística; bugs aparecem cedo |
+| `Core/Scenes` | Invariantes do Aggregate Root (`Scene`) | Garante que entidades duplicadas são rejeitadas etc. |
+| `Core/Runtime` | Ordem e contagem de chamadas do `GameLoop` | Protege o contrato do ciclo Update/Render |
+| `Rendering.Terminal` | Frame buffer: escrita, clear, delta de células | Erros de pixel são silenciosos sem testes |
+| `Input.Console` | Mapeamento tecla → `InputCommand` | Simples e crítico para gameplay |
+| `Assets.Json` | Serialização/deserialização e validações de segurança | Path traversal e dados inválidos devem falhar ruidosamente |
+| `Editor/Services` e `Editor/State` | Lógica de arquivo e estado do editor | Sem testes de UI WinForms — custo alto, benefício baixo |
 
 ### Fakes vs Mocks
 
@@ -285,15 +289,21 @@ var mock = new Mock<IRenderer>();
 
 ### Localização dos testes
 
+Um único projeto; subdiretórios espelham o módulo testado:
+
 ```
 tests/
-├── Terminalia.Core.Tests/
-│   ├── Ecs/
-│   └── Runtime/
-├── Terminalia.Rendering.Terminal.Tests/
-├── Terminalia.Input.Console.Tests/
-└── Terminalia.Assets.Json.Tests/
+└── Terminalia.UnitTests/
+    ├── Core/
+    │   ├── Ecs/
+    │   ├── Scenes/
+    │   └── Runtime/
+    ├── Rendering/
+    ├── Input/
+    └── Assets/
 ```
+
+O namespace raiz é `Terminalia.UnitTests.*` espelhando o caminho de diretório.
 
 ---
 

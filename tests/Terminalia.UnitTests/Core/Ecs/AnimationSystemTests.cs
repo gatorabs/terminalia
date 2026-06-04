@@ -4,7 +4,7 @@ using Terminalia.Core.Ecs.Systems;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 
-namespace Terminalia.Core.Tests.Ecs;
+namespace Terminalia.UnitTests.Core.Ecs;
 
 public sealed class AnimationSystemTests
 {

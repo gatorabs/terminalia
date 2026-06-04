@@ -1,6 +1,6 @@
 using Terminalia.Assets.Json;
 
-namespace Terminalia.Assets.Json.Tests;
+namespace Terminalia.UnitTests.Assets;
 
 public sealed class JsonAssetLoaderTests : IDisposable
 {

@@ -3,7 +3,7 @@ using Terminalia.Input.Console.Abstractions;
 using Terminalia.Input.Console.Mapping;
 using Terminalia.Input.Console.Providers;
 
-namespace Terminalia.Input.Console.Tests;
+namespace Terminalia.UnitTests.Input;
 
 public sealed class ConsoleInputProviderTests
 {

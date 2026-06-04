@@ -21,7 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Terminalia.Core\Terminalia.Core.csproj" />
+    <ProjectReference Include="..\..\src\Terminalia.Rendering.Terminal\Terminalia.Rendering.Terminal.csproj" />
     <ProjectReference Include="..\..\src\Terminalia.Input.Console\Terminalia.Input.Console.csproj" />
+    <ProjectReference Include="..\..\src\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using Terminalia.Core.Input;
 using Terminalia.Input.Console.Mapping;
 
-namespace Terminalia.Input.Console.Tests;
+namespace Terminalia.UnitTests.Input;
 
 public sealed class InputCommandMapperTests
 {

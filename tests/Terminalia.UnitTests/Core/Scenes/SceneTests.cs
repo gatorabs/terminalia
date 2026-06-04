@@ -3,7 +3,7 @@ using Terminalia.Core.Ecs;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 
-namespace Terminalia.Core.Tests.Scenes;
+namespace Terminalia.UnitTests.Core.Scenes;
 
 public sealed class SceneTests
 {

@@ -1,7 +1,7 @@
 using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.Ecs;
 
-namespace Terminalia.Core.Tests.Ecs;
+namespace Terminalia.UnitTests.Core.Ecs;
 
 public sealed class EntityTests
 {

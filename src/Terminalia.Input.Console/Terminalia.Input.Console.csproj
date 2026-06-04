@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Terminalia.Input.Console.Tests" />
+    <InternalsVisibleTo Include="Terminalia.UnitTests" />
   </ItemGroup>
 
   <PropertyGroup>

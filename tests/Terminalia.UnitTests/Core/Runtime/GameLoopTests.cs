@@ -1,7 +1,7 @@
-using Terminalia.Core.Runtime;
 using Terminalia.Core.Abstractions.Runtime;
+using Terminalia.Core.Runtime;
 
-namespace Terminalia.Core.Tests.Runtime;
+namespace Terminalia.UnitTests.Core.Runtime;
 
 public sealed class GameLoopTests
 {

@@ -1,6 +1,6 @@
 using Terminalia.Rendering.Terminal;
 
-namespace Terminalia.Rendering.Terminal.Tests;
+namespace Terminalia.UnitTests.Rendering;
 
 public sealed class ConsoleFrameBufferTests
 {
