@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Terminalia.Core.Abstractions.Assets;
 using Terminalia.Core.Assets;
 
 namespace Terminalia.Assets.Json;

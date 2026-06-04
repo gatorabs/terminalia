@@ -1,6 +1,6 @@
 namespace Terminalia.Core.Runtime;
 
-public sealed class FrameRateSettings
+public readonly record struct FrameRateSettings
 {
     public FrameRateSettings(int targetFps = 30)
     {

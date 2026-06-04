@@ -1,3 +1,5 @@
+using Terminalia.Core.Abstractions.Runtime;
+
 namespace Terminalia.Core.Runtime;
 
 public sealed class GameLoop
@@ -10,7 +12,7 @@ public sealed class GameLoop
     {
         _game = game ?? throw new ArgumentNullException(nameof(game));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
-        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _settings = settings;
     }
 
     public void Run()

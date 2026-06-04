@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.Ecs;
 
 namespace Terminalia.Core.Tests.Ecs;

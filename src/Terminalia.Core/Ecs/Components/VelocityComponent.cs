@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.ValueObjects;
 
 namespace Terminalia.Core.Ecs.Components;

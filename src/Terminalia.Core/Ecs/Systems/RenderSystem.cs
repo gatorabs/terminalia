@@ -1,5 +1,6 @@
+using Terminalia.Core.Abstractions.Ecs;
+using Terminalia.Core.Abstractions.Rendering;
 using Terminalia.Core.Ecs.Components;
-using Terminalia.Core.Rendering;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 
@@ -17,10 +18,8 @@ public sealed class RenderSystem : IGameSystem
     public void Update(Scene scene, GameTime time)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        ArgumentNullException.ThrowIfNull(time);
 
-        foreach (var item in scene.Entities
-            .Where(entity => entity.IsActive)
+        foreach (var item in scene.GetActiveEntities()
             .Select(entity => new
             {
                 Transform = entity.GetComponent<TransformComponent>(),

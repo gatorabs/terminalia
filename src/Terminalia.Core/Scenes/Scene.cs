@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.Ecs;
 using Terminalia.Core.Runtime;
 
@@ -15,10 +16,6 @@ public sealed class Scene
     }
 
     public string Name { get; }
-
-    public IReadOnlyList<Entity> Entities => _entities;
-
-    public IReadOnlyList<IGameSystem> Systems => _systems;
 
     public void AddEntity(Entity entity)
     {
@@ -38,10 +35,17 @@ public sealed class Scene
         _systems.Add(system);
     }
 
+    public IEnumerable<Entity> GetActiveEntities()
+        => _entities.Where(e => e.IsActive);
+
+    public IEnumerable<Entity> GetEntitiesWithComponent<T>() where T : class, IComponent
+        => _entities.Where(e => e.IsActive && e.HasComponent<T>());
+
+    public Entity? FindEntity(string name)
+        => _entities.FirstOrDefault(e => e.Name == name);
+
     public void Update(GameTime time)
     {
-        ArgumentNullException.ThrowIfNull(time);
-
         foreach (var system in _systems)
         {
             system.Update(this, time);

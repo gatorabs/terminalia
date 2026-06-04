@@ -3,7 +3,8 @@ using Terminalia.Core.Ecs;
 using Terminalia.Core.Ecs.Components;
 using Terminalia.Core.Ecs.Systems;
 using Terminalia.Core.Input;
-using Terminalia.Core.Rendering;
+using Terminalia.Core.Abstractions.Rendering;
+using Terminalia.Core.Abstractions.Runtime;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;
@@ -28,7 +29,7 @@ internal sealed class RpgGame : IGame
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _map = map ?? throw new ArgumentNullException(nameof(map));
         _scene = CreateSceneFromMap(map);
-        _player = _scene.Entities.Single(e => e.Name == "Player");
+        _player = _scene.FindEntity("Player")!;
     }
 
     public void Initialize() { }
@@ -88,7 +89,7 @@ internal sealed class RpgGame : IGame
         if (playerTransform.Position.X == x && playerTransform.Position.Y == y)
             return '@';
 
-        var entity = _scene.Entities
+        var entity = _scene.GetActiveEntities()
             .Where(item => item.Name != "Player")
             .Select(item => new
             {

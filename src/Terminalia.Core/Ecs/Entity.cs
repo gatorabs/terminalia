@@ -1,3 +1,5 @@
+using Terminalia.Core.Abstractions.Ecs;
+
 namespace Terminalia.Core.Ecs;
 
 public sealed class Entity

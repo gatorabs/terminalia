@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using Terminalia.Core.Runtime;
+using Terminalia.Core.Abstractions.Runtime;
 
-namespace Terminalia.Core.Runtime;
+namespace Terminalia.Infrastructure;
 
 public sealed class SystemClock : IClock
 {

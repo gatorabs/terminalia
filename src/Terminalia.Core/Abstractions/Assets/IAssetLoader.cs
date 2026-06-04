@@ -1,4 +1,6 @@
-namespace Terminalia.Core.Assets;
+using Terminalia.Core.Assets;
+
+namespace Terminalia.Core.Abstractions.Assets;
 
 public interface IAssetLoader
 {

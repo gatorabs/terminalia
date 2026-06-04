@@ -1,6 +1,6 @@
 namespace Terminalia.Core.Runtime;
 
-public sealed class GameTime
+public readonly record struct GameTime
 {
     public GameTime(TimeSpan elapsed, TimeSpan total, int frame)
     {
@@ -13,6 +13,7 @@ public sealed class GameTime
         {
             throw new ArgumentOutOfRangeException(nameof(total), "Total time cannot be negative.");
         }
+
         ArgumentOutOfRangeException.ThrowIfNegative(frame);
 
         Elapsed = elapsed;

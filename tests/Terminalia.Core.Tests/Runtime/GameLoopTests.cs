@@ -1,4 +1,5 @@
 using Terminalia.Core.Runtime;
+using Terminalia.Core.Abstractions.Runtime;
 
 namespace Terminalia.Core.Tests.Runtime;
 

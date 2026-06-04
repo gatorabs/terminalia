@@ -1,4 +1,4 @@
-namespace Terminalia.Core.Rendering;
+namespace Terminalia.Core.Abstractions.Rendering;
 
 public interface IRenderer
 {

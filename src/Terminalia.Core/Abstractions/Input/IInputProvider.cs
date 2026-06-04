@@ -1,4 +1,6 @@
-namespace Terminalia.Core.Input;
+using Terminalia.Core.Input;
+
+namespace Terminalia.Core.Abstractions.Input;
 
 public interface IInputProvider
 {

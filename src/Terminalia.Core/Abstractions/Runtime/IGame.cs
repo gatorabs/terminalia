@@ -1,4 +1,6 @@
-namespace Terminalia.Core.Runtime;
+using Terminalia.Core.Runtime;
+
+namespace Terminalia.Core.Abstractions.Runtime;
 
 public interface IGame
 {

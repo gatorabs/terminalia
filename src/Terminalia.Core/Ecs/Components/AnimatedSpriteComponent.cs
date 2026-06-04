@@ -1,3 +1,5 @@
+using Terminalia.Core.Abstractions.Ecs;
+
 namespace Terminalia.Core.Ecs.Components;
 
 public sealed class AnimatedSpriteComponent : IComponent
@@ -28,12 +30,7 @@ public sealed class AnimatedSpriteComponent : IComponent
 
     public TimeSpan Elapsed { get; set; }
 
-    public int CurrentFrameIndex { get; private set; }
+    public int CurrentFrameIndex { get; set; }
 
     public char CurrentFrame => _frames[CurrentFrameIndex];
-
-    public void AdvanceFrame()
-    {
-        CurrentFrameIndex = (CurrentFrameIndex + 1) % _frames.Count;
-    }
 }

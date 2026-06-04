@@ -1,7 +1,7 @@
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 
-namespace Terminalia.Core.Ecs;
+namespace Terminalia.Core.Abstractions.Ecs;
 
 public interface IGameSystem
 {

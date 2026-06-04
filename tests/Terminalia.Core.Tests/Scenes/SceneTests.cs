@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.Ecs;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
@@ -14,8 +15,7 @@ public sealed class SceneTests
 
         scene.AddEntity(entity);
 
-        Assert.Single(scene.Entities);
-        Assert.Same(entity, scene.Entities[0]);
+        Assert.Same(entity, scene.GetActiveEntities().Single());
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class SceneTests
 
         Assert.True(system.WasUpdated);
         Assert.Same(scene, system.Scene);
-        Assert.Same(time, system.Time);
+        Assert.Equal(time, system.Time);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class SceneTests
         scene.AddEntity(first);
 
         Assert.Throws<InvalidOperationException>(() => scene.AddEntity(duplicate));
-        Assert.Single(scene.Entities);
+        Assert.Single(scene.GetActiveEntities());
     }
 
     private sealed class TestSystem : IGameSystem
@@ -53,7 +53,7 @@ public sealed class SceneTests
 
         public Scene? Scene { get; private set; }
 
-        public GameTime? Time { get; private set; }
+        public GameTime Time { get; private set; }
 
         public void Update(Scene scene, GameTime time)
         {

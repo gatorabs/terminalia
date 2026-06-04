@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Ecs;
 using Terminalia.Core.Ecs.Components;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
@@ -10,10 +11,8 @@ public sealed class CollisionSystem : IGameSystem
     public void Update(Scene scene, GameTime time)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        ArgumentNullException.ThrowIfNull(time);
 
-        var solidColliders = scene.Entities
-            .Where(entity => entity.IsActive)
+        var solidColliders = scene.GetActiveEntities()
             .Select(entity => new
             {
                 Entity = entity,

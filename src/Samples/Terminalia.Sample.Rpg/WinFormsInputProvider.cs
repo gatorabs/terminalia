@@ -1,3 +1,4 @@
+using Terminalia.Core.Abstractions.Input;
 using Terminalia.Core.Input;
 
 namespace Terminalia.Sample.Rpg;

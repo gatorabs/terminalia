@@ -1,7 +1,7 @@
 using Terminalia.Core.Ecs;
 using Terminalia.Core.Ecs.Components;
 using Terminalia.Core.Ecs.Systems;
-using Terminalia.Core.Rendering;
+using Terminalia.Core.Abstractions.Rendering;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;

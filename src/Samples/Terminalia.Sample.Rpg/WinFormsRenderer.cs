@@ -1,4 +1,4 @@
-using Terminalia.Core.Rendering;
+using Terminalia.Core.Abstractions.Rendering;
 
 namespace Terminalia.Sample.Rpg;
 

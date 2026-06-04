@@ -1,3 +1,5 @@
+using Terminalia.Core.Abstractions.Ecs;
+
 namespace Terminalia.Core.Ecs.Components;
 
 public sealed class RenderComponent : IComponent
