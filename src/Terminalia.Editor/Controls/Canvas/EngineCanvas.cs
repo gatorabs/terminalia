@@ -81,8 +81,8 @@ public sealed class EngineCanvas : Control
         var frame = _host.GetFrame();
         if (frame is null) return;
 
-        const int p = EditorLayout.CanvasPadding;   // min margin = 16
-        const int tp = 24;                           // MapCanvas.CanvasPadding
+        const int p = EditorLayout.CanvasPadding;
+        const int tp = 24;
         var canvasW = frame.Width + 2 * tp;
         var canvasH = frame.Height + 2 * tp;
         var cx = Math.Max(p, (Width - canvasW) / 2);
