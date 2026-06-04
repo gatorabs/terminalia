@@ -28,6 +28,7 @@ public sealed class CommandBar : UserControl
     public event EventHandler? ToolPanelRequested;
     public event EventHandler? PalettePanelRequested;
     public event EventHandler? RunPanelRequested;
+    public event EventHandler? ExportRequested;
 
     public CommandBar()
     {
@@ -53,6 +54,8 @@ public sealed class CommandBar : UserControl
         AddCmd("[A]", "Save As", () => SaveAsRequested?.Invoke(this, EventArgs.Empty));
         AddSep();
         AddCmd("[>]", "Run in Console", () => RunExternalRequested?.Invoke(this, EventArgs.Empty), isPrimary: true);
+        AddSep();
+        AddCmd("[E]", "Export", () => ExportRequested?.Invoke(this, EventArgs.Empty));
 
         foreach (var item in _items)
             item.BackColor = item.TargetColor = NormalColor(item);

@@ -1,19 +1,32 @@
 using Terminalia.Assets.Json;
 using Terminalia.Runtime.Windows;
 
+string mapFile;
+
 if (args.Length == 0)
 {
-    MessageBox.Show("Usage: game.exe <path-to-map.json>", "Terminalia",
-        MessageBoxButtons.OK, MessageBoxIcon.Information);
-    return 1;
-}
+    // Standalone export mode: look for maps/*.json next to the executable
+    var mapsDir = Path.Combine(AppContext.BaseDirectory, "maps");
+    mapFile = Directory.Exists(mapsDir)
+        ? Directory.GetFiles(mapsDir, "*.json").FirstOrDefault() ?? string.Empty
+        : string.Empty;
 
-var mapFile = Path.GetFullPath(args[0]);
-if (!File.Exists(mapFile))
+    if (string.IsNullOrEmpty(mapFile))
+    {
+        MessageBox.Show("No map found. Expected a maps/*.json file next to the executable.", "Terminalia",
+            MessageBoxButtons.OK, MessageBoxIcon.Information);
+        return 1;
+    }
+}
+else
 {
-    MessageBox.Show($"Map file not found:\n{mapFile}", "Terminalia",
-        MessageBoxButtons.OK, MessageBoxIcon.Error);
-    return 1;
+    mapFile = Path.GetFullPath(args[0]);
+    if (!File.Exists(mapFile))
+    {
+        MessageBox.Show($"Map file not found:\n{mapFile}", "Terminalia",
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return 1;
+    }
 }
 
 var mapName = Path.GetFileNameWithoutExtension(mapFile);

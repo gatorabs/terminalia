@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Controls.Inspector;
 
@@ -82,6 +83,44 @@ public sealed partial class MainForm
         MarkClean();
         UpdateStatus();
         return true;
+    }
+
+    private async void ExportGame()
+    {
+        using var dialog = new FolderBrowserDialog
+        {
+            Description = "Choose export destination",
+            UseDescriptionForTitle = true
+        };
+
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        var outputDir = Path.Combine(dialog.SelectedPath, _state.Document.Name);
+        var progress = new Progress<string>(msg => BeginInvoke(() => _loadingOverlay.ShowLoading(msg)));
+
+        _loadingOverlay.ShowLoading("Exporting game...");
+
+        var result = await _exportService.ExportAsync(_state.Document, outputDir, progress);
+
+        _loadingOverlay.HideLoading();
+
+        if (result.IsSuccess)
+        {
+            var response = MessageBox.Show(this,
+                $"Exported to:\n{result.OutputDirectory}\n\nOpen folder?",
+                "Export Complete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information);
+
+            if (response == DialogResult.Yes)
+                Process.Start("explorer.exe", result.OutputDirectory);
+        }
+        else
+        {
+            MessageBox.Show(this, result.ErrorMessage, "Export Failed",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void LaunchGameWindow()
