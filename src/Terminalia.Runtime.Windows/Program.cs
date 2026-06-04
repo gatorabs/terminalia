@@ -5,7 +5,6 @@ string mapFile;
 
 if (args.Length == 0)
 {
-    // Standalone export mode: look for maps/*.json next to the executable
     var mapsDir = Path.Combine(AppContext.BaseDirectory, "maps");
     mapFile = Directory.Exists(mapsDir)
         ? Directory.GetFiles(mapsDir, "*.json").FirstOrDefault() ?? string.Empty
