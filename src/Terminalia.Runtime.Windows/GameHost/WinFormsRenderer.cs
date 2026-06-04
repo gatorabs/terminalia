@@ -42,21 +42,21 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         _frameGraphics?.Dispose();
         _frameGraphics = Graphics.FromImage(_backBuffer);
         _frameGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-        _frameGraphics.Clear(Color.FromArgb(2, 2, 2));
+        _frameGraphics.Clear(Color.Black);
     }
 
     public void Draw(int x, int y, char character)
     {
         if (_frameGraphics is null) return;
         var bounds = new RectangleF(x * _cellSize, y * _cellSize, _cellSize, _cellSize);
-        using var brush = new SolidBrush(GetCharColor(character));
+        using var brush = new SolidBrush(Color.White);
         _frameGraphics.DrawString(character.ToString(), _font, brush, bounds, _centerFormat);
     }
 
     public void DrawText(int x, int y, string text)
     {
         if (_frameGraphics is null) return;
-        using var brush = new SolidBrush(Color.FromArgb(238, 238, 238));
+        using var brush = new SolidBrush(Color.White);
         _frameGraphics.DrawString(text, _font, brush, x * _cellSize, y * _cellSize);
     }
 
@@ -74,12 +74,4 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         _centerFormat.Dispose();
     }
 
-    private static Color GetCharColor(char c) => c switch
-    {
-        '#' => Color.FromArgb(148, 163, 184),
-        '.' => Color.FromArgb(71, 85, 105),
-        '@' => Color.FromArgb(96, 165, 250),
-        '*' => Color.FromArgb(250, 204, 21),
-        _   => Color.FromArgb(238, 238, 238)
-    };
 }
