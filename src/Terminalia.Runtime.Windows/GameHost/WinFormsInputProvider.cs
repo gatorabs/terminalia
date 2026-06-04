@@ -21,12 +21,17 @@ internal sealed class WinFormsInputProvider : IInputProvider
         };
 
         if (command != InputCommand.None)
+        {
             _pending.Enqueue(command);
+        }
     }
 
     public IReadOnlyCollection<InputCommand> GetCommands()
     {
-        if (_pending.Count == 0) return [];
+        if (_pending.Count == 0)
+        {
+            return [];
+        }
         var commands = _pending.ToArray();
         _pending.Clear();
         return commands;

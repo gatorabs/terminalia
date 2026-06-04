@@ -48,7 +48,9 @@ public sealed class WinFormsGameHost : IDisposable
         _timer.Stop();
         _game = null;
         if (wasRunning && _onFrameReady is not null)
+        {
             Start(map, _onFrameReady);
+        }
     }
 
     public void HandleKey(Keys key) => _inputProvider.HandleKey(key);

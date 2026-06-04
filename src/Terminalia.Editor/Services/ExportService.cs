@@ -5,19 +5,19 @@ namespace Terminalia.Editor.Services;
 
 public sealed class ExportService
 {
-    public async Task<ExportResult> ExportAsync(
-        MapAssetDocument document,
-        string outputDirectory,
-        IProgress<string>? progress = null,
-        CancellationToken ct = default)
+    public async Task<ExportResult> ExportAsync(MapAssetDocument document, string outputDirectory, IProgress<string>? progress = null, CancellationToken ct = default)
     {
         var repoRoot = FindRepositoryRoot();
         if (repoRoot is null)
+        {
             return ExportResult.Failure("Cannot locate Terminalia.sln. Export requires the project source directory.");
+        }
 
         var projectPath = Path.Combine(repoRoot, "src", "Terminalia.Runtime.Windows", "Terminalia.Runtime.Windows.csproj");
         if (!File.Exists(projectPath))
+        {
             return ExportResult.Failure($"Runtime project not found at:\n{projectPath}");
+        }
 
         try
         {
@@ -34,7 +34,9 @@ public sealed class ExportService
         var (exitCode, stdErr) = await RunProcessAsync("dotnet", publishArgs, ct);
 
         if (exitCode != 0)
+        {
             return ExportResult.Failure($"Build failed:\n{stdErr}");
+        }
 
         progress?.Report("Copying map assets...");
 
@@ -58,13 +60,17 @@ public sealed class ExportService
     {
         var source = Path.Combine(outputDirectory, "Terminalia.Runtime.Windows.exe");
         if (!File.Exists(source))
+        {
             return;
+        }
 
         var safeName = string.Concat(gameName.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
         var target = Path.Combine(outputDirectory, safeName + ".exe");
 
         if (!File.Exists(target))
+        {
             File.Move(source, target);
+        }
     }
 
     private static string? FindRepositoryRoot()
@@ -73,7 +79,9 @@ public sealed class ExportService
         while (directory is not null)
         {
             if (File.Exists(Path.Combine(directory.FullName, "Terminalia.sln")))
+            {
                 return directory.FullName;
+            }
             directory = directory.Parent;
         }
         return null;

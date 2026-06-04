@@ -40,7 +40,9 @@ public sealed class TileMapGame : IGame
         }
 
         if (_player is null)
+        {
             return;
+        }
 
         var velocity = commands.LastOrDefault(c => c is
             InputCommand.MoveUp or InputCommand.MoveDown or
@@ -55,7 +57,9 @@ public sealed class TileMapGame : IGame
 
         var velocityComponent = _player.GetComponent<VelocityComponent>();
         if (velocityComponent is not null)
+        {
             velocityComponent.Velocity = velocity;
+        }
     }
 
     public void Update(GameTime time)

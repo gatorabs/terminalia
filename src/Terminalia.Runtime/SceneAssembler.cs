@@ -22,7 +22,9 @@ public static class SceneAssembler
             {
                 var tile = map.GetTile(x, y);
                 if (ruleMap.TryGetValue(tile, out var rule))
+                {
                     scene.AddEntity(rule.CreateEntity(new Position(x, y)));
+                }
             }
         }
 

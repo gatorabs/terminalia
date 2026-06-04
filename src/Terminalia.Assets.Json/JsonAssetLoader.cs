@@ -61,10 +61,7 @@ public sealed class JsonAssetLoader : IAssetLoader
             .Select((lines, index) => new Sprite($"{definition.Name}_frame_{index}", lines))
             .ToList();
 
-        return new Animation(
-            definition.Name,
-            TimeSpan.FromMilliseconds(definition.FrameDurationMs),
-            frames);
+        return new Animation(definition.Name, TimeSpan.FromMilliseconds(definition.FrameDurationMs), frames);
     }
 
     private string ResolveAssetPath(string subdir, string assetName, string extension)

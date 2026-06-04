@@ -90,7 +90,9 @@ public sealed class EditorShell : UserControl
     protected override void Dispose(bool disposing)
     {
         if (disposing && _clickOutsideFilter is not null)
+        {
             Application.RemoveMessageFilter(_clickOutsideFilter);
+        }
         base.Dispose(disposing);
     }
 
@@ -177,7 +179,9 @@ public sealed class EditorShell : UserControl
                 var inspectorBounds = new Rectangle(_inspector.PointToScreen(Point.Empty), _inspector.Size);
                 var commandBarBounds = new Rectangle(_commandBar.PointToScreen(Point.Empty), _commandBar.Size);
                 if (!inspectorBounds.Contains(cursor) && !commandBarBounds.Contains(cursor))
+                {
                     _inspector.Visible = false;
+                }
             }
             return false;
         }
@@ -193,12 +197,14 @@ public sealed class EditorShell : UserControl
 
     private void PlaceInspector()
     {
-        if (!Inspector.Visible) return;
+        if (!Inspector.Visible)
+        {
+            return;
+        }
 
         const int flyoutGap = 6;
         var x = EditorLayout.CommandBarWidth + flyoutGap;
 
-        // CommandBar sits at (0,0) inside _mainHost, so itemBounds.Top maps directly.
         var itemBounds = CommandBar.GetPanelItemBounds(Inspector.ActiveSection);
         var anchorY = itemBounds.Top;
         var maxTop = _mainHost.Height - Inspector.ActiveSectionHeight - flyoutGap;

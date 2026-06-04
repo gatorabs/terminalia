@@ -112,11 +112,7 @@ public sealed class ModernButton : Button
         pevent.Graphics.DrawRectangle(border, bounds);
 
         var textOffset = _isPressed ? 1 : 0;
-        var textBounds = new Rectangle(
-            Padding.Left,
-            Padding.Top + textOffset,
-            Width - Padding.Horizontal,
-            Height - Padding.Vertical);
+        var textBounds = new Rectangle(Padding.Left, Padding.Top + textOffset, Width - Padding.Horizontal, Height - Padding.Vertical);
         TextRenderer.DrawText(
             pevent.Graphics,
             Text,
@@ -136,7 +132,9 @@ public sealed class ModernButton : Button
     {
         _targetBackColor = color;
         if (!_animationTimer.Enabled)
+        {
             _animationTimer.Start();
+        }
     }
 
     private void Animate()

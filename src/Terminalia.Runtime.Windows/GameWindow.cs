@@ -24,11 +24,15 @@ public sealed class GameWindow : Form
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
         DoubleBuffered = true;
-        ClientSize = new Size(
-            map.Width * cellSize + GamePadding * 2,
-            map.Height * cellSize + GamePadding * 2 + HintBarHeight);
+        ClientSize = new Size(map.Width * cellSize + GamePadding * 2, map.Height * cellSize + GamePadding * 2 + HintBarHeight);
 
-        _host.GameStopped += (_, _) => { if (!IsDisposed) BeginInvoke(Close); };
+        _host.GameStopped += (_, _) =>
+        {
+            if (!IsDisposed)
+            {
+                BeginInvoke(Close);
+            }
+        };
 
         TryUseDarkTitleBar();
     }
@@ -36,7 +40,13 @@ public sealed class GameWindow : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        _host.Start(_map, () => { if (!IsDisposed) Invalidate(); });
+        _host.Start(_map, () =>
+        {
+            if (!IsDisposed)
+            {
+                Invalidate();
+            }
+        });
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -46,7 +56,9 @@ public sealed class GameWindow : Form
 
         var frame = _host.GetFrame();
         if (frame is not null)
+        {
             e.Graphics.DrawImage(frame, GamePadding, GamePadding);
+        }
 
         TextRenderer.DrawText(
             e.Graphics,
@@ -59,8 +71,15 @@ public sealed class GameWindow : Form
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.KeyCode == Keys.Escape) { Close(); return; }
-        if (_host.IsRunning) _host.HandleKey(e.KeyCode);
+        if (e.KeyCode == Keys.Escape)
+        {
+            Close();
+            return;
+        }
+        if (_host.IsRunning)
+        {
+            _host.HandleKey(e.KeyCode);
+        }
     }
 
     protected override bool IsInputKey(Keys keyData) =>
@@ -74,13 +93,20 @@ public sealed class GameWindow : Form
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) { _host.Dispose(); _hintFont.Dispose(); }
+        if (disposing)
+        {
+            _host.Dispose();
+            _hintFont.Dispose();
+        }
         base.Dispose(disposing);
     }
 
     private void TryUseDarkTitleBar()
     {
-        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763)) return;
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+        {
+            return;
+        }
         var value = 1;
         _ = DwmSetWindowAttribute(Handle, 20, ref value, sizeof(int));
         _ = DwmSetWindowAttribute(Handle, 19, ref value, sizeof(int));

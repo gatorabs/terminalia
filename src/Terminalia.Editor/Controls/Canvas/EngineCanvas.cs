@@ -33,9 +33,13 @@ public sealed class EngineCanvas : Control
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
         if (preserveRunState && IsRunning)
+        {
             _host.Reload(document);
+        }
         else if (!preserveRunState && IsRunning)
+        {
             StopGame();
+        }
     }
 
     public void StartGame()
@@ -53,8 +57,15 @@ public sealed class EngineCanvas : Control
 
     public bool TryHandleInput(Keys key)
     {
-        if (!IsRunning) return false;
-        if (key == Keys.Escape) { StopGame(); return true; }
+        if (!IsRunning)
+        {
+            return false;
+        }
+        if (key == Keys.Escape)
+        {
+            StopGame();
+            return true;
+        }
         _host.HandleKey(key);
         return true;
     }
@@ -65,12 +76,13 @@ public sealed class EngineCanvas : Control
         e.Graphics.Clear(EditorColors.TerminalBackground);
 
         var frame = _host.GetFrame();
-        if (frame is null) return;
+        if (frame is null)
+        {
+            return;
+        }
 
-        // Mirror EditorShell.CenterCanvas + MapCanvas.CanvasPadding (24) so tiles
-        // land on the exact same pixels as the editor canvas when Play is pressed.
-        const int p = EditorLayout.CanvasPadding;   // min margin = 16
-        const int tp = 24;                           // MapCanvas.CanvasPadding
+        const int p = EditorLayout.CanvasPadding;
+        const int tp = 24;
         var canvasW = frame.Width + 2 * tp;
         var canvasH = frame.Height + 2 * tp;
         var cx = Math.Max(p, (Width - canvasW) / 2);
@@ -83,7 +95,10 @@ public sealed class EngineCanvas : Control
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) _host.Dispose();
+        if (disposing)
+        {
+            _host.Dispose();
+        }
         base.Dispose(disposing);
     }
 

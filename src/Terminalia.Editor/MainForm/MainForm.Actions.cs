@@ -23,9 +23,13 @@ public sealed partial class MainForm
         ShowEditor();
 
         if (markClean)
+        {
             MarkClean();
+        }
         else
+        {
             MarkDirty();
+        }
 
         UpdateStatus();
     }
@@ -33,7 +37,9 @@ public sealed partial class MainForm
     private void NewMap()
     {
         if (!ConfirmCanDiscardChanges())
+        {
             return;
+        }
 
         LoadDocument(_fileService.CreateDefaultMap(), currentFile: null, markClean: true);
     }
@@ -41,7 +47,9 @@ public sealed partial class MainForm
     private void OpenMap()
     {
         if (!ConfirmCanDiscardChanges())
+        {
             return;
+        }
 
         using var dialog = new OpenFileDialog
         {
@@ -50,7 +58,9 @@ public sealed partial class MainForm
         };
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
             return;
+        }
 
         LoadDocument(_fileService.LoadMap(dialog.FileName), dialog.FileName, markClean: true);
     }
@@ -58,7 +68,9 @@ public sealed partial class MainForm
     private bool SaveMap()
     {
         if (_state.CurrentFile is null)
+        {
             return SaveMapAs();
+        }
 
         _fileService.SaveMap(_state.Document, _state.CurrentFile);
         MarkClean();
@@ -76,7 +88,9 @@ public sealed partial class MainForm
         };
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
             return false;
+        }
 
         _state.CurrentFile = dialog.FileName;
         _fileService.SaveMap(_state.Document, _state.CurrentFile);
@@ -94,7 +108,9 @@ public sealed partial class MainForm
         };
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
             return;
+        }
 
         var outputDir = Path.Combine(dialog.SelectedPath, _state.Document.Name);
         var progress = new Progress<string>(msg => BeginInvoke(() => _loadingOverlay.ShowLoading(msg)));
@@ -114,7 +130,9 @@ public sealed partial class MainForm
                 MessageBoxIcon.Information);
 
             if (response == DialogResult.Yes)
+            {
                 Process.Start("explorer.exe", result.OutputDirectory);
+            }
         }
         else
         {
@@ -125,16 +143,16 @@ public sealed partial class MainForm
 
     private void LaunchGameWindow()
     {
-        var window = new Terminalia.Runtime.Windows.GameWindow(
-            _state.Document.ToTileMap(),
-            cellSize: _shell.Canvas.CellSize);
+        var window = new Terminalia.Runtime.Windows.GameWindow(_state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize);
         window.Show(this);
     }
 
     private void ShowEditor()
     {
         if (_shell.Visible)
+        {
             return;
+        }
 
         _shell.Visible = true;
         _startPage.Visible = false;
@@ -199,7 +217,9 @@ public sealed partial class MainForm
     private bool ConfirmCanDiscardChanges()
     {
         if (!_state.HasUnsavedChanges)
+        {
             return true;
+        }
 
         var result = MessageBox.Show(
             this,
@@ -215,5 +235,4 @@ public sealed partial class MainForm
             _ => false
         };
     }
-
 }

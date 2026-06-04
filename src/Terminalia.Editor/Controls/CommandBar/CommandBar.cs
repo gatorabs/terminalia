@@ -58,7 +58,9 @@ public sealed class CommandBar : UserControl
         AddCmd("[E]", "Export", () => ExportRequested?.Invoke(this, EventArgs.Empty));
 
         foreach (var item in _items)
+        {
             item.BackColor = item.TargetColor = NormalColor(item);
+        }
 
         _animTimer.Interval = EditorLayout.AnimationInterval;
         _animTimer.Tick += (_, _) => AnimTick();
@@ -98,10 +100,7 @@ public sealed class CommandBar : UserControl
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-        var rail = new Rectangle(
-            EditorLayout.CommandPadding, EditorLayout.CommandPadding,
-            Width - EditorLayout.CommandPadding * 2,
-            Height - EditorLayout.CommandPadding * 2);
+        var rail = new Rectangle(EditorLayout.CommandPadding, EditorLayout.CommandPadding, Width - EditorLayout.CommandPadding * 2, Height - EditorLayout.CommandPadding * 2);
 
         using (var railPath = EditorDrawing.CreateRoundedPath(rail, 18))
         using (var railFill = new SolidBrush(EditorColors.Surface))
@@ -116,32 +115,46 @@ public sealed class CommandBar : UserControl
         foreach (var item in _items)
         {
             if (item.IsSeparator)
+            {
                 PaintSeparator(g, item);
+            }
             else
+            {
                 PaintButton(g, item);
+            }
         }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
         var hit = HitTest(e.Location);
-        if (hit == _hoverItem) return;
+        if (hit == _hoverItem)
+        {
+            return;
+        }
 
         _hoverItem = hit;
         Cursor = hit is not null ? Cursors.Hand : Cursors.Default;
 
         foreach (var item in _items)
         {
-            if (item.IsSeparator) continue;
+            if (item.IsSeparator)
+            {
+                continue;
+            }
             item.TargetColor = item == hit
                 ? (item.IsPrimary ? EditorColors.AccentHover : EditorColors.CommandHover)
                 : NormalColor(item);
         }
 
         if (hit is not null)
+        {
             _toolTip.Show(hit.Caption, this, new Point(Width + 4, hit.Bounds.Top), 3000);
+        }
         else
+        {
             _toolTip.Hide(this);
+        }
 
         StartAnim();
         Invalidate();
@@ -157,7 +170,9 @@ public sealed class CommandBar : UserControl
         foreach (var item in _items)
         {
             if (!item.IsSeparator)
+            {
                 item.TargetColor = NormalColor(item);
+            }
         }
 
         StartAnim();
@@ -166,9 +181,15 @@ public sealed class CommandBar : UserControl
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        if (e.Button != MouseButtons.Left) return;
+        if (e.Button != MouseButtons.Left)
+        {
+            return;
+        }
         var hit = HitTest(e.Location);
-        if (hit is null) return;
+        if (hit is null)
+        {
+            return;
+        }
 
         _pressItem = hit;
         hit.Pulse = 1;
@@ -179,7 +200,10 @@ public sealed class CommandBar : UserControl
 
     protected override void OnMouseUp(MouseEventArgs e)
     {
-        if (_pressItem is null) return;
+        if (_pressItem is null)
+        {
+            return;
+        }
         var pressed = _pressItem;
         _pressItem = null;
 
@@ -188,7 +212,9 @@ public sealed class CommandBar : UserControl
             : NormalColor(pressed);
 
         if (pressed == _hoverItem)
+        {
             pressed.Click?.Invoke();
+        }
 
         StartAnim();
         Invalidate();
@@ -284,7 +310,9 @@ public sealed class CommandBar : UserControl
         var b = item.Bounds;
         b.Inflate(-1, -1);
         if (item == _pressItem)
+        {
             b.Offset(0, 1);
+        }
 
         using var path = EditorDrawing.CreateRoundedPath(b, 12);
         using var fill = new SolidBrush(item.BackColor);
@@ -325,12 +353,21 @@ public sealed class CommandBar : UserControl
             InspectorSection.Run => 3,
             _ => -1
         };
-        if (index < 0) return Rectangle.Empty;
+        if (index < 0)
+        {
+            return Rectangle.Empty;
+        }
         var buttonIndex = 0;
         foreach (var item in _items)
         {
-            if (item.IsSeparator) continue;
-            if (buttonIndex == index) return item.Bounds;
+            if (item.IsSeparator)
+            {
+                continue;
+            }
+            if (buttonIndex == index)
+            {
+                return item.Bounds;
+            }
             buttonIndex++;
         }
         return Rectangle.Empty;
@@ -341,7 +378,9 @@ public sealed class CommandBar : UserControl
         foreach (var item in _items)
         {
             if (!item.IsSeparator && item.Bounds.Contains(p))
+            {
                 return item;
+            }
         }
         return null;
     }
@@ -351,7 +390,10 @@ public sealed class CommandBar : UserControl
         var allDone = true;
         foreach (var item in _items)
         {
-            if (item.IsSeparator) continue;
+            if (item.IsSeparator)
+            {
+                continue;
+            }
             item.BackColor = EditorColors.Lerp(item.BackColor, item.TargetColor, 0.32);
             item.Pulse *= 0.72;
             if (EditorColors.ColorDistance(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
@@ -364,14 +406,19 @@ public sealed class CommandBar : UserControl
                 allDone = false;
             }
         }
-        if (allDone) _animTimer.Stop();
+        if (allDone)
+        {
+            _animTimer.Stop();
+        }
         Invalidate();
     }
 
     private void StartAnim()
     {
         if (!_animTimer.Enabled)
+        {
             _animTimer.Start();
+        }
     }
 
     private static Color NormalColor(CommandBarItem item) =>

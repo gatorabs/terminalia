@@ -14,7 +14,6 @@ public sealed class StartPage : UserControl
         _menu = new TerminalMenu();
         _menu.ItemFired += (_, i) => Fire(i);
 
-        // TableLayoutPanel keeps _menu anchored to upper-left with percentage margins
         var layout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -37,7 +36,10 @@ public sealed class StartPage : UserControl
     protected override void OnVisibleChanged(EventArgs e)
     {
         base.OnVisibleChanged(e);
-        if (Visible) _menu.Focus();
+        if (Visible)
+        {
+            _menu.Focus();
+        }
     }
 
     private void Fire(int index)
@@ -51,7 +53,6 @@ public sealed class StartPage : UserControl
         handler?.Invoke(this, EventArgs.Empty);
     }
 
-    // Inner control — owns the terminal rendering and keyboard/mouse logic
     private sealed class TerminalMenu : Control
     {
         private static readonly Font LogoFont = new(FontFamily.GenericMonospace, 22, FontStyle.Bold);
@@ -88,7 +89,10 @@ public sealed class StartPage : UserControl
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _blinkTimer.Dispose();
+            if (disposing)
+            {
+                _blinkTimer.Dispose();
+            }
             base.Dispose(disposing);
         }
 
@@ -101,11 +105,19 @@ public sealed class StartPage : UserControl
             switch (e.KeyCode)
             {
                 case Keys.Up:
-                    if (_selected > 0) { _selected--; ResetBlink(); }
+                    if (_selected > 0)
+                    {
+                        _selected--;
+                        ResetBlink();
+                    }
                     e.Handled = true;
                     break;
                 case Keys.Down:
-                    if (_selected < Labels.Length - 1) { _selected++; ResetBlink(); }
+                    if (_selected < Labels.Length - 1)
+                    {
+                        _selected++;
+                        ResetBlink();
+                    }
                     e.Handled = true;
                     break;
                 case Keys.Enter:
@@ -120,9 +132,16 @@ public sealed class StartPage : UserControl
             base.OnMouseMove(e);
             for (var i = 0; i < _rowRects.Length; i++)
             {
-                if (!_rowRects[i].Contains(e.Location)) continue;
+                if (!_rowRects[i].Contains(e.Location))
+                {
+                    continue;
+                }
                 Cursor = Cursors.Hand;
-                if (_selected != i) { _selected = i; ResetBlink(); }
+                if (_selected != i)
+                {
+                    _selected = i;
+                    ResetBlink();
+                }
                 return;
             }
             Cursor = Cursors.Default;
@@ -137,7 +156,10 @@ public sealed class StartPage : UserControl
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
-            if (e.Button == MouseButtons.Left) ItemFired?.Invoke(this, _selected);
+            if (e.Button == MouseButtons.Left)
+            {
+                ItemFired?.Invoke(this, _selected);
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -149,18 +171,15 @@ public sealed class StartPage : UserControl
 
             var y = 0;
 
-            // Logo
             TextRenderer.DrawText(g, "terminalia", LogoFont,
                 new Rectangle(0, y, W, LogoH),
                 Color.White,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             y += LogoH;
 
-            // Top separator
             DrawSep(g, 0, y + SepH / 2, W);
             y += SepH;
 
-            // Rows
             _rowRects = new Rectangle[Labels.Length];
             for (var i = 0; i < Labels.Length; i++)
             {
@@ -185,11 +204,9 @@ public sealed class StartPage : UserControl
 
             y += Gap;
 
-            // Bottom separator
             DrawSep(g, 0, y + SepH / 2, W);
             y += SepH;
 
-            // Nav hint
             TextRenderer.DrawText(g, "↑↓ navigate   ↵ open", NavFont,
                 new Rectangle(0, y, W, NavH),
                 Color.FromArgb(38, 255, 255, 255),

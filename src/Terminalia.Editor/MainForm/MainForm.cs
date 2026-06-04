@@ -53,7 +53,9 @@ public sealed partial class MainForm : Form
             {
                 _shell.Inspector.SetRunState(_shell.Runtime.IsRunning);
                 if (!_shell.Runtime.IsRunning)
+                {
                     _shell.ExitGameMode();
+                }
                 UpdateStatus();
                 return true;
             }
@@ -68,7 +70,9 @@ public sealed partial class MainForm : Form
     private void TryUseDarkTitleBar()
     {
         if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+        {
             return;
+        }
 
         var value = 1;
         _ = DwmSetWindowAttribute(Handle, 20, ref value, sizeof(int));

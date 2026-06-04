@@ -101,12 +101,7 @@ public sealed class InspectorPanel : UserControl
         var applyButton = EditorControls.CreateButton("Apply", primary: true);
         applyButton.Dock = DockStyle.Fill;
         applyButton.Height = 30;
-        applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(
-            this,
-            new MapPropertiesChangedEventArgs(
-                _nameTextBox.Text,
-                (int)_widthInput.Value,
-                (int)_heightInput.Value));
+        applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(this, new MapPropertiesChangedEventArgs(_nameTextBox.Text, (int)_widthInput.Value, (int)_heightInput.Value));
 
         layout.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
         layout.Controls.Add(_nameTextBox, 1, 0);
@@ -138,12 +133,16 @@ public sealed class InspectorPanel : UserControl
         _paintButton.CheckedChanged += (_, _) =>
         {
             if (_paintButton.Checked)
+            {
                 ToolChanged?.Invoke(this, EditorToolMode.Paint);
+            }
         };
         _fillButton.CheckedChanged += (_, _) =>
         {
             if (_fillButton.Checked)
+            {
                 ToolChanged?.Invoke(this, EditorToolMode.Fill);
+            }
         };
 
         layout.Controls.Add(_paintButton, 0, 0);
@@ -234,7 +233,6 @@ public sealed class InspectorPanel : UserControl
         content.Dock = DockStyle.Fill;
         contentArea.Controls.Add(content);
 
-        // Controls added last render first in Dock.Top stack (highest z-order = top)
         section.Controls.Add(contentArea);
         section.Controls.Add(separator);
         section.Controls.Add(titleLabel);

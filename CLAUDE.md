@@ -297,6 +297,49 @@ tests/
 
 ---
 
+## Convenções de código (não negociáveis)
+
+### Chaves obrigatórias
+
+Nunca omitir `{}` em `if`, `else`, `for`, `foreach`, `while`, `do` — mesmo para corpos de uma linha:
+
+```csharp
+// Correto
+if (condition)
+{
+    DoSomething();
+}
+
+// Proibido
+if (condition)
+    DoSomething();
+```
+
+### Argumentos inline (até 4)
+
+Chamadas de método, construtor ou definições de tipo com **até 4 parâmetros** ficam em uma única linha. Com 5 ou mais, pode quebrar:
+
+```csharp
+// Correto — 3 args, inline
+return new Position(x, y, layer);
+
+// Proibido — 3 args, multi-linha
+return new Position(
+    x,
+    y,
+    layer);
+```
+
+### Construtores padrão sem throw
+
+Nunca lançar exceção em construtores sem parâmetros (ou com todos opcionais). `new Foo()` jamais deve falhar.
+
+### Sem comentários
+
+Nenhum comentário `//` ou `/* */` no código. O código deve se auto-documentar pelos nomes. Exceções: `[Atributos]` e pragma directives.
+
+---
+
 ## Checklist de entrega
 
 Antes de considerar uma tarefa concluída, verificar cada item:

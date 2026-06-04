@@ -38,7 +38,10 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
 
     public void Clear()
     {
-        if (_backBuffer is null) return;
+        if (_backBuffer is null)
+        {
+            return;
+        }
         _frameGraphics?.Dispose();
         _frameGraphics = Graphics.FromImage(_backBuffer);
         _frameGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
@@ -47,7 +50,10 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
 
     public void Draw(int x, int y, char character)
     {
-        if (_frameGraphics is null) return;
+        if (_frameGraphics is null)
+        {
+            return;
+        }
         var bounds = new RectangleF(x * _cellSize, y * _cellSize, _cellSize, _cellSize);
         using var brush = new SolidBrush(Color.White);
         _frameGraphics.DrawString(character.ToString(), _font, brush, bounds, _centerFormat);
@@ -55,7 +61,10 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
 
     public void DrawText(int x, int y, string text)
     {
-        if (_frameGraphics is null) return;
+        if (_frameGraphics is null)
+        {
+            return;
+        }
         using var brush = new SolidBrush(Color.White);
         _frameGraphics.DrawString(text, _font, brush, x * _cellSize, y * _cellSize);
     }
@@ -73,5 +82,4 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         _font.Dispose();
         _centerFormat.Dispose();
     }
-
 }

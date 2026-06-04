@@ -49,9 +49,13 @@ internal static class EditorControls
     public static void ApplyDarkScrollBars(Control control)
     {
         if (control.IsHandleCreated)
+        {
             SetWindowTheme(control.Handle, "DarkMode_Explorer", null);
+        }
         else
+        {
             control.HandleCreated += (_, _) => SetWindowTheme(control.Handle, "DarkMode_Explorer", null);
+        }
     }
 
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
