@@ -12,7 +12,7 @@ public sealed class MovementSystem : IGameSystem
     {
         ArgumentNullException.ThrowIfNull(scene);
 
-        foreach (var entity in scene.GetActiveEntities())
+        foreach (var entity in scene.GetEntities())
         {
             if (entity.HasComponent<ColliderComponent>())
             {

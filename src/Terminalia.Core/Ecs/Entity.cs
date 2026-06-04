@@ -7,25 +7,22 @@ public sealed class Entity
     private readonly Dictionary<Type, IComponent> _components = [];
 
     public Entity(string name)
-        : this(EntityId.New(), name)
-    {
-    }
-
-    public Entity(EntityId id, string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        Id = Guid.NewGuid();
+        Name = name;
+    }
 
+    public Entity(Guid id, string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Id = id;
         Name = name;
     }
 
-    public EntityId Id { get; }
+    public Guid Id { get; }
 
     public string Name { get; }
-
-    public bool IsActive { get; private set; } = true;
-
-    public IReadOnlyCollection<IComponent> Components => _components.Values;
 
     public void AddComponent(IComponent component)
     {
@@ -48,15 +45,5 @@ public sealed class Entity
     public void RemoveComponent<T>() where T : class, IComponent
     {
         _components.Remove(typeof(T));
-    }
-
-    public void Activate()
-    {
-        IsActive = true;
-    }
-
-    public void Deactivate()
-    {
-        IsActive = false;
     }
 }

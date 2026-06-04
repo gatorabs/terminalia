@@ -12,7 +12,7 @@ public sealed class CollisionSystem : IGameSystem
     {
         ArgumentNullException.ThrowIfNull(scene);
 
-        var solidColliders = scene.GetActiveEntities()
+        var solidColliders = scene.GetEntities()
             .Select(entity => new
             {
                 Entity = entity,

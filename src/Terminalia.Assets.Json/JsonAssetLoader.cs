@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Terminalia.Core.Abstractions.Assets;
 using Terminalia.Core.Assets;
 
@@ -7,10 +6,6 @@ namespace Terminalia.Assets.Json;
 public sealed class JsonAssetLoader : IAssetLoader
 {
     private readonly string _assetRoot;
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     public JsonAssetLoader(string assetRoot)
     {
@@ -28,40 +23,6 @@ public sealed class JsonAssetLoader : IAssetLoader
             document.Height,
             document.Tiles,
             ToCharacterLegend(document.Legend));
-    }
-
-    public Sprite LoadSprite(string assetName)
-    {
-        var path = ResolveAssetPath("sprites", assetName, ".txt");
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException("Sprite asset was not found.", path);
-        }
-
-        var lines = File.ReadAllLines(path);
-        return new Sprite(assetName, lines);
-    }
-
-    public Animation LoadAnimation(string assetName)
-    {
-        var path = ResolveAssetPath("animations", assetName, ".json");
-        var definition = ReadJson<AnimationDefinition>(path);
-
-        if (definition.Name is null)
-        {
-            throw new InvalidDataException("Animation name is required.");
-        }
-
-        if (definition.Frames is null)
-        {
-            throw new InvalidDataException("Animation frames are required.");
-        }
-
-        var frames = definition.Frames
-            .Select((lines, index) => new Sprite($"{definition.Name}_frame_{index}", lines))
-            .ToList();
-
-        return new Animation(definition.Name, TimeSpan.FromMilliseconds(definition.FrameDurationMs), frames);
     }
 
     private string ResolveAssetPath(string subdir, string assetName, string extension)
@@ -84,18 +45,6 @@ public sealed class JsonAssetLoader : IAssetLoader
         }
 
         return candidate;
-    }
-
-    private TDefinition ReadJson<TDefinition>(string path)
-    {
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException("Asset file was not found.", path);
-        }
-
-        using var stream = File.OpenRead(path);
-        return JsonSerializer.Deserialize<TDefinition>(stream, _jsonOptions)
-            ?? throw new InvalidDataException("Asset JSON could not be deserialized.");
     }
 
     private static IReadOnlyDictionary<char, string> ToCharacterLegend(IReadOnlyDictionary<string, string> legend)

@@ -15,7 +15,7 @@ public sealed class SceneTests
 
         scene.AddEntity(entity);
 
-        Assert.Same(entity, scene.GetActiveEntities().Single());
+        Assert.Same(entity, scene.GetEntities().Single());
     }
 
     [Fact]
@@ -37,14 +37,14 @@ public sealed class SceneTests
     public void Scene_Should_Reject_Duplicate_Entity_Id()
     {
         var scene = new Scene("Dungeon");
-        var id = EntityId.New();
+        var id = Guid.NewGuid();
         var first = new Entity(id, "FirstPlayer");
         var duplicate = new Entity(id, "SecondPlayer");
 
         scene.AddEntity(first);
 
         Assert.Throws<InvalidOperationException>(() => scene.AddEntity(duplicate));
-        Assert.Single(scene.GetActiveEntities());
+        Assert.Single(scene.GetEntities());
     }
 
     private sealed class TestSystem : IGameSystem

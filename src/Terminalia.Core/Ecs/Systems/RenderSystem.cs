@@ -19,7 +19,7 @@ public sealed class RenderSystem : IGameSystem
     {
         ArgumentNullException.ThrowIfNull(scene);
 
-        foreach (var item in scene.GetActiveEntities()
+        foreach (var item in scene.GetEntities()
             .Select(entity => new
             {
                 Transform = entity.GetComponent<TransformComponent>(),
