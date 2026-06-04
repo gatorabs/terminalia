@@ -13,13 +13,9 @@ public sealed class MapAssetDocument
     };
 
     public string Name { get; set; } = "first_dungeon";
-
     public int Width { get; set; }
-
     public int Height { get; set; }
-
     public List<string> Tiles { get; set; } = [];
-
     public Dictionary<string, string> Legend { get; set; } = [];
 
     public static MapAssetDocument CreateDefault()
