@@ -8,9 +8,9 @@ using Terminalia.Core.Runtime;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;
 
-namespace Terminalia.Runtime;
+namespace Terminalia.TileMapGame;
 
-public sealed class TileMapGame : IGame
+public sealed class TileMapGameSession : IGame
 {
     private readonly Scene _scene;
     private readonly IRenderer _renderer;
@@ -19,7 +19,7 @@ public sealed class TileMapGame : IGame
 
     public bool IsRunning { get; private set; } = true;
 
-    public TileMapGame(Scene scene, IRenderer renderer, IInputProvider inputProvider)
+    public TileMapGameSession(Scene scene, IRenderer renderer, IInputProvider inputProvider)
     {
         _scene = scene ?? throw new ArgumentNullException(nameof(scene));
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));

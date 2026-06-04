@@ -4,7 +4,7 @@ using Terminalia.Core.Ecs.Systems;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;
 
-namespace Terminalia.Runtime;
+namespace Terminalia.TileMapGame;
 
 public static class SceneAssembler
 {

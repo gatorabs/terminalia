@@ -1,7 +1,7 @@
 using Terminalia.Core.Ecs;
 using Terminalia.Core.ValueObjects;
 
-namespace Terminalia.Runtime;
+namespace Terminalia.TileMapGame;
 
 public sealed class EntityRule
 {

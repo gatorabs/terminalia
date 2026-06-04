@@ -2,7 +2,7 @@ using Terminalia.Core.Ecs;
 using Terminalia.Core.Ecs.Components;
 using Terminalia.Core.ValueObjects;
 
-namespace Terminalia.Runtime;
+namespace Terminalia.TileMapGame;
 
 public static class DefaultEntityRules
 {

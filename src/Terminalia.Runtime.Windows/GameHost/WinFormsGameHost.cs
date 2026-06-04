@@ -1,5 +1,5 @@
 using Terminalia.Core.Assets;
-using Terminalia.Runtime;
+using Terminalia.TileMapGame;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Terminalia.Runtime.Windows.GameHost;
@@ -10,7 +10,7 @@ public sealed class WinFormsGameHost : IDisposable
     private readonly WinFormsInputProvider _inputProvider = new();
     private readonly WinFormsGameClock _clock = new();
     private readonly Timer _timer;
-    private TileMapGame? _game;
+    private TileMapGameSession? _game;
     private Action? _onFrameReady;
 
     public event EventHandler? GameStopped;
@@ -30,7 +30,7 @@ public sealed class WinFormsGameHost : IDisposable
         _onFrameReady = onFrameReady;
         _renderer.Configure(map.Width, map.Height, CellSize);
         var scene = SceneAssembler.Assemble(map, _renderer);
-        _game = new TileMapGame(scene, _renderer, _inputProvider);
+        _game = new TileMapGameSession(scene, _renderer, _inputProvider);
         _game.Initialize();
         _timer.Start();
     }

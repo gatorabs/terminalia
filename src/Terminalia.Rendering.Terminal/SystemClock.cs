@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Terminalia.Core.Runtime;
 using Terminalia.Core.Abstractions.Runtime;
 
-namespace Terminalia.Infrastructure;
+namespace Terminalia.Rendering.Terminal;
 
 public sealed class SystemClock : IClock
 {

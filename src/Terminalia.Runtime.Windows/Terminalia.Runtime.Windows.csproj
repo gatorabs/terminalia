@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Terminalia.Runtime\Terminalia.Runtime.csproj" />
+    <ProjectReference Include="..\Terminalia.TileMapGame\Terminalia.TileMapGame.csproj" />
     <ProjectReference Include="..\Terminalia.Assets.Json\Terminalia.Assets.Json.csproj" />
   </ItemGroup>
 
