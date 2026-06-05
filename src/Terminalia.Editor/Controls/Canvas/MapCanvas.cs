@@ -20,6 +20,7 @@ public sealed class MapCanvas : Control
     private int _cellSize = 32;
     private MapAssetDocument _document = MapAssetDocument.CreateDefault();
     private char _selectedTile = '#';
+    private EditorToolMode _toolMode = EditorToolMode.Paint;
     private string? _selectedZone;
     private bool _isPainting;
     private Point? _lastPaintedCell;
@@ -34,16 +35,24 @@ public sealed class MapCanvas : Control
         Location = new Point(0, 0);
         BackColor = EditorColors.Workspace;
         DoubleBuffered = true;
-        Cursor = EditorCursors.Blank;
         Font = new Font(FontFamily.GenericMonospace, 16, FontStyle.Bold);
         UpdateCanvasSize();
+        UpdateTileCursor();
     }
 
     public MapAssetDocument Document => _document;
 
     public Point? CursorCell => _cursorCell;
 
-    public EditorToolMode ToolMode { get; set; } = EditorToolMode.Paint;
+    public EditorToolMode ToolMode
+    {
+        get => _toolMode;
+        set
+        {
+            _toolMode = value;
+            UpdateTileCursor();
+        }
+    }
 
     public int CellSize
     {
@@ -59,7 +68,11 @@ public sealed class MapCanvas : Control
     public char SelectedTile
     {
         get => _selectedTile;
-        set => _selectedTile = value;
+        set
+        {
+            _selectedTile = value;
+            UpdateTileCursor();
+        }
     }
 
     public string? SelectedZone
@@ -282,6 +295,17 @@ public sealed class MapCanvas : Control
 
         cell = new Point(x, y);
         return true;
+    }
+
+    private void UpdateTileCursor()
+    {
+        if (_toolMode == EditorToolMode.Zone)
+        {
+            Cursor = EditorCursors.Blank;
+            return;
+        }
+
+        Cursor = EditorCursors.ForTile(_selectedTile, GetTileTextColor(_selectedTile));
     }
 
     private void DrawCursor(Graphics g, int cx, int cy)

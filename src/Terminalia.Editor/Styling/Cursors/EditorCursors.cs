@@ -2,8 +2,19 @@ namespace Terminalia.Editor.Styling.Cursors;
 
 internal static class EditorCursors
 {
+    private static readonly Dictionary<char, Cursor> _tileCache = [];
+
     public static readonly Cursor Blank = CreateBlankCursor();
-    public static readonly Cursor Terminal = CreateTerminalCursor();
+
+    public static Cursor ForTile(char tile, Color color)
+    {
+        if (!_tileCache.TryGetValue(tile, out var cursor))
+        {
+            cursor = BuildTileCursor(tile, color);
+            _tileCache[tile] = cursor;
+        }
+        return cursor;
+    }
 
     private static Cursor CreateBlankCursor()
     {
@@ -11,29 +22,23 @@ internal static class EditorCursors
         return new Cursor(bmp.GetHicon());
     }
 
-    private static Cursor CreateTerminalCursor()
+    private static Cursor BuildTileCursor(char tile, Color color)
     {
-        const int size = 20;
+        const int size = 32;
         using var bmp = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         using var g = Graphics.FromImage(bmp);
         g.Clear(Color.Transparent);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
 
-        Point[] shadow = [
-            new(1, 1), new(13, 13), new(9, 13),
-            new(12, 19), new(9, 19), new(6, 13), new(1, 19)
-        ];
-        Point[] arrow = [
-            new(0, 0), new(12, 12), new(8, 12),
-            new(11, 18), new(8, 18), new(5, 12), new(0, 18)
-        ];
+        using var brush = new SolidBrush(Color.FromArgb(170, color.R, color.G, color.B));
+        using var font = new Font(FontFamily.GenericMonospace, 18, FontStyle.Bold);
+        using var format = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
 
-        using var shadowBrush = new SolidBrush(Color.FromArgb(25, 25, 25));
-        using var fillBrush = new SolidBrush(Color.FromArgb(210, 210, 210));
-
-        g.FillPolygon(shadowBrush, shadow);
-        g.FillPolygon(fillBrush, arrow);
+        g.DrawString(tile.ToString(), font, brush, new RectangleF(0, 0, size, size), format);
 
         return new Cursor(bmp.GetHicon());
     }
