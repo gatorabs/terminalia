@@ -1,5 +1,6 @@
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Cursors;
 
 namespace Terminalia.Editor.Controls.Canvas;
 
@@ -33,6 +34,7 @@ public sealed class MapCanvas : Control
         Location = new Point(0, 0);
         BackColor = EditorColors.Workspace;
         DoubleBuffered = true;
+        Cursor = EditorCursors.Blank;
         Font = new Font(FontFamily.GenericMonospace, 16, FontStyle.Bold);
         UpdateCanvasSize();
     }
@@ -100,6 +102,11 @@ public sealed class MapCanvas : Control
         if (_document.HasZones)
         {
             DrawZoneOverlay(e.Graphics);
+        }
+
+        if (_cursorCell is { } cursor)
+        {
+            DrawCursor(e.Graphics, cursor.X, cursor.Y);
         }
     }
 
@@ -174,10 +181,11 @@ public sealed class MapCanvas : Control
     {
         base.OnMouseLeave(e);
 
-        if (_cursorCell is not null)
+        if (_cursorCell is { } prev)
         {
             _cursorCell = null;
             CursorCellChanged?.Invoke(this, EventArgs.Empty);
+            Invalidate(GetCellInvalidRect(prev));
         }
     }
 
@@ -240,8 +248,19 @@ public sealed class MapCanvas : Control
             return;
         }
 
+        var prev = _cursorCell;
         _cursorCell = nextCell;
         CursorCellChanged?.Invoke(this, EventArgs.Empty);
+
+        if (prev is { } p)
+        {
+            Invalidate(GetCellInvalidRect(p));
+        }
+
+        if (nextCell is { } n)
+        {
+            Invalidate(GetCellInvalidRect(n));
+        }
     }
 
     private bool TryGetCell(Point location, out Point cell)
@@ -264,6 +283,41 @@ public sealed class MapCanvas : Control
         cell = new Point(x, y);
         return true;
     }
+
+    private void DrawCursor(Graphics g, int cx, int cy)
+    {
+        var b = new Rectangle(cx * CellSize + 1, cy * CellSize + 1, CellSize - 2, CellSize - 2);
+        var color = GetCursorColor();
+
+        using var pen = new Pen(color, 2f);
+        g.DrawRectangle(pen, b);
+
+        var mx = b.X + b.Width / 2;
+        var my = b.Y + b.Height / 2;
+        const int arm = 4;
+        g.DrawLine(pen, mx - arm, my, mx + arm, my);
+        g.DrawLine(pen, mx, my - arm, mx, my + arm);
+    }
+
+    private Color GetCursorColor()
+    {
+        if (ToolMode == EditorToolMode.Fill)
+        {
+            return Color.FromArgb(255, 80, 140, 255);
+        }
+
+        if (ToolMode == EditorToolMode.Zone && _selectedZone is not null)
+        {
+            var idx = Math.Abs(_selectedZone.GetHashCode()) % ZonePalette.Length;
+            var zc = ZonePalette[idx];
+            return Color.FromArgb(255, zc.R, zc.G, zc.B);
+        }
+
+        return Color.White;
+    }
+
+    private Rectangle GetCellInvalidRect(Point cell) =>
+        new Rectangle(CanvasPadding + cell.X * CellSize - 1, CanvasPadding + cell.Y * CellSize - 1, CellSize + 2, CellSize + 2);
 
     private void DrawCell(Graphics graphics, int x, int y, char tile)
     {

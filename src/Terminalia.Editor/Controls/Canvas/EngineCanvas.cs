@@ -1,5 +1,6 @@
 using Terminalia.Core.Assets;
 using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Cursors;
 using Terminalia.Editor.Styling.Layout;
 using Terminalia.Runtime.Windows.GameHost;
 
@@ -47,6 +48,7 @@ public sealed class EngineCanvas : Control
     public void StartGame(string? assetDirectory = null)
     {
         _host.Start(_document, Invalidate, assetDirectory);
+        Cursor = EditorCursors.Blank;
         Focus();
         Invalidate();
     }
@@ -54,6 +56,7 @@ public sealed class EngineCanvas : Control
     public void StopGame()
     {
         _host.Stop();
+        Cursor = Cursors.Default;
         Invalidate();
     }
 
@@ -106,6 +109,7 @@ public sealed class EngineCanvas : Control
 
     private void OnHostGameStopped(object? sender, EventArgs e)
     {
+        Cursor = Cursors.Default;
         Invalidate();
         GameStopped?.Invoke(this, EventArgs.Empty);
     }

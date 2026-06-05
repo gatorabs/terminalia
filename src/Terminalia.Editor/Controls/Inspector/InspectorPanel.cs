@@ -183,7 +183,7 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 5,
+            RowCount = 6,
             BackColor = EditorColors.Section
         };
         tilesView.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
@@ -191,13 +191,16 @@ public sealed class InspectorPanel : UserControl
         tilesView.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
         tilesView.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
         tilesView.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tilesView.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         tilesView.Controls.Add(CreateTileButton("#  Wall", '#'), 0, 0);
         tilesView.Controls.Add(CreateTileButton(".  Floor", '.'), 0, 1);
         tilesView.Controls.Add(CreateTileButton("@  Player", '@'), 0, 2);
         tilesView.Controls.Add(CreateTileButton("*  Relic", '*'), 0, 3);
 
-        var zonesNavButton = EditorControls.CreateButton("Zones  ›");
+        var zonesNavButton = EditorControls.CreateButton("Z  Zones");
         zonesNavButton.Dock = DockStyle.Fill;
+        zonesNavButton.TextAlign = ContentAlignment.MiddleLeft;
+        zonesNavButton.Margin = new Padding(0, 0, 0, 4);
         tilesView.Controls.Add(zonesNavButton, 0, 4);
 
         var zonesView = new TableLayoutPanel

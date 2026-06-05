@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Services;
 using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Cursors;
 using Terminalia.Editor.Styling.Fonts;
 
 namespace Terminalia.Editor;
@@ -22,6 +23,7 @@ public sealed partial class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = EditorColors.AppBackground;
         Font = EditorFonts.UiFont;
+        Cursor = EditorCursors.Terminal;
         KeyPreview = true;
         TryUseDarkTitleBar();
 
