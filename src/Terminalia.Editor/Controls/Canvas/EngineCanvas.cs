@@ -47,7 +47,10 @@ public sealed class EngineCanvas : Control
 
     public void StartGame(string? assetDirectory = null)
     {
-        _host.Start(_document, Invalidate, assetDirectory);
+        var cellSize = _host.CellSize;
+        var vpW = Math.Max(1, Width / cellSize);
+        var vpH = Math.Max(1, Height / cellSize);
+        _host.Start(_document, Invalidate, assetDirectory, vpW, vpH);
         Cursor = EditorCursors.Blank;
         Focus();
         Invalidate();

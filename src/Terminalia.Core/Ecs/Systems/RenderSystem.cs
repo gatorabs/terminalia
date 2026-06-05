@@ -19,6 +19,17 @@ public sealed class RenderSystem : IGameSystem
     {
         ArgumentNullException.ThrowIfNull(scene);
 
+        var offsetX = 0;
+        var offsetY = 0;
+        var cam = scene.GetEntitiesWithComponent<CameraComponent>()
+            .FirstOrDefault()
+            ?.GetComponent<CameraComponent>();
+        if (cam is not null)
+        {
+            offsetX = cam.OffsetX;
+            offsetY = cam.OffsetY;
+        }
+
         foreach (var item in scene.GetEntities()
             .Select(entity => new
             {
@@ -28,10 +39,15 @@ public sealed class RenderSystem : IGameSystem
             .Where(item => item.Transform is not null && item.Render is { IsVisible: true })
             .OrderBy(item => item.Render!.Layer))
         {
-            _renderer.Draw(
-                item.Transform!.Position.X,
-                item.Transform.Position.Y,
-                item.Render!.Character);
+            var sx = item.Transform!.Position.X - offsetX;
+            var sy = item.Transform.Position.Y - offsetY;
+
+            if (sx < 0 || sx >= _renderer.Width || sy < 0 || sy >= _renderer.Height)
+            {
+                continue;
+            }
+
+            _renderer.Draw(sx, sy, item.Render!.Character);
         }
     }
 }

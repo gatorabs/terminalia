@@ -28,6 +28,28 @@ public sealed class RenderSystemTests
         Assert.Equal((2, 3, '@'), draw);
     }
 
+    [Fact]
+    public void RenderSystem_Should_Cull_Entities_Outside_Viewport()
+    {
+        var scene = new Scene("Cull Test");
+        var renderer = new FakeRenderer();
+
+        var cam = new Entity("Camera");
+        cam.AddComponent(new CameraComponent { OffsetX = 5, OffsetY = 0 });
+        scene.AddEntity(cam);
+
+        var entity = new Entity("Wall");
+        entity.AddComponent(new TransformComponent(new Position(3, 2)));
+        entity.AddComponent(new RenderComponent('#'));
+        scene.AddEntity(entity);
+
+        new RenderSystem(renderer).Update(
+            scene,
+            new GameTime(TimeSpan.FromMilliseconds(16), TimeSpan.FromMilliseconds(16), 1));
+
+        Assert.Empty(renderer.Draws);
+    }
+
     private sealed class FakeRenderer : IRenderer
     {
         public int Width => 80;
