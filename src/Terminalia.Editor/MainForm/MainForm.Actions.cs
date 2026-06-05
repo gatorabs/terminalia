@@ -105,6 +105,7 @@ public sealed partial class MainForm
             Text = $"Salvo em: {mapsDir}",
             Dock = DockStyle.Fill,
             AutoSize = false,
+            AutoEllipsis = true,
             ForeColor = EditorColors.SecondaryText,
             Font = new Font(EditorFonts.UiFont.FontFamily, 7.5f)
         };
