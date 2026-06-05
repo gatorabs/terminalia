@@ -34,17 +34,11 @@ public sealed class TileMap
     }
 
     public string Name { get; }
-
     public int Width { get; }
-
     public int Height { get; }
-
     public IReadOnlyList<string> Tiles => _tiles;
-
     public IReadOnlyDictionary<char, string> Legend => _legend;
-
     public ZoneGrid Zones { get; }
-
     public bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
     public char GetTile(int x, int y)
