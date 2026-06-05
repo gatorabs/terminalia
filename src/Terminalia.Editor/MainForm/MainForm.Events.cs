@@ -83,6 +83,9 @@ public sealed partial class MainForm
             UpdateStatus();
         };
 
+        _shell.Runtime.TransitionFailed += (_, msg) =>
+            MessageBox.Show(this, msg, "Zone Transition", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
         _shell.TabBar.TabSelected += (_, i) => SwitchToTab(i);
         _shell.TabBar.TabCloseRequested += (_, i) => CloseTab(i);
         _shell.TabBar.NewTabRequested += (_, _) => NewMap();

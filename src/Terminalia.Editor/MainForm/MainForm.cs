@@ -46,6 +46,15 @@ public sealed partial class MainForm : Form
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
+        if (!_shell.Runtime.IsRunning)
+        {
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                SaveMap();
+                return true;
+            }
+        }
+
         if (_shell.Runtime.IsRunning && !IsEditingTextInput())
         {
             var keyCode = keyData & Keys.KeyCode;

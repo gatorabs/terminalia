@@ -37,6 +37,14 @@ public sealed class GameWindow : Form
             }
         };
 
+        _host.TransitionFailed += (_, msg) =>
+        {
+            if (!IsDisposed)
+            {
+                BeginInvoke(() => MessageBox.Show(this, msg, "Zone Transition", MessageBoxButtons.OK, MessageBoxIcon.Warning));
+            }
+        };
+
         TryUseDarkTitleBar();
     }
 

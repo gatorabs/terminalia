@@ -17,6 +17,7 @@ public sealed class WinFormsGameHost : IDisposable
     private string? _pendingTransition;
 
     public event EventHandler? GameStopped;
+    public event EventHandler<string>? TransitionFailed;
 
     public bool IsRunning => _game?.IsRunning == true;
 
@@ -96,12 +97,14 @@ public sealed class WinFormsGameHost : IDisposable
     {
         if (_assetDirectory is null || _onFrameReady is null)
         {
+            TransitionFailed?.Invoke(this, $"Cannot transition to '{targetMap}': map not saved. Save before running with zone transitions.");
             return;
         }
 
         var path = Path.Combine(_assetDirectory, targetMap + ".json");
         if (!File.Exists(path))
         {
+            TransitionFailed?.Invoke(this, $"Target map file not found: {path}");
             return;
         }
 

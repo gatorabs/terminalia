@@ -10,6 +10,20 @@ public sealed class EditorFileService
 
     public void SaveMap(MapAssetDocument document, string path) => document.Save(path);
 
+    public static string DefaultMapsDirectory
+    {
+        get
+        {
+            var root = FindRepositoryRoot();
+            return root is not null
+                ? Path.Combine(root, "maps")
+                : Path.Combine(AppContext.BaseDirectory, "maps");
+        }
+    }
+
+    public static string AutoSavePath(string mapName) =>
+        Path.Combine(DefaultMapsDirectory, $"{mapName}.json");
+
     public static string? FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -17,7 +31,9 @@ public sealed class EditorFileService
         while (directory is not null)
         {
             if (File.Exists(Path.Combine(directory.FullName, "Terminalia.sln")))
+            {
                 return directory.FullName;
+            }
 
             directory = directory.Parent;
         }

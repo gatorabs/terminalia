@@ -25,6 +25,7 @@ public sealed class EditorShell : UserControl
 
         CommandBar = new CommandBar();
         Inspector = new InspectorPanel();
+        Inspector.SectionResized += (_, _) => PlaceInspector();
         Inspector.Visible = false;
         Inspector.Width = EditorLayout.InspectorWidth;
         Inspector.Dock = DockStyle.None;

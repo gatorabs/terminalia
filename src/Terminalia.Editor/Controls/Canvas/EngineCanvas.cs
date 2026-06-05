@@ -11,6 +11,7 @@ public sealed class EngineCanvas : Control
     private TileMap _document = TileMap.Empty;
 
     public event EventHandler? GameStopped;
+    public event EventHandler<string>? TransitionFailed;
 
     public EngineCanvas()
     {
@@ -19,6 +20,7 @@ public sealed class EngineCanvas : Control
         DoubleBuffered = true;
         TabStop = true;
         _host.GameStopped += OnHostGameStopped;
+        _host.TransitionFailed += (_, msg) => TransitionFailed?.Invoke(this, msg);
     }
 
     public bool IsRunning => _host.IsRunning;

@@ -46,6 +46,14 @@ public sealed partial class MainForm
         {
             return;
         }
+
+        if (IsMapNameTaken(name))
+        {
+            MessageBox.Show(this, $"A map named '{name}' already exists. Choose a different name.",
+                "New Map", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         var doc = _fileService.CreateDefaultMap();
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -54,12 +62,30 @@ public sealed partial class MainForm
         AddTab(doc, filePath: null, markClean: true);
     }
 
+    private bool IsMapNameTaken(string name)
+    {
+        var takenByTab = _tabs.Any(t =>
+        {
+            var tabName = t.State.CurrentFile is not null
+                ? Path.GetFileNameWithoutExtension(t.State.CurrentFile)
+                : t.State.Document.Name;
+            return string.Equals(tabName, name, StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (takenByTab)
+        {
+            return true;
+        }
+
+        return File.Exists(EditorFileService.AutoSavePath(name));
+    }
+
     private string? PromptMapName()
     {
         using var form = new Form
         {
             Text = "New Map",
-            Size = new Size(300, 140),
+            Size = new Size(300, 165),
             FormBorderStyle = FormBorderStyle.FixedDialog,
             StartPosition = FormStartPosition.CenterParent,
             MaximizeBox = false,
@@ -87,11 +113,23 @@ public sealed partial class MainForm
             BorderStyle = BorderStyle.FixedSingle
         };
 
+        var mapsDir = EditorFileService.DefaultMapsDirectory;
+        var pathHint = new Label
+        {
+            Text = $"Salvo em: {mapsDir}",
+            Location = new Point(12, 60),
+            Width = 262,
+            Height = 18,
+            AutoSize = false,
+            ForeColor = EditorColors.SecondaryText,
+            Font = new Font(EditorFonts.UiFont.FontFamily, 7.5f)
+        };
+
         var ok = new Button
         {
             Text = "Create",
             DialogResult = DialogResult.OK,
-            Location = new Point(12, 68),
+            Location = new Point(12, 88),
             Width = 126,
             BackColor = EditorColors.Accent,
             FlatStyle = FlatStyle.Flat,
@@ -103,7 +141,7 @@ public sealed partial class MainForm
         {
             Text = "Cancel",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(148, 68),
+            Location = new Point(148, 88),
             Width = 126,
             BackColor = EditorColors.Surface,
             FlatStyle = FlatStyle.Flat,
@@ -111,7 +149,7 @@ public sealed partial class MainForm
         };
         cancel.FlatAppearance.BorderColor = EditorColors.BorderSoft;
 
-        form.Controls.AddRange([label, textBox, ok, cancel]);
+        form.Controls.AddRange([label, textBox, pathHint, ok, cancel]);
         form.AcceptButton = ok;
         form.CancelButton = cancel;
         textBox.SelectAll();
@@ -124,7 +162,8 @@ public sealed partial class MainForm
         using var dialog = new OpenFileDialog
         {
             Filter = "Terminalia map (*.json)|*.json|All files (*.*)|*.*",
-            Title = "Open Terminalia map"
+            Title = "Open Terminalia map",
+            InitialDirectory = EditorFileService.DefaultMapsDirectory
         };
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
@@ -148,7 +187,7 @@ public sealed partial class MainForm
     {
         if (_state.CurrentFile is null)
         {
-            return SaveMapAs();
+            _state.CurrentFile = EditorFileService.AutoSavePath(_state.Document.Name);
         }
 
         _fileService.SaveMap(_state.Document, _state.CurrentFile);
@@ -157,13 +196,33 @@ public sealed partial class MainForm
         return true;
     }
 
+    private void SaveAllMaps()
+    {
+        foreach (var tab in _tabs)
+        {
+            tab.State.CurrentFile ??= EditorFileService.AutoSavePath(tab.State.Document.Name);
+            _fileService.SaveMap(tab.State.Document, tab.State.CurrentFile);
+            tab.State.HasUnsavedChanges = false;
+        }
+        RefreshTabBar();
+        UpdateStatus();
+    }
+
+    private string GetAssetDirectory() =>
+        _state.CurrentFile is not null
+            ? Path.GetDirectoryName(_state.CurrentFile) ?? EditorFileService.DefaultMapsDirectory
+            : EditorFileService.DefaultMapsDirectory;
+
     private bool SaveMapAs()
     {
         using var dialog = new SaveFileDialog
         {
             Filter = "Terminalia map (*.json)|*.json|All files (*.*)|*.*",
             Title = "Save Terminalia map",
-            FileName = $"{_state.Document.Name}.json"
+            FileName = $"{_state.Document.Name}.json",
+            InitialDirectory = _state.CurrentFile is not null
+                ? Path.GetDirectoryName(_state.CurrentFile)
+                : EditorFileService.DefaultMapsDirectory
         };
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
@@ -222,10 +281,9 @@ public sealed partial class MainForm
 
     private void LaunchGameWindow()
     {
-        var assetDirectory = _state.CurrentFile is not null
-            ? Path.GetDirectoryName(_state.CurrentFile)
-            : null;
-        var window = new Terminalia.Runtime.Windows.GameWindow(_state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize, assetDirectory: assetDirectory);
+        SaveAllMaps();
+        var window = new Terminalia.Runtime.Windows.GameWindow(
+            _state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize, assetDirectory: GetAssetDirectory());
         window.Show(this);
     }
 
@@ -262,11 +320,9 @@ public sealed partial class MainForm
         }
         else
         {
-            var assetDirectory = _state.CurrentFile is not null
-                ? Path.GetDirectoryName(_state.CurrentFile)
-                : null;
+            SaveAllMaps();
             _shell.EnterGameMode();
-            _shell.Runtime.StartGame(assetDirectory);
+            _shell.Runtime.StartGame(GetAssetDirectory());
             _shell.Runtime.Focus();
         }
 
@@ -291,17 +347,24 @@ public sealed partial class MainForm
 
     private void RefreshAvailableMaps()
     {
-        var fromDisk = Enumerable.Empty<string>();
-        if (_state.CurrentFile is not null)
+        var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { EditorFileService.DefaultMapsDirectory };
+
+        foreach (var tab in _tabs)
         {
-            var dir = Path.GetDirectoryName(_state.CurrentFile);
+            var dir = tab.State.CurrentFile is not null
+                ? Path.GetDirectoryName(tab.State.CurrentFile)
+                : null;
             if (dir is not null)
             {
-                fromDisk = Directory.GetFiles(dir, "*.json")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .OfType<string>();
+                dirs.Add(dir);
             }
         }
+
+        var fromDisk = dirs
+            .Where(Directory.Exists)
+            .SelectMany(dir => Directory.GetFiles(dir, "*.json"))
+            .Select(Path.GetFileNameWithoutExtension)
+            .OfType<string>();
 
         var fromTabs = _tabs
             .Select(t => t.State.CurrentFile is not null
