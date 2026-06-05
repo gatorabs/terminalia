@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Controls.Inspector;
 using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Controls;
 using Terminalia.Editor.Styling.Fonts;
 
 namespace Terminalia.Editor;
@@ -85,7 +86,7 @@ public sealed partial class MainForm
         using var form = new Form
         {
             Text = "New Map",
-            Size = new Size(300, 165),
+            Size = new Size(300, 175),
             FormBorderStyle = FormBorderStyle.FixedDialog,
             StartPosition = FormStartPosition.CenterParent,
             MaximizeBox = false,
@@ -95,61 +96,59 @@ public sealed partial class MainForm
             Font = EditorFonts.UiFont
         };
 
-        var label = new Label
-        {
-            Text = "Map name:",
-            Location = new Point(12, 12),
-            AutoSize = true,
-            ForeColor = EditorColors.SecondaryText
-        };
-
-        var textBox = new TextBox
-        {
-            Location = new Point(12, 34),
-            Width = 262,
-            Text = "new_map",
-            BackColor = EditorColors.Surface,
-            ForeColor = EditorColors.PrimaryText,
-            BorderStyle = BorderStyle.FixedSingle
-        };
+        var textBox = new TextBox { Text = "new_map", Dock = DockStyle.Fill };
+        EditorControls.StyleTextBox(textBox);
 
         var mapsDir = EditorFileService.DefaultMapsDirectory;
         var pathHint = new Label
         {
             Text = $"Salvo em: {mapsDir}",
-            Location = new Point(12, 60),
-            Width = 262,
-            Height = 18,
+            Dock = DockStyle.Fill,
             AutoSize = false,
             ForeColor = EditorColors.SecondaryText,
             Font = new Font(EditorFonts.UiFont.FontFamily, 7.5f)
         };
 
-        var ok = new Button
-        {
-            Text = "Create",
-            DialogResult = DialogResult.OK,
-            Location = new Point(12, 88),
-            Width = 126,
-            BackColor = EditorColors.Accent,
-            FlatStyle = FlatStyle.Flat,
-            ForeColor = Color.Black
-        };
-        ok.FlatAppearance.BorderSize = 0;
+        var ok = EditorControls.CreateButton("Create", primary: true);
+        ok.DialogResult = DialogResult.OK;
+        ok.Dock = DockStyle.Fill;
 
-        var cancel = new Button
-        {
-            Text = "Cancel",
-            DialogResult = DialogResult.Cancel,
-            Location = new Point(148, 88),
-            Width = 126,
-            BackColor = EditorColors.Surface,
-            FlatStyle = FlatStyle.Flat,
-            ForeColor = EditorColors.PrimaryText
-        };
-        cancel.FlatAppearance.BorderColor = EditorColors.BorderSoft;
+        var cancel = EditorControls.CreateButton("Cancel");
+        cancel.DialogResult = DialogResult.Cancel;
+        cancel.Dock = DockStyle.Fill;
 
-        form.Controls.AddRange([label, textBox, pathHint, ok, cancel]);
+        var buttonRow = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(0),
+            Padding = new Padding(0)
+        };
+        buttonRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        buttonRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        buttonRow.Controls.Add(ok, 0, 0);
+        buttonRow.Controls.Add(cancel, 1, 0);
+
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 4,
+            Padding = new Padding(12),
+            BackColor = EditorColors.AppBackground
+        };
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Map name:"), 0, 0);
+        layout.Controls.Add(textBox, 0, 1);
+        layout.Controls.Add(pathHint, 0, 2);
+        layout.Controls.Add(buttonRow, 0, 3);
+
+        form.Controls.Add(layout);
         form.AcceptButton = ok;
         form.CancelButton = cancel;
         textBox.SelectAll();

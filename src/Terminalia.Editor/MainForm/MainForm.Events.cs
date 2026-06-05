@@ -29,6 +29,9 @@ public sealed partial class MainForm
         {
             _state.ToolMode = tool;
             _shell.Canvas.ToolMode = tool;
+            _state.SelectedZone = null;
+            _shell.Canvas.SelectedZone = null;
+            _shell.Inspector.ClearZoneSelection();
             UpdateStatus();
         };
         _shell.Inspector.TileSelected += (_, tile) =>
@@ -66,6 +69,7 @@ public sealed partial class MainForm
             _shell.Canvas.SelectedZone = args.ZoneName;
             _state.ToolMode = args.ZoneName is not null ? EditorToolMode.Zone : EditorToolMode.Paint;
             _shell.Canvas.ToolMode = _state.ToolMode;
+            _shell.Inspector.SetToolMode(_state.ToolMode);
             UpdateStatus();
         };
 

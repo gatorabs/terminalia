@@ -19,6 +19,8 @@ public sealed class InspectorPanel : UserControl
     private readonly TextBox _zoneNameTextBox = new();
     private readonly ComboBox _zoneTargetCombo = new();
     private readonly ListBox _zoneListBox = new();
+    private bool _suppressToolEvents;
+    private bool _suppressZoneEvents;
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
@@ -59,11 +61,13 @@ public sealed class InspectorPanel : UserControl
 
     public void LoadZones(IEnumerable<string> zoneNames)
     {
+        _suppressZoneEvents = true;
         _zoneListBox.Items.Clear();
         foreach (var name in zoneNames)
         {
             _zoneListBox.Items.Add(name);
         }
+        _suppressZoneEvents = false;
     }
 
     public void LoadAvailableMaps(IEnumerable<string> mapNames)
@@ -85,6 +89,21 @@ public sealed class InspectorPanel : UserControl
     public void SelectTile(char tile)
     {
         TileSelected?.Invoke(this, tile);
+    }
+
+    public void SetToolMode(EditorToolMode mode)
+    {
+        _suppressToolEvents = true;
+        _paintButton.Checked = mode == EditorToolMode.Paint;
+        _fillButton.Checked = mode == EditorToolMode.Fill;
+        _suppressToolEvents = false;
+    }
+
+    public void ClearZoneSelection()
+    {
+        _suppressZoneEvents = true;
+        _zoneListBox.ClearSelected();
+        _suppressZoneEvents = false;
     }
 
     public InspectorSection ActiveSection { get; private set; } = InspectorSection.Map;
@@ -159,14 +178,14 @@ public sealed class InspectorPanel : UserControl
 
         _paintButton.CheckedChanged += (_, _) =>
         {
-            if (_paintButton.Checked)
+            if (!_suppressToolEvents && _paintButton.Checked)
             {
                 ToolChanged?.Invoke(this, EditorToolMode.Paint);
             }
         };
         _fillButton.CheckedChanged += (_, _) =>
         {
-            if (_fillButton.Checked)
+            if (!_suppressToolEvents && _fillButton.Checked)
             {
                 ToolChanged?.Invoke(this, EditorToolMode.Fill);
             }
@@ -242,6 +261,10 @@ public sealed class InspectorPanel : UserControl
         _zoneListBox.BorderStyle = BorderStyle.None;
         _zoneListBox.SelectedIndexChanged += (_, _) =>
         {
+            if (_suppressZoneEvents)
+            {
+                return;
+            }
             var selected = _zoneListBox.SelectedItem as string;
             ZoneSelected?.Invoke(this, new ZoneSelectedEventArgs(selected));
         };
@@ -297,6 +320,7 @@ public sealed class InspectorPanel : UserControl
             _sections[InspectorSection.Palette].Height = 255;
             Height = ActiveSectionHeight;
             SectionResized?.Invoke(this, EventArgs.Empty);
+            ZoneSelected?.Invoke(this, new ZoneSelectedEventArgs(null));
         };
 
         var container = new Panel { Dock = DockStyle.Fill, BackColor = EditorColors.Section };
