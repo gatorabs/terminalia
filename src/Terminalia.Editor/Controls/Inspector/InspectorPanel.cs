@@ -284,6 +284,7 @@ public sealed class InspectorPanel : UserControl
             tilesView.Visible = false;
             zonesView.Visible = true;
             _sectionHeights[InspectorSection.Palette] = 315;
+            _sections[InspectorSection.Palette].Height = 315;
             Height = ActiveSectionHeight;
             SectionResized?.Invoke(this, EventArgs.Empty);
         };
@@ -293,6 +294,7 @@ public sealed class InspectorPanel : UserControl
             zonesView.Visible = false;
             tilesView.Visible = true;
             _sectionHeights[InspectorSection.Palette] = 255;
+            _sections[InspectorSection.Palette].Height = 255;
             Height = ActiveSectionHeight;
             SectionResized?.Invoke(this, EventArgs.Empty);
         };
