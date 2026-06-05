@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Controls.Inspector;
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Fonts;
 
 namespace Terminalia.Editor;
 
@@ -39,7 +41,82 @@ public sealed partial class MainForm
 
     private void NewMap()
     {
-        AddTab(_fileService.CreateDefaultMap(), filePath: null, markClean: true);
+        var name = PromptMapName();
+        if (name is null)
+        {
+            return;
+        }
+        var doc = _fileService.CreateDefaultMap();
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            doc.Name = name;
+        }
+        AddTab(doc, filePath: null, markClean: true);
+    }
+
+    private string? PromptMapName()
+    {
+        using var form = new Form
+        {
+            Text = "New Map",
+            Size = new Size(300, 140),
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            StartPosition = FormStartPosition.CenterParent,
+            MaximizeBox = false,
+            MinimizeBox = false,
+            BackColor = EditorColors.AppBackground,
+            ForeColor = EditorColors.PrimaryText,
+            Font = EditorFonts.UiFont
+        };
+
+        var label = new Label
+        {
+            Text = "Map name:",
+            Location = new Point(12, 12),
+            AutoSize = true,
+            ForeColor = EditorColors.SecondaryText
+        };
+
+        var textBox = new TextBox
+        {
+            Location = new Point(12, 34),
+            Width = 262,
+            Text = "new_map",
+            BackColor = EditorColors.Surface,
+            ForeColor = EditorColors.PrimaryText,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+
+        var ok = new Button
+        {
+            Text = "Create",
+            DialogResult = DialogResult.OK,
+            Location = new Point(12, 68),
+            Width = 126,
+            BackColor = EditorColors.Accent,
+            FlatStyle = FlatStyle.Flat,
+            ForeColor = Color.Black
+        };
+        ok.FlatAppearance.BorderSize = 0;
+
+        var cancel = new Button
+        {
+            Text = "Cancel",
+            DialogResult = DialogResult.Cancel,
+            Location = new Point(148, 68),
+            Width = 126,
+            BackColor = EditorColors.Surface,
+            FlatStyle = FlatStyle.Flat,
+            ForeColor = EditorColors.PrimaryText
+        };
+        cancel.FlatAppearance.BorderColor = EditorColors.BorderSoft;
+
+        form.Controls.AddRange([label, textBox, ok, cancel]);
+        form.AcceptButton = ok;
+        form.CancelButton = cancel;
+        textBox.SelectAll();
+
+        return form.ShowDialog(this) == DialogResult.OK ? textBox.Text.Trim() : null;
     }
 
     private void OpenMap()
@@ -214,23 +291,31 @@ public sealed partial class MainForm
 
     private void RefreshAvailableMaps()
     {
-        if (_state.CurrentFile is null)
+        var fromDisk = Enumerable.Empty<string>();
+        if (_state.CurrentFile is not null)
         {
-            return;
+            var dir = Path.GetDirectoryName(_state.CurrentFile);
+            if (dir is not null)
+            {
+                fromDisk = Directory.GetFiles(dir, "*.json")
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .OfType<string>();
+            }
         }
 
-        var dir = Path.GetDirectoryName(_state.CurrentFile);
-        if (dir is null)
-        {
-            return;
-        }
+        var fromTabs = _tabs
+            .Select(t => t.State.CurrentFile is not null
+                ? Path.GetFileNameWithoutExtension(t.State.CurrentFile)
+                : t.State.Document.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .OfType<string>();
 
-        var maps = Directory.GetFiles(dir, "*.json")
-            .Select(Path.GetFileNameWithoutExtension)
-            .OfType<string>()
+        var all = fromDisk
+            .Concat(fromTabs)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(n => n);
 
-        _shell.Inspector.LoadAvailableMaps(maps);
+        _shell.Inspector.LoadAvailableMaps(all);
     }
 
     private void UpdateStatus()

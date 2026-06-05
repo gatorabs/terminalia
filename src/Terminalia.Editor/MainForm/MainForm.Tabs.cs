@@ -9,7 +9,7 @@ public sealed partial class MainForm
         public EditorState State { get; } = new();
         public string DisplayName => State.CurrentFile is not null
             ? Path.GetFileNameWithoutExtension(State.CurrentFile)
-            : "untitled";
+            : State.Document?.Name ?? "untitled";
     }
 
     private readonly List<MapTab> _tabs = [];

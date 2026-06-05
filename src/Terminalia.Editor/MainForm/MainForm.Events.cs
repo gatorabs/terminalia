@@ -14,10 +14,9 @@ public sealed partial class MainForm
         _shell.CommandBar.ExportRequested += (_, _) => ExportGame();
         _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
         _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
-        _shell.CommandBar.PalettePanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Palette);
-        _shell.CommandBar.ZonePanelRequested += (_, _) =>
+        _shell.CommandBar.PalettePanelRequested += (_, _) =>
         {
-            _shell.ToggleInspectorSection(InspectorSection.Zone);
+            _shell.ToggleInspectorSection(InspectorSection.Palette);
             RefreshAvailableMaps();
         };
         _shell.CommandBar.RunPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Run);

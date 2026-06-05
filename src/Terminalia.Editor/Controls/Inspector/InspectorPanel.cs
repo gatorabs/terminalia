@@ -42,8 +42,7 @@ public sealed class InspectorPanel : UserControl
 
         AddSection(InspectorSection.Map, BuildMapSection(), 160);
         AddSection(InspectorSection.Tool, BuildToolSection(), 128);
-        AddSection(InspectorSection.Palette, BuildPaletteSection(), 210);
-        AddSection(InspectorSection.Zone, BuildZoneSection(), 262);
+        AddSection(InspectorSection.Palette, BuildPaletteSection(), 440);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
         Controls.Add(_stack);
@@ -179,42 +178,50 @@ public sealed class InspectorPanel : UserControl
 
     private Control BuildPaletteSection()
     {
-        var layout = new TableLayoutPanel
+        var tileTable = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
             ColumnCount = 1,
             RowCount = 4,
-            Padding = new Padding(0, 4, 0, 0),
+            Height = 148,
             BackColor = EditorColors.Section
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tileTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tileTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tileTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tileTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        tileTable.Controls.Add(CreateTileButton("#  Wall", '#'), 0, 0);
+        tileTable.Controls.Add(CreateTileButton(".  Floor", '.'), 0, 1);
+        tileTable.Controls.Add(CreateTileButton("@  Player", '@'), 0, 2);
+        tileTable.Controls.Add(CreateTileButton("*  Relic", '*'), 0, 3);
 
-        layout.Controls.Add(CreateTileButton("#  Wall", '#'), 0, 0);
-        layout.Controls.Add(CreateTileButton(".  Floor", '.'), 0, 1);
-        layout.Controls.Add(CreateTileButton("@  Player", '@'), 0, 2);
-        layout.Controls.Add(CreateTileButton("*  Relic", '*'), 0, 3);
-        return CreateSection("Palette", layout, 210);
-    }
+        var divider = new Panel { Dock = DockStyle.Top, Height = 1, BackColor = EditorColors.BorderSoft };
 
-    private Control BuildZoneSection()
-    {
-        var layout = new TableLayoutPanel
+        var zoneLabel = new Label
+        {
+            Text = "Zones",
+            Dock = DockStyle.Top,
+            Height = 26,
+            Font = EditorFonts.SectionFont,
+            ForeColor = EditorColors.SecondaryText,
+            BackColor = EditorColors.Section,
+            TextAlign = ContentAlignment.BottomLeft
+        };
+
+        var zoneTable = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
             RowCount = 5,
             Padding = new Padding(0, 2, 0, 0)
         };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        zoneTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
+        zoneTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        zoneTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        zoneTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        zoneTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        zoneTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+        zoneTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
 
         EditorControls.StyleTextBox(_zoneNameTextBox);
 
@@ -260,18 +267,24 @@ public sealed class InspectorPanel : UserControl
             }
         };
 
-        layout.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
-        layout.Controls.Add(_zoneNameTextBox, 1, 0);
-        layout.Controls.Add(EditorControls.CreateFieldLabel("Target"), 0, 1);
-        layout.Controls.Add(_zoneTargetCombo, 1, 1);
-        layout.Controls.Add(addButton, 0, 2);
-        layout.SetColumnSpan(addButton, 2);
-        layout.Controls.Add(_zoneListBox, 0, 3);
-        layout.SetColumnSpan(_zoneListBox, 2);
-        layout.Controls.Add(removeButton, 0, 4);
-        layout.SetColumnSpan(removeButton, 2);
+        zoneTable.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
+        zoneTable.Controls.Add(_zoneNameTextBox, 1, 0);
+        zoneTable.Controls.Add(EditorControls.CreateFieldLabel("Target"), 0, 1);
+        zoneTable.Controls.Add(_zoneTargetCombo, 1, 1);
+        zoneTable.Controls.Add(addButton, 0, 2);
+        zoneTable.SetColumnSpan(addButton, 2);
+        zoneTable.Controls.Add(_zoneListBox, 0, 3);
+        zoneTable.SetColumnSpan(_zoneListBox, 2);
+        zoneTable.Controls.Add(removeButton, 0, 4);
+        zoneTable.SetColumnSpan(removeButton, 2);
 
-        return CreateSection("Zone", layout, 262);
+        var container = new Panel { Dock = DockStyle.Fill, BackColor = EditorColors.Section };
+        container.Controls.Add(zoneTable);
+        container.Controls.Add(zoneLabel);
+        container.Controls.Add(divider);
+        container.Controls.Add(tileTable);
+
+        return CreateSection("Palette", container, 440);
     }
 
     private Control BuildRunSection()
@@ -376,7 +389,6 @@ public enum InspectorSection
     Map,
     Tool,
     Palette,
-    Zone,
     Run
 }
 
