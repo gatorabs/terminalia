@@ -5,10 +5,21 @@ namespace Terminalia.Editor.Controls.Canvas;
 
 public sealed class MapCanvas : Control
 {
+    private static readonly Color[] ZonePalette =
+    [
+        Color.FromArgb(60, 255, 100, 100),
+        Color.FromArgb(60, 100, 255, 100),
+        Color.FromArgb(60, 100, 100, 255),
+        Color.FromArgb(60, 255, 255, 100),
+        Color.FromArgb(60, 255, 100, 255),
+        Color.FromArgb(60, 100, 255, 255)
+    ];
+
     private const int CanvasPadding = 24;
     private int _cellSize = 32;
     private MapAssetDocument _document = MapAssetDocument.CreateDefault();
     private char _selectedTile = '#';
+    private string? _selectedZone;
     private bool _isPainting;
     private Point? _lastPaintedCell;
     private Point? _cursorCell;
@@ -49,6 +60,12 @@ public sealed class MapCanvas : Control
         set => _selectedTile = value;
     }
 
+    public string? SelectedZone
+    {
+        get => _selectedZone;
+        set => _selectedZone = value;
+    }
+
     public void LoadDocument(MapAssetDocument document)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
@@ -79,6 +96,31 @@ public sealed class MapCanvas : Control
                 DrawCell(e.Graphics, x, y, _document.GetTile(x, y));
             }
         }
+
+        if (_document.HasZones)
+        {
+            DrawZoneOverlay(e.Graphics);
+        }
+    }
+
+    private void DrawZoneOverlay(Graphics graphics)
+    {
+        for (var y = 0; y < _document.Height; y++)
+        {
+            for (var x = 0; x < _document.Width; x++)
+            {
+                var zoneName = _document.GetZoneAt(x, y);
+                if (zoneName is null)
+                {
+                    continue;
+                }
+
+                var colorIndex = Math.Abs(zoneName.GetHashCode()) % ZonePalette.Length;
+                var bounds = new Rectangle(x * CellSize, y * CellSize, CellSize, CellSize);
+                using var brush = new SolidBrush(ZonePalette[colorIndex]);
+                graphics.FillRectangle(brush, bounds);
+            }
+        }
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
@@ -106,13 +148,16 @@ public sealed class MapCanvas : Control
         PaintAt(e.Location);
     }
 
+    public event EventHandler<string?>? ZonePicked;
+
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
 
         UpdateCursorCell(e.Location);
 
-        if (ToolMode == EditorToolMode.Paint && _isPainting && e.Button == MouseButtons.Left)
+        if (_isPainting && e.Button == MouseButtons.Left &&
+            (ToolMode == EditorToolMode.Paint || ToolMode == EditorToolMode.Zone))
         {
             PaintAt(e.Location);
         }
@@ -143,7 +188,15 @@ public sealed class MapCanvas : Control
             return;
         }
 
-        _document.SetTile(cell.X, cell.Y, _selectedTile);
+        if (ToolMode == EditorToolMode.Zone)
+        {
+            _document.SetZone(cell.X, cell.Y, _selectedZone);
+        }
+        else
+        {
+            _document.SetTile(cell.X, cell.Y, _selectedTile);
+        }
+
         _lastPaintedCell = cell;
         Invalidate(new Rectangle(CanvasPadding + (cell.X * CellSize), CanvasPadding + (cell.Y * CellSize), CellSize + 1, CellSize + 1));
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -163,7 +216,16 @@ public sealed class MapCanvas : Control
 
     private void PickTileAt(Point location)
     {
-        if (TryGetCell(location, out var cell))
+        if (!TryGetCell(location, out var cell))
+        {
+            return;
+        }
+
+        if (ToolMode == EditorToolMode.Zone)
+        {
+            ZonePicked?.Invoke(this, _document.GetZoneAt(cell.X, cell.Y));
+        }
+        else
         {
             TilePicked?.Invoke(this, _document.GetTile(cell.X, cell.Y));
         }

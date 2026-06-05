@@ -15,6 +15,11 @@ public sealed partial class MainForm
         _shell.CommandBar.MapPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Map);
         _shell.CommandBar.ToolPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Tool);
         _shell.CommandBar.PalettePanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Palette);
+        _shell.CommandBar.ZonePanelRequested += (_, _) =>
+        {
+            _shell.ToggleInspectorSection(InspectorSection.Zone);
+            RefreshAvailableMaps();
+        };
         _shell.CommandBar.RunPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Run);
 
         _startPage.NewMapRequested += (_, _) => NewMap();
@@ -35,12 +40,53 @@ public sealed partial class MainForm
         };
         _shell.Inspector.RunEmbeddedRequested += (_, _) => ToggleEmbeddedRun();
 
+        _shell.Inspector.ZoneDefinitionApplied += (_, args) =>
+        {
+            _state.Document.DefineZone(args.Name, args.TargetMap);
+            _shell.Inspector.LoadZones(_state.Document.GetZoneNames());
+            MarkDirty();
+        };
+
+        _shell.Inspector.ZoneRemoveRequested += (_, name) =>
+        {
+            _state.Document.RemoveZoneDefinition(name);
+            _shell.Inspector.LoadZones(_state.Document.GetZoneNames());
+            if (_state.SelectedZone == name)
+            {
+                _state.SelectedZone = null;
+                _shell.Canvas.SelectedZone = null;
+                _state.ToolMode = EditorToolMode.Paint;
+                _shell.Canvas.ToolMode = EditorToolMode.Paint;
+            }
+            MarkDirty();
+        };
+
+        _shell.Inspector.ZoneSelected += (_, args) =>
+        {
+            _state.SelectedZone = args.ZoneName;
+            _shell.Canvas.SelectedZone = args.ZoneName;
+            _state.ToolMode = args.ZoneName is not null ? EditorToolMode.Zone : EditorToolMode.Paint;
+            _shell.Canvas.ToolMode = _state.ToolMode;
+            UpdateStatus();
+        };
+
+        _shell.Canvas.ZonePicked += (_, zoneName) =>
+        {
+            _state.SelectedZone = zoneName;
+            _shell.Canvas.SelectedZone = zoneName;
+            UpdateStatus();
+        };
+
         _shell.Runtime.GameStopped += (_, _) =>
         {
             _shell.ExitGameMode();
             _shell.Inspector.SetRunState(false);
             UpdateStatus();
         };
+
+        _shell.TabBar.TabSelected += (_, i) => SwitchToTab(i);
+        _shell.TabBar.TabCloseRequested += (_, i) => CloseTab(i);
+        _shell.TabBar.NewTabRequested += (_, _) => NewMap();
 
         _shell.Canvas.DocumentChanged += (_, _) => MarkDirty();
         _shell.Canvas.CursorCellChanged += (_, _) =>

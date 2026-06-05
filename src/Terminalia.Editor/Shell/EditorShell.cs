@@ -15,6 +15,8 @@ public sealed class EditorShell : UserControl
     private Panel _canvasScroll = new();
     private ClickOutsideFilter? _clickOutsideFilter;
 
+    public MapTabBar TabBar { get; } = new() { Dock = DockStyle.Top, Height = EditorLayout.TabBarHeight };
+
     public EditorShell()
     {
         Dock = DockStyle.Fill;
@@ -47,6 +49,7 @@ public sealed class EditorShell : UserControl
         var contentHost = new Panel { Dock = DockStyle.Fill };
         contentHost.Controls.Add(Runtime);
         contentHost.Controls.Add(_canvasScroll);
+        contentHost.Controls.Add(TabBar);
 
         var mainLayout = new TableLayoutPanel
         {
@@ -114,6 +117,7 @@ public sealed class EditorShell : UserControl
     public void EnterGameMode()
     {
         Inspector.Visible = false;
+        TabBar.Visible = false;
         Runtime.CellSize = Canvas.CellSize;
         _canvasScroll.Visible = false;
         Runtime.Visible = true;
@@ -124,6 +128,7 @@ public sealed class EditorShell : UserControl
     {
         Runtime.Visible = false;
         _canvasScroll.Visible = true;
+        TabBar.Visible = true;
     }
 
     public void ToggleInspectorSection(InspectorSection section)

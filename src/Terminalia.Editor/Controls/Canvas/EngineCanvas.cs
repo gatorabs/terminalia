@@ -42,9 +42,9 @@ public sealed class EngineCanvas : Control
         }
     }
 
-    public void StartGame()
+    public void StartGame(string? assetDirectory = null)
     {
-        _host.Start(_document, Invalidate);
+        _host.Start(_document, Invalidate, assetDirectory);
         Focus();
         Invalidate();
     }

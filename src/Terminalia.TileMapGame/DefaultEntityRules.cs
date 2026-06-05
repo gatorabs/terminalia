@@ -15,6 +15,7 @@ public static class DefaultEntityRules
         entity.AddComponent(new RenderComponent('@', layer: 2));
         entity.AddComponent(new VelocityComponent(Velocity.Zero));
         entity.AddComponent(new ColliderComponent(new Size(1, 1), isSolid: true));
+        entity.AddComponent(new ZoneComponent(string.Empty, null));
         return entity;
     });
 

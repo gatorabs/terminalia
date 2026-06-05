@@ -13,4 +13,5 @@ internal static class EditorLayout
     public const int InspectorWidth = 282;
     public const int StatusBarHeight = 30;
     public const int CanvasPadding = 16;
+    public const int TabBarHeight = 38;
 }

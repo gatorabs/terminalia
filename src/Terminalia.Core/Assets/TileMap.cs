@@ -7,7 +7,7 @@ public sealed class TileMap
 
     public static TileMap Empty { get; } = new("untitled", 1, 1, ["."], new Dictionary<char, string> { ['.'] = "floor" });
 
-    public TileMap(string name, int width, int height, IEnumerable<string> tiles, IReadOnlyDictionary<char, string> legend)
+    public TileMap(string name, int width, int height, IEnumerable<string> tiles, IReadOnlyDictionary<char, string> legend, ZoneGrid? zones = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
@@ -20,6 +20,7 @@ public sealed class TileMap
         Height = height;
         _tiles = tiles.ToList();
         _legend = new Dictionary<char, string>(legend);
+        Zones = zones ?? ZoneGrid.Empty;
 
         if (_tiles.Count != Height)
         {
@@ -41,6 +42,8 @@ public sealed class TileMap
     public IReadOnlyList<string> Tiles => _tiles;
 
     public IReadOnlyDictionary<char, string> Legend => _legend;
+
+    public ZoneGrid Zones { get; }
 
     public bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 

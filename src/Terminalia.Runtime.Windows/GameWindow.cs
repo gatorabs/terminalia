@@ -13,9 +13,12 @@ public sealed class GameWindow : Form
     private readonly TileMap _map;
     private readonly Font _hintFont = new(FontFamily.GenericMonospace, 8, FontStyle.Regular);
 
-    public GameWindow(TileMap map, int cellSize = 24)
+    private readonly string? _assetDirectory;
+
+    public GameWindow(TileMap map, int cellSize = 24, string? assetDirectory = null)
     {
         _map = map;
+        _assetDirectory = assetDirectory;
         _host = new WinFormsGameHost { CellSize = cellSize };
 
         Text = map.Name;
@@ -46,7 +49,7 @@ public sealed class GameWindow : Form
             {
                 Invalidate();
             }
-        });
+        }, _assetDirectory);
     }
 
     protected override void OnPaint(PaintEventArgs e)

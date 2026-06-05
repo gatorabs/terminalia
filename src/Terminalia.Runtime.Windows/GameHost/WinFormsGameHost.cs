@@ -1,3 +1,4 @@
+using Terminalia.Assets.Json;
 using Terminalia.Core.Assets;
 using Terminalia.TileMapGame;
 using Timer = System.Windows.Forms.Timer;
@@ -12,6 +13,8 @@ public sealed class WinFormsGameHost : IDisposable
     private readonly Timer _timer;
     private TileMapGameSession? _game;
     private Action? _onFrameReady;
+    private string? _assetDirectory;
+    private string? _pendingTransition;
 
     public event EventHandler? GameStopped;
 
@@ -25,11 +28,13 @@ public sealed class WinFormsGameHost : IDisposable
         _timer.Tick += OnTick;
     }
 
-    public void Start(TileMap map, Action onFrameReady)
+    public void Start(TileMap map, Action onFrameReady, string? assetDirectory = null)
     {
         _onFrameReady = onFrameReady;
+        _assetDirectory = assetDirectory;
+        _pendingTransition = null;
         _renderer.Configure(map.Width, map.Height, CellSize);
-        var scene = SceneAssembler.Assemble(map, _renderer);
+        var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
         _game = new TileMapGameSession(scene, _renderer, _inputProvider);
         _game.Initialize();
         _timer.Start();
@@ -49,7 +54,7 @@ public sealed class WinFormsGameHost : IDisposable
         _game = null;
         if (wasRunning && _onFrameReady is not null)
         {
-            Start(map, _onFrameReady);
+            Start(map, _onFrameReady, _assetDirectory);
         }
     }
 
@@ -75,6 +80,35 @@ public sealed class WinFormsGameHost : IDisposable
         _game.HandleInput();
         _game.Update(time);
         _game.Render();
+
+        if (_pendingTransition is not null)
+        {
+            var target = _pendingTransition;
+            _pendingTransition = null;
+            TransitionToMap(target);
+            return;
+        }
+
         _onFrameReady?.Invoke();
+    }
+
+    private void TransitionToMap(string targetMap)
+    {
+        if (_assetDirectory is null || _onFrameReady is null)
+        {
+            return;
+        }
+
+        var path = Path.Combine(_assetDirectory, targetMap + ".json");
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        var nextMap = MapAssetDocument.Load(path).ToTileMap();
+        _timer.Stop();
+        _game = null;
+        Start(nextMap, _onFrameReady, _assetDirectory);
+        _onFrameReady();
     }
 }

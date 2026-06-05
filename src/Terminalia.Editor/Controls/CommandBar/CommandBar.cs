@@ -27,6 +27,7 @@ public sealed class CommandBar : UserControl
     public event EventHandler? MapPanelRequested;
     public event EventHandler? ToolPanelRequested;
     public event EventHandler? PalettePanelRequested;
+    public event EventHandler? ZonePanelRequested;
     public event EventHandler? RunPanelRequested;
     public event EventHandler? ExportRequested;
 
@@ -51,6 +52,7 @@ public sealed class CommandBar : UserControl
         AddCmd("[#]", "Map", () => MapPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[T]", "Tool", () => ToolPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[P]", "Palette", () => PalettePanelRequested?.Invoke(this, EventArgs.Empty));
+        AddCmd("[Z]", "Zone", () => ZonePanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[R]", "Run", () => RunPanelRequested?.Invoke(this, EventArgs.Empty));
         AddSep();
         AddCmd("[+]", "New", () => NewRequested?.Invoke(this, EventArgs.Empty));
@@ -355,7 +357,8 @@ public sealed class CommandBar : UserControl
             InspectorSection.Map => 0,
             InspectorSection.Tool => 1,
             InspectorSection.Palette => 2,
-            InspectorSection.Run => 3,
+            InspectorSection.Zone => 3,
+            InspectorSection.Run => 4,
             _ => -1
         };
         if (index < 0)

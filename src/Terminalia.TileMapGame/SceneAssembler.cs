@@ -8,7 +8,7 @@ namespace Terminalia.TileMapGame;
 
 public static class SceneAssembler
 {
-    public static Scene Assemble(TileMap map, IRenderer renderer, IEnumerable<EntityRule>? rules = null)
+    public static Scene Assemble(TileMap map, IRenderer renderer, Action<string>? onTransition = null, IEnumerable<EntityRule>? rules = null)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(renderer);
@@ -31,6 +31,11 @@ public static class SceneAssembler
         scene.AddSystem(new MovementSystem());
         scene.AddSystem(new CollisionSystem());
         scene.AddSystem(new RenderSystem(renderer));
+
+        if (map.Zones != ZoneGrid.Empty)
+        {
+            scene.AddSystem(new ZoneTransitionSystem(map.Zones, onTransition ?? (_ => { })));
+        }
 
         return scene;
     }

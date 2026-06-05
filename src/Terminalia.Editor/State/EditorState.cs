@@ -15,4 +15,6 @@ public sealed class EditorState
     public EditorToolMode ToolMode { get; set; } = EditorToolMode.Paint;
 
     public Point? CursorCell { get; set; }
+
+    public string? SelectedZone { get; set; }
 }

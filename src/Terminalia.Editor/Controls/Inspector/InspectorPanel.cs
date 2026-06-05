@@ -16,11 +16,17 @@ public sealed class InspectorPanel : UserControl
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
     private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
+    private readonly TextBox _zoneNameTextBox = new();
+    private readonly ComboBox _zoneTargetCombo = new();
+    private readonly ListBox _zoneListBox = new();
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
     public event EventHandler<char>? TileSelected;
     public event EventHandler? RunEmbeddedRequested;
+    public event EventHandler<ZoneDefinedEventArgs>? ZoneDefinitionApplied;
+    public event EventHandler<ZoneSelectedEventArgs>? ZoneSelected;
+    public event EventHandler<string>? ZoneRemoveRequested;
 
     public InspectorPanel()
     {
@@ -37,6 +43,7 @@ public sealed class InspectorPanel : UserControl
         AddSection(InspectorSection.Map, BuildMapSection(), 160);
         AddSection(InspectorSection.Tool, BuildToolSection(), 128);
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 210);
+        AddSection(InspectorSection.Zone, BuildZoneSection(), 262);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
         Controls.Add(_stack);
@@ -48,6 +55,26 @@ public sealed class InspectorPanel : UserControl
         _nameTextBox.Text = name;
         _widthInput.Value = width;
         _heightInput.Value = height;
+    }
+
+    public void LoadZones(IEnumerable<string> zoneNames)
+    {
+        _zoneListBox.Items.Clear();
+        foreach (var name in zoneNames)
+        {
+            _zoneListBox.Items.Add(name);
+        }
+    }
+
+    public void LoadAvailableMaps(IEnumerable<string> mapNames)
+    {
+        var current = _zoneTargetCombo.Text;
+        _zoneTargetCombo.Items.Clear();
+        foreach (var name in mapNames)
+        {
+            _zoneTargetCombo.Items.Add(name);
+        }
+        _zoneTargetCombo.Text = current;
     }
 
     public void SetRunState(bool isRunning)
@@ -172,6 +199,81 @@ public sealed class InspectorPanel : UserControl
         return CreateSection("Palette", layout, 210);
     }
 
+    private Control BuildZoneSection()
+    {
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 5,
+            Padding = new Padding(0, 2, 0, 0)
+        };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+
+        EditorControls.StyleTextBox(_zoneNameTextBox);
+
+        _zoneTargetCombo.Dock = DockStyle.Fill;
+        _zoneTargetCombo.Font = EditorFonts.UiFont;
+        _zoneTargetCombo.BackColor = EditorColors.Surface;
+        _zoneTargetCombo.ForeColor = EditorColors.PrimaryText;
+        _zoneTargetCombo.DropDownStyle = ComboBoxStyle.DropDown;
+        _zoneTargetCombo.FlatStyle = FlatStyle.Flat;
+
+        _zoneListBox.Dock = DockStyle.Fill;
+        _zoneListBox.Font = EditorFonts.UiFont;
+        _zoneListBox.BackColor = EditorColors.Surface;
+        _zoneListBox.ForeColor = EditorColors.PrimaryText;
+        _zoneListBox.BorderStyle = BorderStyle.None;
+        _zoneListBox.SelectedIndexChanged += (_, _) =>
+        {
+            var selected = _zoneListBox.SelectedItem as string;
+            ZoneSelected?.Invoke(this, new ZoneSelectedEventArgs(selected));
+        };
+
+        var addButton = EditorControls.CreateButton("Add / Update", primary: true);
+        addButton.Dock = DockStyle.Fill;
+        addButton.Height = 30;
+        addButton.Click += (_, _) =>
+        {
+            var name = _zoneNameTextBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+            ZoneDefinitionApplied?.Invoke(this, new ZoneDefinedEventArgs(name, _zoneTargetCombo.Text.Trim()));
+        };
+
+        var removeButton = EditorControls.CreateButton("Remove");
+        removeButton.Dock = DockStyle.Fill;
+        removeButton.Height = 30;
+        removeButton.Click += (_, _) =>
+        {
+            if (_zoneListBox.SelectedItem is string name)
+            {
+                ZoneRemoveRequested?.Invoke(this, name);
+            }
+        };
+
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
+        layout.Controls.Add(_zoneNameTextBox, 1, 0);
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Target"), 0, 1);
+        layout.Controls.Add(_zoneTargetCombo, 1, 1);
+        layout.Controls.Add(addButton, 0, 2);
+        layout.SetColumnSpan(addButton, 2);
+        layout.Controls.Add(_zoneListBox, 0, 3);
+        layout.SetColumnSpan(_zoneListBox, 2);
+        layout.Controls.Add(removeButton, 0, 4);
+        layout.SetColumnSpan(removeButton, 2);
+
+        return CreateSection("Zone", layout, 262);
+    }
+
     private Control BuildRunSection()
     {
         var layout = new TableLayoutPanel
@@ -274,6 +376,7 @@ public enum InspectorSection
     Map,
     Tool,
     Palette,
+    Zone,
     Run
 }
 
@@ -282,4 +385,15 @@ public sealed class MapPropertiesChangedEventArgs(string name, int width, int he
     public string Name { get; } = name;
     public int Width { get; } = width;
     public int Height { get; } = height;
+}
+
+public sealed class ZoneDefinedEventArgs(string name, string? targetMap) : EventArgs
+{
+    public string Name { get; } = name;
+    public string? TargetMap { get; } = string.IsNullOrWhiteSpace(targetMap) ? null : targetMap;
+}
+
+public sealed class ZoneSelectedEventArgs(string? zoneName) : EventArgs
+{
+    public string? ZoneName { get; } = zoneName;
 }

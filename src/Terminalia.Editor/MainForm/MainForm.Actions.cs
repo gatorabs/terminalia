@@ -17,10 +17,13 @@ public sealed partial class MainForm
 
         _state.Document = document;
         _state.CurrentFile = currentFile;
+        _state.SelectedZone = null;
+
         _shell.Canvas.LoadDocument(document);
+        _shell.Canvas.SelectedZone = null;
         _shell.Runtime.LoadDocument(document.ToTileMap());
         _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height);
-        ShowEditor();
+        _shell.Inspector.LoadZones(document.GetZoneNames());
 
         if (markClean)
         {
@@ -36,21 +39,11 @@ public sealed partial class MainForm
 
     private void NewMap()
     {
-        if (!ConfirmCanDiscardChanges())
-        {
-            return;
-        }
-
-        LoadDocument(_fileService.CreateDefaultMap(), currentFile: null, markClean: true);
+        AddTab(_fileService.CreateDefaultMap(), filePath: null, markClean: true);
     }
 
     private void OpenMap()
     {
-        if (!ConfirmCanDiscardChanges())
-        {
-            return;
-        }
-
         using var dialog = new OpenFileDialog
         {
             Filter = "Terminalia map (*.json)|*.json|All files (*.*)|*.*",
@@ -62,7 +55,16 @@ public sealed partial class MainForm
             return;
         }
 
-        LoadDocument(_fileService.LoadMap(dialog.FileName), dialog.FileName, markClean: true);
+        var existingIndex = _tabs.FindIndex(t =>
+            string.Equals(t.State.CurrentFile, dialog.FileName, StringComparison.OrdinalIgnoreCase));
+
+        if (existingIndex >= 0)
+        {
+            SwitchToTab(existingIndex);
+            return;
+        }
+
+        AddTab(_fileService.LoadMap(dialog.FileName), dialog.FileName, markClean: true);
     }
 
     private bool SaveMap()
@@ -143,7 +145,10 @@ public sealed partial class MainForm
 
     private void LaunchGameWindow()
     {
-        var window = new Terminalia.Runtime.Windows.GameWindow(_state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize);
+        var assetDirectory = _state.CurrentFile is not null
+            ? Path.GetDirectoryName(_state.CurrentFile)
+            : null;
+        var window = new Terminalia.Runtime.Windows.GameWindow(_state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize, assetDirectory: assetDirectory);
         window.Show(this);
     }
 
@@ -180,8 +185,11 @@ public sealed partial class MainForm
         }
         else
         {
+            var assetDirectory = _state.CurrentFile is not null
+                ? Path.GetDirectoryName(_state.CurrentFile)
+                : null;
             _shell.EnterGameMode();
-            _shell.Runtime.StartGame();
+            _shell.Runtime.StartGame(assetDirectory);
             _shell.Runtime.Focus();
         }
 
@@ -193,13 +201,36 @@ public sealed partial class MainForm
     {
         _state.HasUnsavedChanges = true;
         _shell.Runtime.LoadDocument(_state.Document.ToTileMap(), preserveRunState: true);
+        RefreshTabBar();
         UpdateStatus();
     }
 
     private void MarkClean()
     {
         _state.HasUnsavedChanges = false;
+        RefreshTabBar();
         UpdateStatus();
+    }
+
+    private void RefreshAvailableMaps()
+    {
+        if (_state.CurrentFile is null)
+        {
+            return;
+        }
+
+        var dir = Path.GetDirectoryName(_state.CurrentFile);
+        if (dir is null)
+        {
+            return;
+        }
+
+        var maps = Directory.GetFiles(dir, "*.json")
+            .Select(Path.GetFileNameWithoutExtension)
+            .OfType<string>()
+            .OrderBy(n => n);
+
+        _shell.Inspector.LoadAvailableMaps(maps);
     }
 
     private void UpdateStatus()
@@ -214,25 +245,4 @@ public sealed partial class MainForm
             $"{_state.Document.Name}{dirtyMarker} | {_state.Document.Width}x{_state.Document.Height} | {cellText} | Tool: {_state.ToolMode} | Tile: {_state.SelectedTile} | {_state.CurrentFile ?? "Unsaved"}");
     }
 
-    private bool ConfirmCanDiscardChanges()
-    {
-        if (!_state.HasUnsavedChanges)
-        {
-            return true;
-        }
-
-        var result = MessageBox.Show(
-            this,
-            "Save changes before continuing?",
-            "Terminalia Editor",
-            MessageBoxButtons.YesNoCancel,
-            MessageBoxIcon.Question);
-
-        return result switch
-        {
-            DialogResult.Yes => SaveMap(),
-            DialogResult.No => true,
-            _ => false
-        };
-    }
 }

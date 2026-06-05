@@ -13,7 +13,7 @@ public sealed partial class MainForm : Form
     private readonly EditorShell _shell = new();
     private readonly StartPage _startPage = new();
     private readonly LoadingOverlay _loadingOverlay = new();
-    private readonly EditorState _state = new();
+    private EditorState _state = new();
 
     public MainForm()
     {
@@ -35,7 +35,7 @@ public sealed partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        if (!ConfirmCanDiscardChanges())
+        if (!ConfirmCanCloseAllTabs())
         {
             e.Cancel = true;
             return;
