@@ -215,11 +215,20 @@ public sealed class MapCanvas : Control
         }
         else
         {
+            Point? prevUnique = null;
+            if (_selectedTile == '@' && _document.TryFindTile('@', out var old))
+            {
+                prevUnique = new Point(old.X, old.Y);
+            }
             _document.SetTile(cell.X, cell.Y, _selectedTile);
+            if (prevUnique is { } prev && prev != cell)
+            {
+                Invalidate(GetCellInvalidRect(prev));
+            }
         }
 
         _lastPaintedCell = cell;
-        Invalidate(new Rectangle(CanvasPadding + (cell.X * CellSize), CanvasPadding + (cell.Y * CellSize), CellSize + 1, CellSize + 1));
+        Invalidate(GetCellInvalidRect(cell));
         DocumentChanged?.Invoke(this, EventArgs.Empty);
     }
 

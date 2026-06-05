@@ -88,6 +88,21 @@ public sealed class MapAssetDocument
         return Tiles[y][x];
     }
 
+    public bool TryFindTile(char tile, out (int X, int Y) position)
+    {
+        for (var y = 0; y < Height; y++)
+        {
+            var x = Tiles[y].IndexOf(tile);
+            if (x >= 0)
+            {
+                position = (x, y);
+                return true;
+            }
+        }
+        position = default;
+        return false;
+    }
+
     public void SetTile(int x, int y, char tile)
     {
         if (!Contains(x, y))
