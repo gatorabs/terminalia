@@ -15,8 +15,6 @@ public sealed class WinFormsGameHost : IDisposable
     private Action? _onFrameReady;
     private string? _assetDirectory;
     private string? _pendingTransition;
-    private int _viewportWidth;
-    private int _viewportHeight;
 
     public event EventHandler? GameStopped;
     public event EventHandler<string>? TransitionFailed;
@@ -31,15 +29,13 @@ public sealed class WinFormsGameHost : IDisposable
         _timer.Tick += OnTick;
     }
 
-    public void Start(TileMap map, Action onFrameReady, string? assetDirectory = null, int viewportWidth = 0, int viewportHeight = 0)
+    public void Start(TileMap map, Action onFrameReady, string? assetDirectory = null)
     {
         _onFrameReady = onFrameReady;
         _assetDirectory = assetDirectory;
         _pendingTransition = null;
-        _viewportWidth = viewportWidth > 0 ? viewportWidth : map.Width;
-        _viewportHeight = viewportHeight > 0 ? viewportHeight : map.Height;
-        _renderer.Configure(_viewportWidth, _viewportHeight, CellSize);
-        var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t, null, _viewportWidth, _viewportHeight);
+        _renderer.Configure(map.Width, map.Height, CellSize);
+        var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
         _game = new TileMapGameSession(scene, _renderer, _inputProvider);
         _game.Initialize();
         _timer.Start();
@@ -59,7 +55,7 @@ public sealed class WinFormsGameHost : IDisposable
         _game = null;
         if (wasRunning && _onFrameReady is not null)
         {
-            Start(map, _onFrameReady, _assetDirectory, _viewportWidth, _viewportHeight);
+            Start(map, _onFrameReady, _assetDirectory);
         }
     }
 
@@ -115,7 +111,7 @@ public sealed class WinFormsGameHost : IDisposable
         var nextMap = MapAssetDocument.Load(path).ToTileMap();
         _timer.Stop();
         _game = null;
-        Start(nextMap, _onFrameReady, _assetDirectory, _viewportWidth, _viewportHeight);
+        Start(nextMap, _onFrameReady, _assetDirectory);
         _onFrameReady();
     }
 }

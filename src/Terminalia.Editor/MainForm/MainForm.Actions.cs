@@ -282,11 +282,8 @@ public sealed partial class MainForm
     private void LaunchGameWindow()
     {
         SaveAllMaps();
-        var cellSize = _shell.Canvas.CellSize;
-        var vpW = Math.Max(1, _shell.Canvas.Width / cellSize);
-        var vpH = Math.Max(1, _shell.Canvas.Height / cellSize);
         var window = new Terminalia.Runtime.Windows.GameWindow(
-            _state.Document.ToTileMap(), cellSize, GetAssetDirectory(), vpW, vpH);
+            _state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize, assetDirectory: GetAssetDirectory());
         window.Show(this);
     }
 

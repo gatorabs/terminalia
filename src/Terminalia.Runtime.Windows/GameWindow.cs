@@ -12,29 +12,14 @@ public sealed class GameWindow : Form
     private readonly WinFormsGameHost _host;
     private readonly TileMap _map;
     private readonly Font _hintFont = new(FontFamily.GenericMonospace, 8, FontStyle.Regular);
-    private readonly string? _assetDirectory;
-    private readonly int _viewportWidth;
-    private readonly int _viewportHeight;
 
-    public GameWindow(TileMap map, int cellSize = 24, string? assetDirectory = null, int viewportWidth = 0, int viewportHeight = 0)
+    private readonly string? _assetDirectory;
+
+    public GameWindow(TileMap map, int cellSize = 24, string? assetDirectory = null)
     {
         _map = map;
         _assetDirectory = assetDirectory;
         _host = new WinFormsGameHost { CellSize = cellSize };
-
-        if (viewportWidth > 0 && viewportHeight > 0)
-        {
-            _viewportWidth = Math.Min(map.Width, viewportWidth);
-            _viewportHeight = Math.Min(map.Height, viewportHeight);
-        }
-        else
-        {
-            var screen = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1280, 720);
-            var maxTilesW = (screen.Width - GamePadding * 2) / cellSize;
-            var maxTilesH = (screen.Height - GamePadding * 2 - HintBarHeight) / cellSize;
-            _viewportWidth = Math.Min(map.Width, Math.Max(1, maxTilesW));
-            _viewportHeight = Math.Min(map.Height, Math.Max(1, maxTilesH));
-        }
 
         Text = map.Name;
         BackColor = Color.Black;
@@ -42,7 +27,7 @@ public sealed class GameWindow : Form
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
         DoubleBuffered = true;
-        ClientSize = new Size(_viewportWidth * cellSize + GamePadding * 2, _viewportHeight * cellSize + GamePadding * 2 + HintBarHeight);
+        ClientSize = new Size(map.Width * cellSize + GamePadding * 2, map.Height * cellSize + GamePadding * 2 + HintBarHeight);
 
         _host.GameStopped += (_, _) =>
         {
@@ -72,7 +57,7 @@ public sealed class GameWindow : Form
             {
                 Invalidate();
             }
-        }, _assetDirectory, _viewportWidth, _viewportHeight);
+        }, _assetDirectory);
     }
 
     protected override void OnPaint(PaintEventArgs e)
