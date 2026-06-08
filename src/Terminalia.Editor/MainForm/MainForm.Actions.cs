@@ -25,7 +25,7 @@ public sealed partial class MainForm
         _shell.Canvas.LoadDocument(document);
         _shell.Canvas.SelectedZone = null;
         _shell.Runtime.LoadDocument(document.ToTileMap());
-        _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height);
+        _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height, document.CameraZoom);
         _shell.Inspector.LoadZones(document.GetZoneNames());
 
         if (markClean)
@@ -306,6 +306,7 @@ public sealed partial class MainForm
             ? "untitled_map"
             : args.Name.Trim();
         _state.Document.Resize(args.Width, args.Height);
+        _state.Document.CameraZoom = args.CameraZoom;
         _shell.Canvas.RefreshDocument();
         _shell.Runtime.LoadDocument(_state.Document.ToTileMap());
         UpdateStatus();

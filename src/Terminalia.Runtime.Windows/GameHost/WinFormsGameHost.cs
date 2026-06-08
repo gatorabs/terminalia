@@ -16,6 +16,7 @@ public sealed class WinFormsGameHost : IDisposable
     private Action? _onFrameReady;
     private string? _assetDirectory;
     private string? _pendingTransition;
+    private Size _kernelSize = GameViewportDefaults.ComputeKernelSize(TileMap.DefaultCameraZoom);
 
     public event EventHandler? GameStopped;
     public event EventHandler<string>? TransitionFailed;
@@ -23,6 +24,8 @@ public sealed class WinFormsGameHost : IDisposable
     public bool IsRunning => _game?.IsRunning == true;
 
     public int CellSize { get; set; } = 32;
+
+    public Size KernelSize => _kernelSize;
 
     public WinFormsGameHost()
     {
@@ -35,7 +38,8 @@ public sealed class WinFormsGameHost : IDisposable
         _onFrameReady = onFrameReady;
         _assetDirectory = assetDirectory;
         _pendingTransition = null;
-        _renderer.Configure(GameViewportDefaults.KernelSize.Width, GameViewportDefaults.KernelSize.Height, CellSize);
+        _kernelSize = GameViewportDefaults.ComputeKernelSize(map.CameraZoom);
+        _renderer.Configure(_kernelSize.Width, _kernelSize.Height, CellSize);
         var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
         _game = new TileMapGameSession(scene, _renderer, _inputProvider);
         _game.Initialize();
@@ -50,7 +54,7 @@ public sealed class WinFormsGameHost : IDisposable
         }
 
         CellSize = cellSize;
-        _renderer.Configure(GameViewportDefaults.KernelSize.Width, GameViewportDefaults.KernelSize.Height, cellSize);
+        _renderer.Configure(_kernelSize.Width, _kernelSize.Height, cellSize);
         _onFrameReady?.Invoke();
     }
 

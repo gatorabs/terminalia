@@ -44,7 +44,8 @@ public sealed class EngineCanvas : Control
 
     public void StartGame(string? assetDirectory = null)
     {
-        _host.CellSize = ComputeFittingCellSize();
+        var kernelSize = GameViewportDefaults.ComputeKernelSize(_document.CameraZoom);
+        _host.CellSize = ComputeFittingCellSize(kernelSize);
         _host.Start(_document, Invalidate, assetDirectory);
         Cursor = EditorCursors.Blank;
         Focus();
@@ -95,20 +96,20 @@ public sealed class EngineCanvas : Control
         base.OnResize(e);
         if (IsRunning)
         {
-            _host.ApplyZoom(ComputeFittingCellSize());
+            _host.ApplyZoom(ComputeFittingCellSize(_host.KernelSize));
         }
     }
 
     protected override bool IsInputKey(Keys keyData) =>
         keyData is Keys.Up or Keys.Down or Keys.Left or Keys.Right || base.IsInputKey(keyData);
 
-    private int ComputeFittingCellSize()
+    private int ComputeFittingCellSize(Size kernelSize)
     {
         var available = new Size(
             Math.Max(0, Width - 2 * FramePadding),
             Math.Max(0, Height - 2 * FramePadding));
 
-        return GameViewportDefaults.ComputeCellSize(available);
+        return GameViewportDefaults.ComputeCellSize(available, kernelSize);
     }
 
     protected override void Dispose(bool disposing)

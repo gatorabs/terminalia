@@ -5,15 +5,28 @@ public sealed class TileMap
     private readonly List<string> _tiles;
     private readonly Dictionary<char, string> _legend;
 
+    public const int DefaultCameraZoom = 48;
+    public const int MinCameraZoom = 16;
+    public const int MaxCameraZoom = 128;
+
     public static TileMap Empty { get; } = new("untitled", 1, 1, ["."], new Dictionary<char, string> { ['.'] = "floor" });
 
-    public TileMap(string name, int width, int height, IEnumerable<string> tiles, IReadOnlyDictionary<char, string> legend, ZoneGrid? zones = null)
+    public TileMap(
+        string name,
+        int width,
+        int height,
+        IEnumerable<string> tiles,
+        IReadOnlyDictionary<char, string> legend,
+        ZoneGrid? zones = null,
+        int cameraZoom = DefaultCameraZoom)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(tiles);
         ArgumentNullException.ThrowIfNull(legend);
+        ArgumentOutOfRangeException.ThrowIfLessThan(cameraZoom, MinCameraZoom);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(cameraZoom, MaxCameraZoom);
 
         Name = name;
         Width = width;
@@ -21,6 +34,7 @@ public sealed class TileMap
         _tiles = tiles.ToList();
         _legend = new Dictionary<char, string>(legend);
         Zones = zones ?? ZoneGrid.Empty;
+        CameraZoom = cameraZoom;
 
         if (_tiles.Count != Height)
         {
@@ -39,6 +53,7 @@ public sealed class TileMap
     public IReadOnlyList<string> Tiles => _tiles;
     public IReadOnlyDictionary<char, string> Legend => _legend;
     public ZoneGrid Zones { get; }
+    public int CameraZoom { get; }
     public bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
     public char GetTile(int x, int y)

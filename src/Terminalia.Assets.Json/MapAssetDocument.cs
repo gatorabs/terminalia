@@ -18,6 +18,7 @@ public sealed class MapAssetDocument
     public List<string> Tiles { get; set; } = [];
     public Dictionary<string, string> Legend { get; set; } = [];
     public ZoneGridDto? Zones { get; set; }
+    public int CameraZoom { get; set; } = TileMap.DefaultCameraZoom;
 
     public bool HasZones => Zones is not null && Zones.Defs.Count > 0;
 
@@ -214,7 +215,7 @@ public sealed class MapAssetDocument
             }
         }
 
-        return new TileMap(Name, Width, Height, Tiles, legend, ToZoneGrid());
+        return new TileMap(Name, Width, Height, Tiles, legend, ToZoneGrid(), CameraZoom);
     }
 
     public ZoneGrid ToZoneGrid()
@@ -329,6 +330,11 @@ public sealed class MapAssetDocument
         if (Tiles.Any(row => row.Length != Width))
         {
             throw new InvalidDataException("Every tile row must match map width.");
+        }
+
+        if (CameraZoom < TileMap.MinCameraZoom || CameraZoom > TileMap.MaxCameraZoom)
+        {
+            throw new InvalidDataException($"Camera zoom must be between {TileMap.MinCameraZoom} and {TileMap.MaxCameraZoom}.");
         }
     }
 

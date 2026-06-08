@@ -11,6 +11,7 @@ public sealed class GameWindow : Form
 
     private readonly WinFormsGameHost _host;
     private readonly TileMap _map;
+    private readonly Size _kernelSize;
     private readonly Font _hintFont = new(FontFamily.GenericMonospace, 8, FontStyle.Regular);
 
     private readonly string? _assetDirectory;
@@ -19,9 +20,10 @@ public sealed class GameWindow : Form
     {
         _map = map;
         _assetDirectory = assetDirectory;
+        _kernelSize = GameViewportDefaults.ComputeKernelSize(map.CameraZoom);
 
         var defaultCellSize = GameViewportDefaults.ComputeCellSize(
-            GameViewportDefaults.ComputeAvailableArea(GameViewportDefaults.WindowClientSize));
+            GameViewportDefaults.ComputeAvailableArea(GameViewportDefaults.WindowClientSize), _kernelSize);
         _host = new WinFormsGameHost { CellSize = defaultCellSize };
 
         Text = map.Name;
@@ -127,16 +129,15 @@ public sealed class GameWindow : Form
 
     private int ComputeFittingCellSize()
     {
-        return GameViewportDefaults.ComputeCellSize(GameViewportDefaults.ComputeAvailableArea(ClientSize));
+        return GameViewportDefaults.ComputeCellSize(GameViewportDefaults.ComputeAvailableArea(ClientSize), _kernelSize);
     }
 
-    private static Size ComputeMinimumSize()
+    private Size ComputeMinimumSize()
     {
         const int minCellSize = 4;
-        var kernel = GameViewportDefaults.KernelSize;
         return new Size(
-            kernel.Width * minCellSize + GamePadding * 2,
-            kernel.Height * minCellSize + GamePadding * 2 + HintBarHeight);
+            _kernelSize.Width * minCellSize + GamePadding * 2,
+            _kernelSize.Height * minCellSize + GamePadding * 2 + HintBarHeight);
     }
 
     private void TryUseDarkTitleBar()

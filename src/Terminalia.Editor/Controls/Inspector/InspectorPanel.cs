@@ -1,3 +1,4 @@
+using Terminalia.Core.Assets;
 using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Controls;
@@ -13,6 +14,7 @@ public sealed class InspectorPanel : UserControl
     private readonly TextBox _nameTextBox = new();
     private readonly NumericUpDown _widthInput = new();
     private readonly NumericUpDown _heightInput = new();
+    private readonly NumericUpDown _cameraZoomInput = new();
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
     private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
@@ -43,7 +45,7 @@ public sealed class InspectorPanel : UserControl
         _stack.BackColor = EditorColors.Section;
         _stack.Padding = new Padding(0);
 
-        AddSection(InspectorSection.Map, BuildMapSection(), 160);
+        AddSection(InspectorSection.Map, BuildMapSection(), 192);
         AddSection(InspectorSection.Tool, BuildToolSection(), 128);
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 255);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
@@ -52,11 +54,12 @@ public sealed class InspectorPanel : UserControl
         SetActiveSection(InspectorSection.Map);
     }
 
-    public void LoadDocument(string name, int width, int height)
+    public void LoadDocument(string name, int width, int height, int cameraZoom)
     {
         _nameTextBox.Text = name;
         _widthInput.Value = width;
         _heightInput.Value = height;
+        _cameraZoomInput.Value = Math.Clamp(cameraZoom, (int)_cameraZoomInput.Minimum, (int)_cameraZoomInput.Maximum);
     }
 
     public void LoadZones(IEnumerable<string> zoneNames)
@@ -130,7 +133,7 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
-            RowCount = 4,
+            RowCount = 5,
             Padding = new Padding(0, 2, 0, 0)
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58));
@@ -141,13 +144,17 @@ public sealed class InspectorPanel : UserControl
         _widthInput.Maximum = 80;
         _heightInput.Minimum = 4;
         _heightInput.Maximum = 40;
+        _cameraZoomInput.Minimum = TileMap.MinCameraZoom;
+        _cameraZoomInput.Maximum = TileMap.MaxCameraZoom;
+        _cameraZoomInput.Increment = 4;
         EditorControls.StyleNumberInput(_widthInput);
         EditorControls.StyleNumberInput(_heightInput);
+        EditorControls.StyleNumberInput(_cameraZoomInput);
 
         var applyButton = EditorControls.CreateButton("Apply", primary: true);
         applyButton.Dock = DockStyle.Fill;
         applyButton.Height = 30;
-        applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(this, new MapPropertiesChangedEventArgs(_nameTextBox.Text, (int)_widthInput.Value, (int)_heightInput.Value));
+        applyButton.Click += (_, _) => ApplyMapPropertiesRequested?.Invoke(this, new MapPropertiesChangedEventArgs(_nameTextBox.Text, (int)_widthInput.Value, (int)_heightInput.Value, (int)_cameraZoomInput.Value));
 
         layout.Controls.Add(EditorControls.CreateFieldLabel("Name"), 0, 0);
         layout.Controls.Add(_nameTextBox, 1, 0);
@@ -155,10 +162,12 @@ public sealed class InspectorPanel : UserControl
         layout.Controls.Add(_widthInput, 1, 1);
         layout.Controls.Add(EditorControls.CreateFieldLabel("Height"), 0, 2);
         layout.Controls.Add(_heightInput, 1, 2);
-        layout.Controls.Add(applyButton, 0, 3);
+        layout.Controls.Add(EditorControls.CreateFieldLabel("Zoom"), 0, 3);
+        layout.Controls.Add(_cameraZoomInput, 1, 3);
+        layout.Controls.Add(applyButton, 0, 4);
         layout.SetColumnSpan(applyButton, 2);
 
-        return CreateSection("Map", layout, 160);
+        return CreateSection("Map", layout, 192);
     }
 
     private Control BuildToolSection()
@@ -435,11 +444,12 @@ public enum InspectorSection
     Run
 }
 
-public sealed class MapPropertiesChangedEventArgs(string name, int width, int height) : EventArgs
+public sealed class MapPropertiesChangedEventArgs(string name, int width, int height, int cameraZoom) : EventArgs
 {
     public string Name { get; } = name;
     public int Width { get; } = width;
     public int Height { get; } = height;
+    public int CameraZoom { get; } = cameraZoom;
 }
 
 public sealed class ZoneDefinedEventArgs(string name, string? targetMap) : EventArgs

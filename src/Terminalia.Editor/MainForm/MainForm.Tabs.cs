@@ -47,7 +47,7 @@ public sealed partial class MainForm
         _shell.Canvas.SelectedZone = _state.SelectedZone;
         _shell.Canvas.ToolMode = _state.ToolMode;
         _shell.Runtime.LoadDocument(_state.Document.ToTileMap());
-        _shell.Inspector.LoadDocument(_state.Document.Name, _state.Document.Width, _state.Document.Height);
+        _shell.Inspector.LoadDocument(_state.Document.Name, _state.Document.Width, _state.Document.Height, _state.Document.CameraZoom);
         _shell.Inspector.LoadZones(_state.Document.GetZoneNames());
         RefreshTabBar();
         UpdateStatus();
