@@ -1,6 +1,7 @@
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Cursors;
+using Terminalia.Runtime.Windows;
 
 namespace Terminalia.Editor.Controls.Canvas;
 
@@ -25,6 +26,7 @@ public sealed class MapCanvas : Control
     private bool _isPainting;
     private Point? _lastPaintedCell;
     private Point? _cursorCell;
+    private Point? _kernelPreviewFocus;
 
     public event EventHandler? DocumentChanged;
     public event EventHandler? CursorCellChanged;
@@ -84,6 +86,7 @@ public sealed class MapCanvas : Control
     public void LoadDocument(MapAssetDocument document)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
+        _kernelPreviewFocus = null;
         UpdateCanvasSize();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -91,6 +94,7 @@ public sealed class MapCanvas : Control
 
     public void RefreshDocument()
     {
+        _kernelPreviewFocus = null;
         UpdateCanvasSize();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -115,6 +119,11 @@ public sealed class MapCanvas : Control
         if (_document.HasZones)
         {
             DrawZoneOverlay(e.Graphics);
+        }
+
+        if (_kernelPreviewFocus is { } focus)
+        {
+            DrawKernelPreview(e.Graphics, ComputeKernelBounds(focus));
         }
 
         if (_cursorCell is { } cursor)
@@ -157,6 +166,14 @@ public sealed class MapCanvas : Control
         }
 
         UpdateCursorCell(e.Location);
+
+        if (TryGetCell(e.Location, out var clicked) && _document.GetTile(clicked.X, clicked.Y) == '@')
+        {
+            ToggleKernelPreview(clicked);
+            return;
+        }
+
+        HideKernelPreview();
 
         if (ToolMode == EditorToolMode.Fill)
         {
@@ -347,6 +364,47 @@ public sealed class MapCanvas : Control
         }
 
         return Color.White;
+    }
+
+    private void ToggleKernelPreview(Point playerCell)
+    {
+        _kernelPreviewFocus = _kernelPreviewFocus == playerCell ? null : playerCell;
+        Invalidate();
+    }
+
+    private void HideKernelPreview()
+    {
+        if (_kernelPreviewFocus is null)
+        {
+            return;
+        }
+
+        _kernelPreviewFocus = null;
+        Invalidate();
+    }
+
+    private Rectangle ComputeKernelBounds(Point focus)
+    {
+        var kernelSize = GameViewportDefaults.ComputeKernelSize(_document.CameraZoom);
+        var originX = ClampOrigin(focus.X - kernelSize.Width / 2, _document.Width - kernelSize.Width);
+        var originY = ClampOrigin(focus.Y - kernelSize.Height / 2, _document.Height - kernelSize.Height);
+        return new Rectangle(originX, originY, kernelSize.Width, kernelSize.Height);
+    }
+
+    private static int ClampOrigin(int value, int max) => Math.Clamp(value, 0, Math.Max(0, max));
+
+    private void DrawKernelPreview(Graphics g, Rectangle kernel)
+    {
+        var bounds = new Rectangle(
+            kernel.X * CellSize,
+            kernel.Y * CellSize,
+            kernel.Width * CellSize,
+            kernel.Height * CellSize);
+
+        using var fill = new SolidBrush(Color.FromArgb(26, 255, 196, 64));
+        using var border = new Pen(Color.FromArgb(220, 255, 196, 64), 2f);
+        g.FillRectangle(fill, bounds);
+        g.DrawRectangle(border, bounds);
     }
 
     private Rectangle GetCellInvalidRect(Point cell) =>
