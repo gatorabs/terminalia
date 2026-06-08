@@ -6,8 +6,8 @@ namespace Terminalia.Runtime.Windows;
 
 public sealed class GameWindow : Form
 {
-    private const int GamePadding = 16;
-    private const int HintBarHeight = 22;
+    private const int GamePadding = GameViewportDefaults.GamePadding;
+    private const int HintBarHeight = GameViewportDefaults.HintBarHeight;
 
     private readonly WinFormsGameHost _host;
     private readonly TileMap _map;
@@ -15,19 +15,23 @@ public sealed class GameWindow : Form
 
     private readonly string? _assetDirectory;
 
-    public GameWindow(TileMap map, int cellSize = 24, string? assetDirectory = null)
+    public GameWindow(TileMap map, string? assetDirectory = null)
     {
         _map = map;
         _assetDirectory = assetDirectory;
-        _host = new WinFormsGameHost { CellSize = cellSize };
+
+        var defaultCellSize = GameViewportDefaults.ComputeCellSize(
+            GameViewportDefaults.ComputeAvailableArea(GameViewportDefaults.WindowClientSize));
+        _host = new WinFormsGameHost { CellSize = defaultCellSize };
 
         Text = map.Name;
         BackColor = Color.Black;
-        FormBorderStyle = FormBorderStyle.FixedSingle;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
         StartPosition = FormStartPosition.CenterScreen;
         DoubleBuffered = true;
-        ClientSize = new Size(map.Width * cellSize + GamePadding * 2, map.Height * cellSize + GamePadding * 2 + HintBarHeight);
+        MinimumSize = ComputeMinimumSize();
+        ClientSize = GameViewportDefaults.WindowClientSize;
 
         _host.GameStopped += (_, _) =>
         {
@@ -60,6 +64,12 @@ public sealed class GameWindow : Form
         }, _assetDirectory);
     }
 
+    protected override void OnClientSizeChanged(EventArgs e)
+    {
+        base.OnClientSizeChanged(e);
+        _host.ApplyZoom(ComputeFittingCellSize());
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
@@ -68,7 +78,10 @@ public sealed class GameWindow : Form
         var frame = _host.GetFrame();
         if (frame is not null)
         {
-            e.Graphics.DrawImage(frame, GamePadding, GamePadding);
+            var available = GameViewportDefaults.ComputeAvailableArea(ClientSize);
+            var ox = GamePadding + Math.Max(0, (available.Width - frame.Width) / 2);
+            var oy = GamePadding + Math.Max(0, (available.Height - frame.Height) / 2);
+            e.Graphics.DrawImage(frame, ox, oy);
         }
 
         TextRenderer.DrawText(
@@ -110,6 +123,20 @@ public sealed class GameWindow : Form
             _hintFont.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    private int ComputeFittingCellSize()
+    {
+        return GameViewportDefaults.ComputeCellSize(GameViewportDefaults.ComputeAvailableArea(ClientSize));
+    }
+
+    private static Size ComputeMinimumSize()
+    {
+        const int minCellSize = 4;
+        var kernel = GameViewportDefaults.KernelSize;
+        return new Size(
+            kernel.Width * minCellSize + GamePadding * 2,
+            kernel.Height * minCellSize + GamePadding * 2 + HintBarHeight);
     }
 
     private void TryUseDarkTitleBar()

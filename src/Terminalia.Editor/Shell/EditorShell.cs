@@ -119,7 +119,6 @@ public sealed class EditorShell : UserControl
     {
         Inspector.Visible = false;
         TabBar.Visible = false;
-        Runtime.CellSize = Canvas.CellSize;
         _canvasScroll.Visible = false;
         Runtime.Visible = true;
         Runtime.BringToFront();

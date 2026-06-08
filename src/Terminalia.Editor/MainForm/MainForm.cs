@@ -18,7 +18,7 @@ public sealed partial class MainForm : Form
     public MainForm()
     {
         Text = "Terminalia Editor";
-        MinimumSize = new Size(900, 600);
+        MinimumSize = Terminalia.Runtime.Windows.GameViewportDefaults.WindowClientSize;
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = EditorColors.AppBackground;
         Font = EditorFonts.UiFont;

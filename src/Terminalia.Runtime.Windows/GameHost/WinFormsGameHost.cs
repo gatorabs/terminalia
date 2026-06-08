@@ -1,5 +1,6 @@
 using Terminalia.Assets.Json;
 using Terminalia.Core.Assets;
+using Terminalia.Runtime.Windows;
 using Terminalia.TileMapGame;
 using Timer = System.Windows.Forms.Timer;
 
@@ -34,11 +35,23 @@ public sealed class WinFormsGameHost : IDisposable
         _onFrameReady = onFrameReady;
         _assetDirectory = assetDirectory;
         _pendingTransition = null;
-        _renderer.Configure(map.Width, map.Height, CellSize);
+        _renderer.Configure(GameViewportDefaults.KernelSize.Width, GameViewportDefaults.KernelSize.Height, CellSize);
         var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
         _game = new TileMapGameSession(scene, _renderer, _inputProvider);
         _game.Initialize();
         _timer.Start();
+    }
+
+    public void ApplyZoom(int cellSize)
+    {
+        if (cellSize <= 0 || cellSize == CellSize || _game is null)
+        {
+            return;
+        }
+
+        CellSize = cellSize;
+        _renderer.Configure(GameViewportDefaults.KernelSize.Width, GameViewportDefaults.KernelSize.Height, cellSize);
+        _onFrameReady?.Invoke();
     }
 
     public void Stop()

@@ -1,5 +1,7 @@
 using Terminalia.Core.Abstractions.Rendering;
 using Terminalia.Core.Assets;
+using Terminalia.Core.Ecs;
+using Terminalia.Core.Ecs.Components;
 using Terminalia.Core.Ecs.Systems;
 using Terminalia.Core.Scenes;
 using Terminalia.Core.ValueObjects;
@@ -28,8 +30,13 @@ public static class SceneAssembler
             }
         }
 
+        var camera = new Entity("Camera");
+        camera.AddComponent(new CameraComponent(new Size(renderer.Width, renderer.Height)));
+        scene.AddEntity(camera);
+
         scene.AddSystem(new MovementSystem());
         scene.AddSystem(new CollisionSystem());
+        scene.AddSystem(new CameraFollowSystem(new Size(map.Width, map.Height)));
         scene.AddSystem(new RenderSystem(renderer));
 
         if (map.Zones != ZoneGrid.Empty)

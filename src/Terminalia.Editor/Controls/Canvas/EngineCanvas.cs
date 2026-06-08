@@ -2,12 +2,15 @@ using Terminalia.Core.Assets;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Cursors;
 using Terminalia.Editor.Styling.Layout;
+using Terminalia.Runtime.Windows;
 using Terminalia.Runtime.Windows.GameHost;
 
 namespace Terminalia.Editor.Controls.Canvas;
 
 public sealed class EngineCanvas : Control
 {
+    private const int FramePadding = 24;
+
     private readonly WinFormsGameHost _host = new();
     private TileMap _document = TileMap.Empty;
 
@@ -26,12 +29,6 @@ public sealed class EngineCanvas : Control
 
     public bool IsRunning => _host.IsRunning;
 
-    public int CellSize
-    {
-        get => _host.CellSize;
-        set => _host.CellSize = value;
-    }
-
     public void LoadDocument(TileMap document, bool preserveRunState = false)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
@@ -47,6 +44,7 @@ public sealed class EngineCanvas : Control
 
     public void StartGame(string? assetDirectory = null)
     {
+        _host.CellSize = ComputeFittingCellSize();
         _host.Start(_document, Invalidate, assetDirectory);
         Cursor = EditorCursors.Blank;
         Focus();
@@ -87,16 +85,31 @@ public sealed class EngineCanvas : Control
         }
 
         const int p = EditorLayout.CanvasPadding;
-        const int tp = 24;
-        var canvasW = frame.Width + 2 * tp;
-        var canvasH = frame.Height + 2 * tp;
-        var cx = Math.Max(p, (Width - canvasW) / 2);
-        var cy = Math.Max(p, (Height - canvasH) / 4);
-        e.Graphics.DrawImage(frame, cx + tp, cy + tp);
+        var cx = Math.Max(p, (Width - frame.Width) / 2);
+        var cy = Math.Max(p, (Height - frame.Height) / 2);
+        e.Graphics.DrawImage(frame, cx, cy);
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (IsRunning)
+        {
+            _host.ApplyZoom(ComputeFittingCellSize());
+        }
     }
 
     protected override bool IsInputKey(Keys keyData) =>
         keyData is Keys.Up or Keys.Down or Keys.Left or Keys.Right || base.IsInputKey(keyData);
+
+    private int ComputeFittingCellSize()
+    {
+        var available = new Size(
+            Math.Max(0, Width - 2 * FramePadding),
+            Math.Max(0, Height - 2 * FramePadding));
+
+        return GameViewportDefaults.ComputeCellSize(available);
+    }
 
     protected override void Dispose(bool disposing)
     {

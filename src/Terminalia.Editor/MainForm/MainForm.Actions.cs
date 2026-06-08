@@ -283,7 +283,7 @@ public sealed partial class MainForm
     {
         SaveAllMaps();
         var window = new Terminalia.Runtime.Windows.GameWindow(
-            _state.Document.ToTileMap(), cellSize: _shell.Canvas.CellSize, assetDirectory: GetAssetDirectory());
+            _state.Document.ToTileMap(), assetDirectory: GetAssetDirectory());
         window.Show(this);
     }
 
