@@ -26,11 +26,14 @@ public sealed class MapCanvas : Control
     private bool _isPainting;
     private Point? _lastPaintedCell;
     private Point? _cursorCell;
+    private Point? _selectedCell;
     private Point? _kernelPreviewFocus;
+    private bool _kernelPreviewVisible;
 
     public event EventHandler? DocumentChanged;
     public event EventHandler? CursorCellChanged;
     public event EventHandler<char>? TilePicked;
+    public event EventHandler<Point?>? SelectionChanged;
 
     public MapCanvas()
     {
@@ -83,10 +86,22 @@ public sealed class MapCanvas : Control
         set => _selectedZone = value;
     }
 
+    public Point? SelectedCell => _selectedCell;
+
+    public bool KernelPreviewVisible
+    {
+        get => _kernelPreviewVisible;
+        set
+        {
+            _kernelPreviewVisible = value;
+            UpdateKernelPreview();
+        }
+    }
+
     public void LoadDocument(MapAssetDocument document)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
-        _kernelPreviewFocus = null;
+        ClearSelection();
         UpdateCanvasSize();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -94,7 +109,7 @@ public sealed class MapCanvas : Control
 
     public void RefreshDocument()
     {
-        _kernelPreviewFocus = null;
+        ClearSelection();
         UpdateCanvasSize();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -124,6 +139,11 @@ public sealed class MapCanvas : Control
         if (_kernelPreviewFocus is { } focus)
         {
             DrawKernelPreview(e.Graphics, ComputeKernelBounds(focus));
+        }
+
+        if (_selectedCell is { } selected)
+        {
+            DrawSelection(e.Graphics, selected);
         }
 
         if (_cursorCell is { } cursor)
@@ -167,13 +187,11 @@ public sealed class MapCanvas : Control
 
         UpdateCursorCell(e.Location);
 
-        if (TryGetCell(e.Location, out var clicked) && _document.GetTile(clicked.X, clicked.Y) == '@')
+        if (ToolMode == EditorToolMode.Select)
         {
-            ToggleKernelPreview(clicked);
+            SelectAt(e.Location);
             return;
         }
-
-        HideKernelPreview();
 
         if (ToolMode == EditorToolMode.Fill)
         {
@@ -245,6 +263,7 @@ public sealed class MapCanvas : Control
         }
 
         _lastPaintedCell = cell;
+        UpdateKernelPreview();
         Invalidate(GetCellInvalidRect(cell));
         DocumentChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -257,6 +276,7 @@ public sealed class MapCanvas : Control
         }
 
         _document.FloodFill(cell.X, cell.Y, _selectedTile);
+        UpdateKernelPreview();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -331,6 +351,12 @@ public sealed class MapCanvas : Control
             return;
         }
 
+        if (_toolMode == EditorToolMode.Select)
+        {
+            Cursor = Cursors.Default;
+            return;
+        }
+
         Cursor = EditorCursors.ForTile(_selectedTile, GetTileTextColor(_selectedTile));
     }
 
@@ -356,6 +382,11 @@ public sealed class MapCanvas : Control
             return Color.FromArgb(255, 80, 140, 255);
         }
 
+        if (ToolMode == EditorToolMode.Select)
+        {
+            return Color.FromArgb(255, 255, 196, 64);
+        }
+
         if (ToolMode == EditorToolMode.Zone && _selectedZone is not null)
         {
             var idx = Math.Abs(_selectedZone.GetHashCode()) % ZonePalette.Length;
@@ -366,20 +397,49 @@ public sealed class MapCanvas : Control
         return Color.White;
     }
 
-    private void ToggleKernelPreview(Point playerCell)
+    private void SelectAt(Point location)
     {
-        _kernelPreviewFocus = _kernelPreviewFocus == playerCell ? null : playerCell;
-        Invalidate();
+        if (!TryGetCell(location, out var cell))
+        {
+            ClearSelection();
+            return;
+        }
+
+        SetSelection(_selectedCell == cell ? null : cell);
     }
 
-    private void HideKernelPreview()
+    private void SetSelection(Point? cell)
     {
-        if (_kernelPreviewFocus is null)
+        if (_selectedCell == cell)
         {
             return;
         }
 
-        _kernelPreviewFocus = null;
+        _selectedCell = cell;
+        UpdateKernelPreview();
+        SelectionChanged?.Invoke(this, _selectedCell);
+        Invalidate();
+    }
+
+    private void ClearSelection()
+    {
+        SetSelection(null);
+    }
+
+    private void UpdateKernelPreview()
+    {
+        var nextFocus = _kernelPreviewVisible
+            && _selectedCell is { } cell
+            && _document.GetTile(cell.X, cell.Y) == '@'
+                ? cell
+                : (Point?)null;
+
+        if (_kernelPreviewFocus == nextFocus)
+        {
+            return;
+        }
+
+        _kernelPreviewFocus = nextFocus;
         Invalidate();
     }
 
@@ -392,6 +452,13 @@ public sealed class MapCanvas : Control
     }
 
     private static int ClampOrigin(int value, int max) => Math.Clamp(value, 0, Math.Max(0, max));
+
+    private void DrawSelection(Graphics g, Point cell)
+    {
+        var bounds = new Rectangle(cell.X * CellSize + 1, cell.Y * CellSize + 1, CellSize - 2, CellSize - 2);
+        using var pen = new Pen(Color.FromArgb(255, 255, 196, 64), 2.5f);
+        g.DrawRectangle(pen, bounds);
+    }
 
     private void DrawKernelPreview(Graphics g, Rectangle kernel)
     {

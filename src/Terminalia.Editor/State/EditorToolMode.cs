@@ -4,5 +4,6 @@ public enum EditorToolMode
 {
     Paint,
     Fill,
-    Zone
+    Zone,
+    Select
 }

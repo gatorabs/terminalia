@@ -107,5 +107,21 @@ public sealed partial class MainForm
             _shell.Inspector.SelectTile(tile);
             UpdateStatus();
         };
+
+        _shell.Canvas.SelectionChanged += (_, cell) =>
+        {
+            if (cell is { } selected)
+            {
+                var tile = _state.Document.GetTile(selected.X, selected.Y);
+                _state.Document.Legend.TryGetValue(tile.ToString(), out var description);
+                _shell.Inspector.ShowObjectSelection(tile, description, isPlayer: tile == '@');
+            }
+            else
+            {
+                _shell.Inspector.ClearObjectSelection();
+            }
+        };
+
+        _shell.Inspector.KernelPreviewToggled += (_, show) => _shell.Canvas.KernelPreviewVisible = show;
     }
 }

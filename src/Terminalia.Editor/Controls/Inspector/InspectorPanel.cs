@@ -17,12 +17,16 @@ public sealed class InspectorPanel : UserControl
     private readonly NumericUpDown _cameraZoomInput = new();
     private readonly RadioButton _paintButton = new();
     private readonly RadioButton _fillButton = new();
+    private readonly RadioButton _selectButton = new();
     private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
     private readonly TextBox _zoneNameTextBox = new();
     private readonly ComboBox _zoneTargetCombo = new();
     private readonly ListBox _zoneListBox = new();
+    private readonly Label _objectInfoLabel = new();
+    private readonly CheckBox _kernelPreviewCheckBox = new();
     private bool _suppressToolEvents;
     private bool _suppressZoneEvents;
+    private bool _suppressObjectEvents;
 
     public event EventHandler<MapPropertiesChangedEventArgs>? ApplyMapPropertiesRequested;
     public event EventHandler<EditorToolMode>? ToolChanged;
@@ -31,6 +35,7 @@ public sealed class InspectorPanel : UserControl
     public event EventHandler<ZoneDefinedEventArgs>? ZoneDefinitionApplied;
     public event EventHandler<ZoneSelectedEventArgs>? ZoneSelected;
     public event EventHandler<string>? ZoneRemoveRequested;
+    public event EventHandler<bool>? KernelPreviewToggled;
     public event EventHandler? SectionResized;
 
     public InspectorPanel()
@@ -46,8 +51,9 @@ public sealed class InspectorPanel : UserControl
         _stack.Padding = new Padding(0);
 
         AddSection(InspectorSection.Map, BuildMapSection(), 192);
-        AddSection(InspectorSection.Tool, BuildToolSection(), 128);
+        AddSection(InspectorSection.Tool, BuildToolSection(), 162);
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 255);
+        AddSection(InspectorSection.Object, BuildObjectSection(), 128);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
         Controls.Add(_stack);
@@ -99,7 +105,36 @@ public sealed class InspectorPanel : UserControl
         _suppressToolEvents = true;
         _paintButton.Checked = mode == EditorToolMode.Paint;
         _fillButton.Checked = mode == EditorToolMode.Fill;
+        _selectButton.Checked = mode == EditorToolMode.Select;
         _suppressToolEvents = false;
+    }
+
+    public void ShowObjectSelection(char tile, string? description, bool isPlayer)
+    {
+        _objectInfoLabel.Text = string.IsNullOrWhiteSpace(description)
+            ? $"Tile: '{tile}'"
+            : $"Tile: '{tile}' — {description}";
+
+        _kernelPreviewCheckBox.Visible = isPlayer;
+
+        if (!isPlayer)
+        {
+            _suppressObjectEvents = true;
+            _kernelPreviewCheckBox.Checked = false;
+            _suppressObjectEvents = false;
+        }
+
+        SetActiveSection(InspectorSection.Object);
+    }
+
+    public void ClearObjectSelection()
+    {
+        _objectInfoLabel.Text = "Selecione um objeto no mapa.";
+        _kernelPreviewCheckBox.Visible = false;
+
+        _suppressObjectEvents = true;
+        _kernelPreviewCheckBox.Checked = false;
+        _suppressObjectEvents = false;
     }
 
     public void ClearZoneSelection()
@@ -176,14 +211,16 @@ public sealed class InspectorPanel : UserControl
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 2,
+            RowCount = 3,
             Padding = new Padding(0, 4, 0, 0)
         };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
 
         ConfigureToolButton(_paintButton, "Paint", isChecked: true);
         ConfigureToolButton(_fillButton, "Fill", isChecked: false);
+        ConfigureToolButton(_selectButton, "Select", isChecked: false);
 
         _paintButton.CheckedChanged += (_, _) =>
         {
@@ -199,10 +236,18 @@ public sealed class InspectorPanel : UserControl
                 ToolChanged?.Invoke(this, EditorToolMode.Fill);
             }
         };
+        _selectButton.CheckedChanged += (_, _) =>
+        {
+            if (!_suppressToolEvents && _selectButton.Checked)
+            {
+                ToolChanged?.Invoke(this, EditorToolMode.Select);
+            }
+        };
 
         layout.Controls.Add(_paintButton, 0, 0);
         layout.Controls.Add(_fillButton, 0, 1);
-        return CreateSection("Tool", layout, 128);
+        layout.Controls.Add(_selectButton, 0, 2);
+        return CreateSection("Tool", layout, 162);
     }
 
     private Control BuildPaletteSection()
@@ -339,6 +384,46 @@ public sealed class InspectorPanel : UserControl
         return CreateSection("Palette", container, 255);
     }
 
+    private Control BuildObjectSection()
+    {
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            Padding = new Padding(0, 4, 0, 0),
+            BackColor = EditorColors.Section
+        };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+
+        _objectInfoLabel.Text = "Selecione um objeto no mapa.";
+        _objectInfoLabel.Dock = DockStyle.Fill;
+        _objectInfoLabel.AutoSize = false;
+        _objectInfoLabel.AutoEllipsis = true;
+        _objectInfoLabel.ForeColor = EditorColors.PrimaryText;
+        _objectInfoLabel.Font = EditorFonts.UiFont;
+        _objectInfoLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+        _kernelPreviewCheckBox.Text = "Mostrar kernel da câmera";
+        _kernelPreviewCheckBox.Dock = DockStyle.Fill;
+        _kernelPreviewCheckBox.Font = EditorFonts.UiFont;
+        _kernelPreviewCheckBox.BackColor = EditorColors.Section;
+        _kernelPreviewCheckBox.ForeColor = EditorColors.PrimaryText;
+        _kernelPreviewCheckBox.Visible = false;
+        _kernelPreviewCheckBox.CheckedChanged += (_, _) =>
+        {
+            if (!_suppressObjectEvents)
+            {
+                KernelPreviewToggled?.Invoke(this, _kernelPreviewCheckBox.Checked);
+            }
+        };
+
+        layout.Controls.Add(_objectInfoLabel, 0, 0);
+        layout.Controls.Add(_kernelPreviewCheckBox, 0, 1);
+        return CreateSection("Object", layout, 128);
+    }
+
     private Control BuildRunSection()
     {
         var layout = new TableLayoutPanel
@@ -441,6 +526,7 @@ public enum InspectorSection
     Map,
     Tool,
     Palette,
+    Object,
     Run
 }
 
