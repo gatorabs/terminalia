@@ -48,7 +48,7 @@ public sealed class InspectorPanel : UserControl
         _stack.Padding = new Padding(0);
 
         AddSection(InspectorSection.Map, BuildMapSection(), 192);
-        AddSection(InspectorSection.Tool, BuildToolSection(), 172);
+        AddSection(InspectorSection.Tool, BuildToolSection(), 128);
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 255);
         AddSection(InspectorSection.Object, BuildObjectSection(), 128);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
@@ -102,9 +102,9 @@ public sealed class InspectorPanel : UserControl
         _toolSection.SetToolMode(mode);
     }
 
-    public void ShowObjectSelection(SelectedObjectInfo info)
+    public void ShowObjectSelection(SelectedObjectInfo info, bool kernelPreviewActive)
     {
-        _objectSection.ShowObject(info);
+        _objectSection.ShowObject(info, kernelPreviewActive);
         ResizeObjectSection();
         SetActiveSection(InspectorSection.Object);
     }
@@ -186,7 +186,7 @@ public sealed class InspectorPanel : UserControl
     private Control BuildToolSection()
     {
         _toolSection.ToolChanged += (_, tool) => ToolChanged?.Invoke(this, tool);
-        return CreateSection("Tool", _toolSection, 172);
+        return CreateSection("Tool", _toolSection, 128);
     }
 
     private Control BuildPaletteSection()

@@ -29,8 +29,8 @@ internal static class InspectorPropertyEditors
         {
             Minimum = property.Minimum,
             Maximum = property.Maximum,
-            Dock = DockStyle.Fill,
-            Margin = new Padding(0, 2, 0, 2)
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(0)
         };
         EditorControls.StyleNumberInput(input);
 
@@ -54,7 +54,12 @@ internal static class InspectorPropertyEditors
 
     private static Control CreateTextEditor(EditableProperty property, Action<string, string> onEdited)
     {
-        var textBox = new TextBox { Dock = DockStyle.Fill, Text = property.Value, Margin = new Padding(0, 2, 0, 2) };
+        var textBox = new TextBox
+        {
+            Text = property.Value,
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(0)
+        };
         EditorControls.StyleTextBox(textBox);
         textBox.Leave += (_, _) => onEdited(property.Key, textBox.Text);
         return textBox;

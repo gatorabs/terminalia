@@ -17,6 +17,7 @@ public sealed class CommandBar : UserControl
     private readonly ToolTip _toolTip = new();
     private CommandBarItem? _hoverItem;
     private CommandBarItem? _pressItem;
+    private CommandBarItem? _selectToolItem;
     private int _entranceOffset = -56;
 
     public event EventHandler? NewRequested;
@@ -29,6 +30,7 @@ public sealed class CommandBar : UserControl
     public event EventHandler? PalettePanelRequested;
     public event EventHandler? RunPanelRequested;
     public event EventHandler? ExportRequested;
+    public event EventHandler? SelectToolRequested;
 
     public CommandBar()
     {
@@ -52,6 +54,9 @@ public sealed class CommandBar : UserControl
         AddCmd("[T]", "Tool", () => ToolPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[P]", "Palette", () => PalettePanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[R]", "Run", () => RunPanelRequested?.Invoke(this, EventArgs.Empty));
+        AddSep();
+        AddCmd("-+-", "Select", () => SelectToolRequested?.Invoke(this, EventArgs.Empty));
+        _selectToolItem = _items[^1];
         AddSep();
         AddCmd("[+]", "New", () => NewRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[O]", "Open", () => OpenRequested?.Invoke(this, EventArgs.Empty));
@@ -321,7 +326,10 @@ public sealed class CommandBar : UserControl
 
         using var path = EditorDrawing.CreateRoundedPath(b, 12);
         using var fill = new SolidBrush(item.BackColor);
-        using var border = new Pen(item.IsPrimary ? EditorColors.PrimaryText : EditorColors.BorderSoft);
+        var borderColor = item.IsActive
+            ? EditorColors.SelectAccent
+            : item.IsPrimary ? EditorColors.PrimaryText : EditorColors.BorderSoft;
+        using var border = new Pen(borderColor, item.IsActive ? 2f : 1f);
         g.FillPath(fill, path);
 
         if (item.Pulse > 0.01)
@@ -333,8 +341,10 @@ public sealed class CommandBar : UserControl
         g.DrawPath(border, path);
 
         using var iconFont = new Font(FontFamily.GenericMonospace, item.Glyph.Length > 2 ? 9 : 10, FontStyle.Bold);
-        TextRenderer.DrawText(g, item.Glyph, iconFont, b,
-            item.IsPrimary ? Color.Black : EditorColors.PrimaryText,
+        var glyphColor = item.IsActive
+            ? EditorColors.SelectAccent
+            : item.IsPrimary ? Color.Black : EditorColors.PrimaryText;
+        TextRenderer.DrawText(g, item.Glyph, iconFont, b, glyphColor,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
     }
 
@@ -348,13 +358,22 @@ public sealed class CommandBar : UserControl
             EditorColors.PrimaryText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
     }
 
+    public void SetSelectToolActive(bool active)
+    {
+        if (_selectToolItem is { } item && item.IsActive != active)
+        {
+            item.IsActive = active;
+            Invalidate();
+        }
+    }
+
     public Rectangle GetPanelItemBounds(InspectorSection section)
     {
         var index = section switch
         {
             InspectorSection.Map => 0,
             InspectorSection.Tool => 1,
-            InspectorSection.Object => 1,
+            InspectorSection.Object => 4,
             InspectorSection.Palette => 2,
             InspectorSection.Run => 3,
             _ => -1

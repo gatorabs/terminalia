@@ -26,19 +26,9 @@ public sealed partial class MainForm
         _startPage.OpenMapRequested += (_, _) => OpenMap();
 
         _shell.Inspector.ApplyMapPropertiesRequested += (_, args) => ApplyMapProperties(args);
-        _shell.Inspector.ToolChanged += (_, tool) =>
-        {
-            _state.ToolMode = tool;
-            _shell.Canvas.ToolMode = tool;
-            _state.SelectedZone = null;
-            _shell.Canvas.SelectedZone = null;
-            _shell.Inspector.ClearZoneSelection();
-            if (tool != EditorToolMode.Select)
-            {
-                _shell.Canvas.ClearSelection();
-            }
-            UpdateStatus();
-        };
+        _shell.Inspector.ToolChanged += (_, tool) => ApplyToolMode(tool);
+        _shell.CommandBar.SelectToolRequested += (_, _) =>
+            ApplyToolMode(_state.ToolMode == EditorToolMode.Select ? EditorToolMode.Paint : EditorToolMode.Select);
         _shell.Inspector.TileSelected += (_, tile) =>
         {
             _state.SelectedTile = tile;
@@ -60,10 +50,7 @@ public sealed partial class MainForm
             _shell.Inspector.LoadZones(_state.Document.GetZoneNames());
             if (_state.SelectedZone == name)
             {
-                _state.SelectedZone = null;
-                _shell.Canvas.SelectedZone = null;
-                _state.ToolMode = EditorToolMode.Paint;
-                _shell.Canvas.ToolMode = EditorToolMode.Paint;
+                ApplyToolMode(EditorToolMode.Paint);
             }
             MarkDirty();
         };
@@ -75,6 +62,7 @@ public sealed partial class MainForm
             _state.ToolMode = args.ZoneName is not null ? EditorToolMode.Zone : EditorToolMode.Paint;
             _shell.Canvas.ToolMode = _state.ToolMode;
             _shell.Inspector.SetToolMode(_state.ToolMode);
+            _shell.CommandBar.SetSelectToolActive(false);
             _shell.Canvas.ClearSelection();
             UpdateStatus();
         };
@@ -118,7 +106,8 @@ public sealed partial class MainForm
         {
             if (cell is { } selected)
             {
-                _shell.Inspector.ShowObjectSelection(_selectableRegistry.Describe(_state.Document, selected));
+                var info = _selectableRegistry.Describe(_state.Document, selected);
+                _shell.Inspector.ShowObjectSelection(info, _shell.Canvas.KernelPreviewVisible);
                 _shell.ShowInspectorSection(InspectorSection.Object);
             }
             else
@@ -145,5 +134,21 @@ public sealed partial class MainForm
         };
 
         _shell.Inspector.KernelPreviewToggled += (_, show) => _shell.Canvas.KernelPreviewVisible = show;
+    }
+
+    private void ApplyToolMode(EditorToolMode tool)
+    {
+        _state.ToolMode = tool;
+        _shell.Canvas.ToolMode = tool;
+        _state.SelectedZone = null;
+        _shell.Canvas.SelectedZone = null;
+        _shell.Inspector.ClearZoneSelection();
+        _shell.Inspector.SetToolMode(tool);
+        _shell.CommandBar.SetSelectToolActive(tool == EditorToolMode.Select);
+        if (tool != EditorToolMode.Select)
+        {
+            _shell.Canvas.ClearSelection();
+        }
+        UpdateStatus();
     }
 }

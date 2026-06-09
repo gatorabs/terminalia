@@ -34,7 +34,7 @@ public sealed class InspectorObjectSection : Panel
         _propertiesLayout.Dock = DockStyle.Fill;
         _propertiesLayout.ColumnCount = 2;
         _propertiesLayout.BackColor = EditorColors.Section;
-        _propertiesLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92));
+        _propertiesLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118));
         _propertiesLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         _kernelPreviewCheckBox.Text = "Mostrar kernel da câmera";
@@ -60,7 +60,7 @@ public sealed class InspectorObjectSection : Panel
 
     public int PreferredSectionHeight { get; private set; } = 128;
 
-    public void ShowObject(SelectedObjectInfo info)
+    public void ShowObject(SelectedObjectInfo info, bool kernelPreviewActive)
     {
         ArgumentNullException.ThrowIfNull(info);
 
@@ -72,10 +72,7 @@ public sealed class InspectorObjectSection : Panel
 
         _suppressEvents = true;
         _kernelPreviewCheckBox.Visible = info.ShowKernelPreview;
-        if (!info.ShowKernelPreview)
-        {
-            _kernelPreviewCheckBox.Checked = false;
-        }
+        _kernelPreviewCheckBox.Checked = info.ShowKernelPreview && kernelPreviewActive;
         _suppressEvents = false;
 
         var kernelRow = info.ShowKernelPreview ? PropertyRowHeight : 0;

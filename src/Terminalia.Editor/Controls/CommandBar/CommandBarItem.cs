@@ -7,6 +7,7 @@ internal sealed class CommandBarItem
     public Action? Click { get; init; }
     public bool IsPrimary { get; init; }
     public bool IsSeparator { get; init; }
+    public bool IsActive { get; set; }
     public Rectangle Bounds { get; set; }
     public Color BackColor { get; set; }
     public Color TargetColor { get; set; }
