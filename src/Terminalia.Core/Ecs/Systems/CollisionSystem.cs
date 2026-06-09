@@ -30,14 +30,22 @@ public sealed class CollisionSystem : IGameSystem
                 continue;
             }
 
-            var targetPosition = item.Transform!.Position.Translate(velocity.Velocity);
-            var targetBounds = new Bounds(targetPosition, item.Collider!.Size);
-            var collides = solidColliders.Any(other =>
-                !ReferenceEquals(other.Entity, item.Entity) &&
-                targetBounds.Intersects(new Bounds(other.Transform!.Position, other.Collider!.Size)));
+            var steps = Math.Max(Math.Abs(velocity.Velocity.DeltaX), Math.Abs(velocity.Velocity.DeltaY));
+            var step = new Velocity(Math.Sign(velocity.Velocity.DeltaX), Math.Sign(velocity.Velocity.DeltaY));
 
-            if (!collides)
+            for (var i = 0; i < steps; i++)
             {
+                var targetPosition = item.Transform!.Position.Translate(step);
+                var targetBounds = new Bounds(targetPosition, item.Collider!.Size);
+                var collides = solidColliders.Any(other =>
+                    !ReferenceEquals(other.Entity, item.Entity) &&
+                    targetBounds.Intersects(new Bounds(other.Transform!.Position, other.Collider!.Size)));
+
+                if (collides)
+                {
+                    break;
+                }
+
                 item.Transform.Position = targetPosition;
             }
         }

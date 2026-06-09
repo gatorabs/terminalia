@@ -354,6 +354,7 @@ public sealed class CommandBar : UserControl
         {
             InspectorSection.Map => 0,
             InspectorSection.Tool => 1,
+            InspectorSection.Object => 1,
             InspectorSection.Palette => 2,
             InspectorSection.Run => 3,
             _ => -1

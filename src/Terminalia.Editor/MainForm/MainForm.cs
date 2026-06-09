@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Terminalia.Editor.Controls.Shared;
+using Terminalia.Editor.Selection;
 using Terminalia.Editor.Services;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Fonts;
@@ -10,6 +11,7 @@ public sealed partial class MainForm : Form
 {
     private readonly EditorFileService _fileService = new();
     private readonly ExportService _exportService = new();
+    private readonly SelectableRegistry _selectableRegistry = new();
     private readonly EditorShell _shell = new();
     private readonly StartPage _startPage = new();
     private readonly LoadingOverlay _loadingOverlay = new();

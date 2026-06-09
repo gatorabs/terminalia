@@ -5,14 +5,20 @@ namespace Terminalia.TileMapGame;
 
 public sealed class EntityRule
 {
-    public EntityRule(char tile, Func<Position, Entity> createEntity)
+    private readonly Func<Position, IReadOnlyDictionary<string, string>, Entity> _createEntity;
+
+    public EntityRule(char tile, Func<Position, IReadOnlyDictionary<string, string>, Entity> createEntity)
     {
         ArgumentNullException.ThrowIfNull(createEntity);
         Tile = tile;
-        CreateEntity = createEntity;
+        _createEntity = createEntity;
     }
 
     public char Tile { get; }
 
-    public Func<Position, Entity> CreateEntity { get; }
+    public Entity CreateEntity(Position position, IReadOnlyDictionary<string, string> properties)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+        return _createEntity(position, properties);
+    }
 }

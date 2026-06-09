@@ -1,9 +1,14 @@
+using Terminalia.Core.ValueObjects;
+
 namespace Terminalia.Core.Assets;
 
 public sealed class TileMap
 {
+    private static readonly IReadOnlyDictionary<string, string> EmptyEntityProperties = new Dictionary<string, string>();
+
     private readonly List<string> _tiles;
     private readonly Dictionary<char, string> _legend;
+    private readonly Dictionary<Position, IReadOnlyDictionary<string, string>> _entityProperties;
 
     public const int DefaultCameraZoom = 48;
     public const int MinCameraZoom = 16;
@@ -18,7 +23,8 @@ public sealed class TileMap
         IEnumerable<string> tiles,
         IReadOnlyDictionary<char, string> legend,
         ZoneGrid? zones = null,
-        int cameraZoom = DefaultCameraZoom)
+        int cameraZoom = DefaultCameraZoom,
+        IReadOnlyDictionary<Position, IReadOnlyDictionary<string, string>>? entityProperties = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
@@ -35,6 +41,9 @@ public sealed class TileMap
         _legend = new Dictionary<char, string>(legend);
         Zones = zones ?? ZoneGrid.Empty;
         CameraZoom = cameraZoom;
+        _entityProperties = entityProperties is null
+            ? []
+            : new Dictionary<Position, IReadOnlyDictionary<string, string>>(entityProperties);
 
         if (_tiles.Count != Height)
         {
@@ -64,5 +73,12 @@ public sealed class TileMap
         }
 
         return _tiles[y][x];
+    }
+
+    public IReadOnlyDictionary<string, string> GetEntityProperties(int x, int y)
+    {
+        return _entityProperties.TryGetValue(new Position(x, y), out var properties)
+            ? properties
+            : EmptyEntityProperties;
     }
 }

@@ -1,4 +1,5 @@
 using Terminalia.Editor.Controls.Inspector;
+using Terminalia.Editor.Selection.Descriptors;
 
 namespace Terminalia.Editor;
 
@@ -32,6 +33,10 @@ public sealed partial class MainForm
             _state.SelectedZone = null;
             _shell.Canvas.SelectedZone = null;
             _shell.Inspector.ClearZoneSelection();
+            if (tool != EditorToolMode.Select)
+            {
+                _shell.Canvas.ClearSelection();
+            }
             UpdateStatus();
         };
         _shell.Inspector.TileSelected += (_, tile) =>
@@ -70,6 +75,7 @@ public sealed partial class MainForm
             _state.ToolMode = args.ZoneName is not null ? EditorToolMode.Zone : EditorToolMode.Paint;
             _shell.Canvas.ToolMode = _state.ToolMode;
             _shell.Inspector.SetToolMode(_state.ToolMode);
+            _shell.Canvas.ClearSelection();
             UpdateStatus();
         };
 
@@ -112,14 +118,30 @@ public sealed partial class MainForm
         {
             if (cell is { } selected)
             {
-                var tile = _state.Document.GetTile(selected.X, selected.Y);
-                _state.Document.Legend.TryGetValue(tile.ToString(), out var description);
-                _shell.Inspector.ShowObjectSelection(tile, description, isPlayer: tile == '@');
+                _shell.Inspector.ShowObjectSelection(_selectableRegistry.Describe(_state.Document, selected));
+                _shell.ShowInspectorSection(InspectorSection.Object);
             }
             else
             {
                 _shell.Inspector.ClearObjectSelection();
             }
+        };
+
+        _shell.Inspector.ObjectPropertyEdited += (_, args) =>
+        {
+            if (_shell.Canvas.SelectedCell is not { } cell)
+            {
+                return;
+            }
+
+            _selectableRegistry.ApplyProperty(_state.Document, cell, args.Key, args.Value);
+            if (args.Key == PlayerTileDescriptor.CameraZoomKey)
+            {
+                var document = _state.Document;
+                _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height, document.CameraZoom);
+                _shell.Canvas.Invalidate();
+            }
+            MarkDirty();
         };
 
         _shell.Inspector.KernelPreviewToggled += (_, show) => _shell.Canvas.KernelPreviewVisible = show;

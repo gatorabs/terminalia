@@ -28,6 +28,11 @@ internal static class EditorColors
     public static readonly Color AccentPressed = Color.FromArgb(188, 188, 188);
     public static readonly Color TerminalBackground = Color.FromArgb(2, 2, 2);
     public static readonly Color TerminalHeader = Color.FromArgb(12, 12, 12);
+    public static readonly Color SelectAccent = Color.FromArgb(255, 196, 64);
+    public static readonly Color SelectAccentText = Color.FromArgb(12, 12, 12);
+    public static readonly Color SelectKernelFill = Color.FromArgb(26, 255, 196, 64);
+    public static readonly Color SelectKernelBorder = Color.FromArgb(220, 255, 196, 64);
+    public static readonly Color FillToolAccent = Color.FromArgb(80, 140, 255);
 
     public static int ColorDistance(Color a, Color b) =>
         Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);

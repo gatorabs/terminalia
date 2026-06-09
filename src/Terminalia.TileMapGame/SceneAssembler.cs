@@ -25,7 +25,7 @@ public static class SceneAssembler
                 var tile = map.GetTile(x, y);
                 if (ruleMap.TryGetValue(tile, out var rule))
                 {
-                    scene.AddEntity(rule.CreateEntity(new Position(x, y)));
+                    scene.AddEntity(rule.CreateEntity(new Position(x, y), map.GetEntityProperties(x, y)));
                 }
             }
         }
@@ -36,6 +36,7 @@ public static class SceneAssembler
 
         scene.AddSystem(new MovementSystem());
         scene.AddSystem(new CollisionSystem());
+        scene.AddSystem(new CollectSystem());
         scene.AddSystem(new CameraFollowSystem(new Size(map.Width, map.Height)));
         scene.AddSystem(new RenderSystem(renderer));
 

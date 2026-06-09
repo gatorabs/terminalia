@@ -58,7 +58,8 @@ public sealed class TileMapGameSession : IGame
         var velocityComponent = _player.GetComponent<VelocityComponent>();
         if (velocityComponent is not null)
         {
-            velocityComponent.Velocity = velocity;
+            var speed = _player.GetComponent<SpeedComponent>()?.CellsPerStep ?? 1;
+            velocityComponent.Velocity = new Velocity(velocity.DeltaX * speed, velocity.DeltaY * speed);
         }
     }
 

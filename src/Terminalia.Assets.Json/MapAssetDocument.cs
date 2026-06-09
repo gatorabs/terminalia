@@ -3,7 +3,7 @@ using Terminalia.Core.Assets;
 
 namespace Terminalia.Assets.Json;
 
-public sealed class MapAssetDocument
+public sealed partial class MapAssetDocument
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -106,13 +106,20 @@ public sealed class MapAssetDocument
 
     public void SetTile(int x, int y, char tile)
     {
-        if (!Contains(x, y))
+        if (!Contains(x, y) || GetTile(x, y) == tile)
         {
             return;
         }
 
+        ClearEntityProperties(x, y);
+
         if (tile == '@')
         {
+            if (TryFindTile('@', out var previousSpawn))
+            {
+                MoveEntityProperties(previousSpawn.X, previousSpawn.Y, x, y);
+            }
+
             RemoveExistingPlayerSpawn();
         }
 
@@ -200,6 +207,8 @@ public sealed class MapAssetDocument
                 Zones.Map.Remove(key);
             }
         }
+
+        RemoveOutOfBoundsEntities(width, height);
     }
 
     public const int MaxDimension = 4096;
@@ -215,7 +224,7 @@ public sealed class MapAssetDocument
             }
         }
 
-        return new TileMap(Name, Width, Height, Tiles, legend, ToZoneGrid(), CameraZoom);
+        return new TileMap(Name, Width, Height, Tiles, legend, ToZoneGrid(), CameraZoom, ToEntityProperties());
     }
 
     public ZoneGrid ToZoneGrid()

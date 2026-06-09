@@ -24,7 +24,8 @@ public sealed class JsonAssetLoader : IAssetLoader
             document.Tiles,
             ToCharacterLegend(document.Legend),
             document.ToZoneGrid(),
-            document.CameraZoom);
+            document.CameraZoom,
+            document.ToEntityProperties());
     }
 
     private string ResolveAssetPath(string subdir, string assetName, string extension)

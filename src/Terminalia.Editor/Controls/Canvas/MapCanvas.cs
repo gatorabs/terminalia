@@ -237,12 +237,19 @@ public sealed class MapCanvas : Control
         }
     }
 
+    public void ClearSelection()
+    {
+        SetSelection(null);
+    }
+
     private void PaintAt(Point location)
     {
         if (!TryGetCell(location, out var cell) || _lastPaintedCell == cell)
         {
             return;
         }
+
+        var selectedTileBefore = GetSelectedTile();
 
         if (ToolMode == EditorToolMode.Zone)
         {
@@ -263,6 +270,7 @@ public sealed class MapCanvas : Control
         }
 
         _lastPaintedCell = cell;
+        RefreshSelectionAfterEdit(selectedTileBefore);
         UpdateKernelPreview();
         Invalidate(GetCellInvalidRect(cell));
         DocumentChanged?.Invoke(this, EventArgs.Empty);
@@ -275,10 +283,25 @@ public sealed class MapCanvas : Control
             return;
         }
 
+        var selectedTileBefore = GetSelectedTile();
         _document.FloodFill(cell.X, cell.Y, _selectedTile);
+        RefreshSelectionAfterEdit(selectedTileBefore);
         UpdateKernelPreview();
         Invalidate();
         DocumentChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private char? GetSelectedTile()
+    {
+        return _selectedCell is { } cell ? _document.GetTile(cell.X, cell.Y) : null;
+    }
+
+    private void RefreshSelectionAfterEdit(char? selectedTileBefore)
+    {
+        if (_selectedCell is not null && GetSelectedTile() != selectedTileBefore)
+        {
+            ClearSelection();
+        }
     }
 
     private void PickTileAt(Point location)
@@ -379,12 +402,12 @@ public sealed class MapCanvas : Control
     {
         if (ToolMode == EditorToolMode.Fill)
         {
-            return Color.FromArgb(255, 80, 140, 255);
+            return EditorColors.FillToolAccent;
         }
 
         if (ToolMode == EditorToolMode.Select)
         {
-            return Color.FromArgb(255, 255, 196, 64);
+            return EditorColors.SelectAccent;
         }
 
         if (ToolMode == EditorToolMode.Zone && _selectedZone is not null)
@@ -421,11 +444,6 @@ public sealed class MapCanvas : Control
         Invalidate();
     }
 
-    private void ClearSelection()
-    {
-        SetSelection(null);
-    }
-
     private void UpdateKernelPreview()
     {
         var nextFocus = _kernelPreviewVisible
@@ -456,7 +474,7 @@ public sealed class MapCanvas : Control
     private void DrawSelection(Graphics g, Point cell)
     {
         var bounds = new Rectangle(cell.X * CellSize + 1, cell.Y * CellSize + 1, CellSize - 2, CellSize - 2);
-        using var pen = new Pen(Color.FromArgb(255, 255, 196, 64), 2.5f);
+        using var pen = new Pen(EditorColors.SelectAccent, 2.5f);
         g.DrawRectangle(pen, bounds);
     }
 
@@ -468,8 +486,8 @@ public sealed class MapCanvas : Control
             kernel.Width * CellSize,
             kernel.Height * CellSize);
 
-        using var fill = new SolidBrush(Color.FromArgb(26, 255, 196, 64));
-        using var border = new Pen(Color.FromArgb(220, 255, 196, 64), 2f);
+        using var fill = new SolidBrush(EditorColors.SelectKernelFill);
+        using var border = new Pen(EditorColors.SelectKernelBorder, 2f);
         g.FillRectangle(fill, bounds);
         g.DrawRectangle(border, bounds);
     }
