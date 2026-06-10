@@ -65,8 +65,14 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         {
             return;
         }
-        using var brush = new SolidBrush(Color.White);
-        _frameGraphics.DrawString(text, _font, brush, x * _cellSize, y * _cellSize);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == ' ')
+            {
+                continue;
+            }
+            Draw(x + i, y, text[i]);
+        }
     }
 
     public void Present()
