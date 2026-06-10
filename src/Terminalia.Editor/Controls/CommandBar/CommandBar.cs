@@ -29,6 +29,7 @@ public sealed class CommandBar : UserControl
     public event EventHandler? ToolPanelRequested;
     public event EventHandler? PalettePanelRequested;
     public event EventHandler? RunPanelRequested;
+    public event EventHandler? GamePanelRequested;
     public event EventHandler? ExportRequested;
     public event EventHandler? SelectToolRequested;
 
@@ -54,6 +55,7 @@ public sealed class CommandBar : UserControl
         AddCmd("[T]", "Tool", () => ToolPanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[P]", "Palette", () => PalettePanelRequested?.Invoke(this, EventArgs.Empty));
         AddCmd("[R]", "Run", () => RunPanelRequested?.Invoke(this, EventArgs.Empty));
+        AddCmd("[G]", "Game", () => GamePanelRequested?.Invoke(this, EventArgs.Empty));
         AddSep();
         AddCmd("-+-", "Select", () => SelectToolRequested?.Invoke(this, EventArgs.Empty));
         _selectToolItem = _items[^1];
@@ -373,9 +375,10 @@ public sealed class CommandBar : UserControl
         {
             InspectorSection.Map => 0,
             InspectorSection.Tool => 1,
-            InspectorSection.Object => 4,
             InspectorSection.Palette => 2,
             InspectorSection.Run => 3,
+            InspectorSection.Game => 4,
+            InspectorSection.Object => 5,
             _ => -1
         };
         if (index < 0)

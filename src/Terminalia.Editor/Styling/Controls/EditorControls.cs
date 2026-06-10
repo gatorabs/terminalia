@@ -46,6 +46,43 @@ internal static class EditorControls
         input.Font = EditorFonts.UiFont;
     }
 
+    public static void StyleComboBox(ComboBox comboBox)
+    {
+        comboBox.Dock = DockStyle.Fill;
+        comboBox.Font = EditorFonts.UiFont;
+        comboBox.BackColor = EditorColors.Surface;
+        comboBox.ForeColor = EditorColors.PrimaryText;
+        comboBox.FlatStyle = FlatStyle.Flat;
+    }
+
+    public static void StyleListBox(ListBox listBox)
+    {
+        listBox.Dock = DockStyle.Fill;
+        listBox.Font = EditorFonts.UiFont;
+        listBox.BackColor = EditorColors.Surface;
+        listBox.ForeColor = EditorColors.PrimaryText;
+        listBox.BorderStyle = BorderStyle.None;
+    }
+
+    public static Control CreateButtonPair(string firstText, Action firstAction, string secondText, Action secondAction)
+    {
+        var row = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = new Padding(0) };
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+
+        var first = CreateButton(firstText, primary: true);
+        first.Dock = DockStyle.Fill;
+        first.Click += (_, _) => firstAction();
+
+        var second = CreateButton(secondText);
+        second.Dock = DockStyle.Fill;
+        second.Click += (_, _) => secondAction();
+
+        row.Controls.Add(first, 0, 0);
+        row.Controls.Add(second, 1, 0);
+        return row;
+    }
+
     public static void ApplyDarkScrollBars(Control control)
     {
         if (control.IsHandleCreated)

@@ -21,11 +21,18 @@ public sealed partial class MainForm
             RefreshAvailableMaps();
         };
         _shell.CommandBar.RunPanelRequested += (_, _) => _shell.ToggleInspectorSection(InspectorSection.Run);
+        _shell.CommandBar.GamePanelRequested += (_, _) =>
+        {
+            _shell.Inspector.LoadGameDefinition(_gameDocument);
+            _shell.Inspector.LoadAvailableMapsForGame(GetAvailableMapNames());
+            _shell.ToggleInspectorSection(InspectorSection.Game);
+        };
 
         _startPage.NewMapRequested += (_, _) => NewMap();
         _startPage.OpenMapRequested += (_, _) => OpenMap();
 
         _shell.Inspector.ApplyMapPropertiesRequested += (_, args) => ApplyMapProperties(args);
+        _shell.Inspector.GameDefinitionApplied += (_, args) => ApplyGameDefinition(args.Document);
         _shell.Inspector.ToolChanged += (_, tool) => ApplyToolMode(tool);
         _shell.CommandBar.SelectToolRequested += (_, _) =>
             ApplyToolMode(_state.ToolMode == EditorToolMode.Select ? EditorToolMode.Paint : EditorToolMode.Select);

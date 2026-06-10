@@ -42,11 +42,12 @@ public sealed class EngineCanvas : Control
         }
     }
 
-    public void StartGame(string? assetDirectory = null)
+    public void StartGame(GameDefinition definition, string? assetDirectory = null)
     {
+        ArgumentNullException.ThrowIfNull(definition);
         var kernelSize = GameViewportDefaults.ComputeKernelSize(_document.CameraZoom);
         _host.CellSize = ComputeFittingCellSize(kernelSize);
-        _host.Start(_document, Invalidate, assetDirectory);
+        _host.Start(definition, _document, Invalidate, assetDirectory);
         Cursor = EditorCursors.Blank;
         Focus();
         Invalidate();
@@ -59,18 +60,21 @@ public sealed class EngineCanvas : Control
         Invalidate();
     }
 
-    public bool TryHandleInput(Keys key)
+    public bool TryHandleInput(Keys keyData)
     {
         if (!IsRunning)
         {
             return false;
         }
-        if (key == Keys.Escape)
+
+        var keyCode = keyData & Keys.KeyCode;
+        if (keyCode == Keys.Escape && keyData.HasFlag(Keys.Shift))
         {
             StopGame();
             return true;
         }
-        _host.HandleKey(key);
+
+        _host.HandleKey(keyCode);
         return true;
     }
 

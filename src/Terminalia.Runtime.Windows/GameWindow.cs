@@ -11,10 +11,19 @@ public sealed class GameWindow : Form
 
     private readonly WinFormsGameHost _host;
     private readonly TileMap _map;
+    private readonly GameDefinition? _definition;
     private readonly Size _kernelSize;
     private readonly Font _hintFont = new(FontFamily.GenericMonospace, 8, FontStyle.Regular);
 
     private readonly string? _assetDirectory;
+
+    public GameWindow(GameDefinition definition, TileMap startMap, string? assetDirectory = null)
+        : this(startMap, assetDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        _definition = definition;
+        Text = definition.Title;
+    }
 
     public GameWindow(TileMap map, string? assetDirectory = null)
     {
@@ -57,13 +66,22 @@ public sealed class GameWindow : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        _host.Start(_map, () =>
+        Action onFrameReady = () =>
         {
             if (!IsDisposed)
             {
                 Invalidate();
             }
-        }, _assetDirectory);
+        };
+
+        if (_definition is not null)
+        {
+            _host.Start(_definition, _map, onFrameReady, _assetDirectory);
+        }
+        else
+        {
+            _host.Start(_map, onFrameReady, _assetDirectory);
+        }
     }
 
     protected override void OnClientSizeChanged(EventArgs e)
@@ -88,7 +106,7 @@ public sealed class GameWindow : Form
 
         TextRenderer.DrawText(
             e.Graphics,
-            "[ESC] exit",
+            _definition is null ? "[ESC] exit" : "[ESC] menu",
             _hintFont,
             new Point(GamePadding, ClientSize.Height - HintBarHeight + 4),
             Color.FromArgb(50, 255, 255, 255));
@@ -97,7 +115,7 @@ public sealed class GameWindow : Form
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.KeyCode == Keys.Escape)
+        if (e.KeyCode == Keys.Escape && _definition is null)
         {
             Close();
             return;

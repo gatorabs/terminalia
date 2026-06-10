@@ -1,3 +1,4 @@
+using Terminalia.Assets.Json;
 using Terminalia.Core.Assets;
 using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Selection;
@@ -18,6 +19,7 @@ public sealed class InspectorPanel : UserControl
     private readonly NumericUpDown _cameraZoomInput = new();
     private readonly InspectorToolSection _toolSection = new();
     private readonly InspectorObjectSection _objectSection = new();
+    private readonly InspectorGameSection _gameSection = new();
     private readonly Button _runEmbeddedButton = EditorControls.CreateButton("Run", primary: true);
     private readonly TextBox _zoneNameTextBox = new();
     private readonly ComboBox _zoneTargetCombo = new();
@@ -33,6 +35,7 @@ public sealed class InspectorPanel : UserControl
     public event EventHandler<string>? ZoneRemoveRequested;
     public event EventHandler<bool>? KernelPreviewToggled;
     public event EventHandler<ObjectPropertyEditedEventArgs>? ObjectPropertyEdited;
+    public event EventHandler<GameDefinitionAppliedEventArgs>? GameDefinitionApplied;
     public event EventHandler? SectionResized;
 
     public InspectorPanel()
@@ -51,6 +54,7 @@ public sealed class InspectorPanel : UserControl
         AddSection(InspectorSection.Tool, BuildToolSection(), 128);
         AddSection(InspectorSection.Palette, BuildPaletteSection(), 255);
         AddSection(InspectorSection.Object, BuildObjectSection(), 128);
+        AddSection(InspectorSection.Game, BuildGameSection(), 250);
         AddSection(InspectorSection.Run, BuildRunSection(), 138);
 
         Controls.Add(_stack);
@@ -240,18 +244,10 @@ public sealed class InspectorPanel : UserControl
 
         EditorControls.StyleTextBox(_zoneNameTextBox);
 
-        _zoneTargetCombo.Dock = DockStyle.Fill;
-        _zoneTargetCombo.Font = EditorFonts.UiFont;
-        _zoneTargetCombo.BackColor = EditorColors.Surface;
-        _zoneTargetCombo.ForeColor = EditorColors.PrimaryText;
+        EditorControls.StyleComboBox(_zoneTargetCombo);
         _zoneTargetCombo.DropDownStyle = ComboBoxStyle.DropDown;
-        _zoneTargetCombo.FlatStyle = FlatStyle.Flat;
 
-        _zoneListBox.Dock = DockStyle.Fill;
-        _zoneListBox.Font = EditorFonts.UiFont;
-        _zoneListBox.BackColor = EditorColors.Surface;
-        _zoneListBox.ForeColor = EditorColors.PrimaryText;
-        _zoneListBox.BorderStyle = BorderStyle.None;
+        EditorControls.StyleListBox(_zoneListBox);
         _zoneListBox.SelectedIndexChanged += (_, _) =>
         {
             if (_suppressZoneEvents)
@@ -330,12 +326,34 @@ public sealed class InspectorPanel : UserControl
         return CreateSection("Object", _objectSection, 128);
     }
 
-    private void ResizeObjectSection()
+    private Control BuildGameSection()
     {
-        _sectionHeights[InspectorSection.Object] = _objectSection.PreferredSectionHeight;
-        _sections[InspectorSection.Object].Height = _objectSection.PreferredSectionHeight;
+        _gameSection.GameDefinitionApplied += (_, args) => GameDefinitionApplied?.Invoke(this, args);
+        _gameSection.PreferredHeightChanged += (_, height) => ResizeSection(InspectorSection.Game, height);
+        return CreateSection("Game", _gameSection, 250);
+    }
+
+    public void LoadGameDefinition(GameAssetDocument document)
+    {
+        _gameSection.LoadGame(document);
+    }
+
+    public void LoadAvailableMapsForGame(IEnumerable<string> mapNames)
+    {
+        _gameSection.LoadAvailableMaps(mapNames);
+    }
+
+    private void ResizeSection(InspectorSection section, int height)
+    {
+        _sectionHeights[section] = height;
+        _sections[section].Height = height;
         Height = ActiveSectionHeight;
         SectionResized?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ResizeObjectSection()
+    {
+        ResizeSection(InspectorSection.Object, _objectSection.PreferredSectionHeight);
     }
 
     private Control BuildRunSection()
@@ -430,6 +448,7 @@ public enum InspectorSection
     Tool,
     Palette,
     Object,
+    Game,
     Run
 }
 

@@ -5,7 +5,7 @@ namespace Terminalia.Editor.Services;
 
 public sealed class ExportService
 {
-    public async Task<ExportResult> ExportAsync(MapAssetDocument document, string outputDirectory, IProgress<string>? progress = null, CancellationToken ct = default)
+    public async Task<ExportResult> ExportAsync(MapAssetDocument document, GameAssetDocument game, string outputDirectory, IProgress<string>? progress = null, CancellationToken ct = default)
     {
         var repoRoot = FindRepositoryRoot();
         if (repoRoot is null)
@@ -38,20 +38,37 @@ public sealed class ExportService
             return ExportResult.Failure($"Build failed:\n{stdErr}");
         }
 
-        progress?.Report("Copying map assets...");
+        progress?.Report("Copying game assets...");
 
         try
         {
             var mapsDir = Path.Combine(outputDirectory, "maps");
             Directory.CreateDirectory(mapsDir);
+
+            var sourceMapsDir = EditorFileService.DefaultMapsDirectory;
+            if (Directory.Exists(sourceMapsDir))
+            {
+                foreach (var mapFile in Directory.GetFiles(sourceMapsDir, "*.json"))
+                {
+                    File.Copy(mapFile, Path.Combine(mapsDir, Path.GetFileName(mapFile)), overwrite: true);
+                }
+            }
+
             document.Save(Path.Combine(mapsDir, document.Name + ".json"));
+
+            if (!File.Exists(Path.Combine(mapsDir, game.StartMap + ".json")))
+            {
+                return ExportResult.Failure($"Start map '{game.StartMap}' was not found among the exported maps. Save it or change the start map in the Game panel.");
+            }
+
+            game.Save(Path.Combine(outputDirectory, "game.json"));
         }
         catch (Exception ex)
         {
-            return ExportResult.Failure($"Failed to copy map assets:\n{ex.Message}");
+            return ExportResult.Failure($"Failed to copy game assets:\n{ex.Message}");
         }
 
-        RenameExeToGameName(outputDirectory, document.Name);
+        RenameExeToGameName(outputDirectory, game.Title);
 
         return ExportResult.Success(outputDirectory);
     }

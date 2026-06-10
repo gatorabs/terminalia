@@ -250,12 +250,13 @@ public sealed partial class MainForm
             return;
         }
 
+        SaveAllMaps();
         var outputDir = Path.Combine(dialog.SelectedPath, _state.Document.Name);
         var progress = new Progress<string>(msg => BeginInvoke(() => _loadingOverlay.ShowLoading(msg)));
 
         _loadingOverlay.ShowLoading("Exporting game...");
 
-        var result = await _exportService.ExportAsync(_state.Document, outputDir, progress);
+        var result = await _exportService.ExportAsync(_state.Document, _gameDocument, outputDir, progress);
 
         _loadingOverlay.HideLoading();
 
@@ -283,8 +284,36 @@ public sealed partial class MainForm
     {
         SaveAllMaps();
         var window = new Terminalia.Runtime.Windows.GameWindow(
-            _state.Document.ToTileMap(), assetDirectory: GetAssetDirectory());
+            BuildRunDefinition(), _state.Document.ToTileMap(), assetDirectory: GetAssetDirectory());
         window.Show(this);
+    }
+
+    private Terminalia.Core.Assets.GameDefinition BuildRunDefinition()
+    {
+        var document = new GameAssetDocument
+        {
+            Title = _gameDocument.Title,
+            StartMap = _state.Document.Name,
+            TitleMenu = _gameDocument.TitleMenu,
+            PauseMenu = _gameDocument.PauseMenu
+        };
+        return document.ToGameDefinition();
+    }
+
+    private void ApplyGameDefinition(GameAssetDocument document)
+    {
+        try
+        {
+            _fileService.SaveGame(document);
+        }
+        catch (Exception ex) when (ex is InvalidDataException or ArgumentException)
+        {
+            MessageBox.Show(this, ex.Message, "Game Definition", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        _gameDocument = document;
+        UpdateStatus();
     }
 
     private void ShowEditor()
@@ -323,7 +352,7 @@ public sealed partial class MainForm
         {
             SaveAllMaps();
             _shell.EnterGameMode();
-            _shell.Runtime.StartGame(GetAssetDirectory());
+            _shell.Runtime.StartGame(BuildRunDefinition(), GetAssetDirectory());
             _shell.Runtime.Focus();
         }
 
@@ -347,6 +376,11 @@ public sealed partial class MainForm
     }
 
     private void RefreshAvailableMaps()
+    {
+        _shell.Inspector.LoadAvailableMaps(GetAvailableMapNames());
+    }
+
+    private IEnumerable<string> GetAvailableMapNames()
     {
         var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { EditorFileService.DefaultMapsDirectory };
 
@@ -374,16 +408,21 @@ public sealed partial class MainForm
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .OfType<string>();
 
-        var all = fromDisk
+        return fromDisk
             .Concat(fromTabs)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(n => n);
-
-        _shell.Inspector.LoadAvailableMaps(all);
     }
 
     private void UpdateStatus()
     {
+        if (_shell.Runtime.IsRunning)
+        {
+            Text = $"Terminalia Editor — {_gameDocument.Title}";
+            _shell.SetStatus($"{_gameDocument.Title} | running | [ESC] menu | [Shift+ESC] stop");
+            return;
+        }
+
         var dirtyMarker = _state.HasUnsavedChanges ? "*" : "";
         var cellText = _state.CursorCell is { } cell
             ? $"Cell: {cell.X},{cell.Y}"

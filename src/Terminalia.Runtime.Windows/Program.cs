@@ -1,6 +1,20 @@
 using Terminalia.Assets.Json;
 using Terminalia.Runtime.Windows;
 
+var gamePath = Path.Combine(AppContext.BaseDirectory, "game.json");
+
+if (args.Length == 0 && File.Exists(gamePath))
+{
+    var gameDocument = GameAssetDocument.Load(gamePath);
+    var definition = gameDocument.ToGameDefinition();
+    var gameLoader = new JsonAssetLoader(AppContext.BaseDirectory);
+    var startMap = gameLoader.LoadMap(definition.StartMap);
+
+    ApplicationConfiguration.Initialize();
+    Application.Run(new GameWindow(definition, startMap, Path.Combine(AppContext.BaseDirectory, "maps")));
+    return 0;
+}
+
 string mapFile;
 
 if (args.Length == 0)
@@ -33,6 +47,6 @@ var loader = new JsonAssetLoader(assetRoot);
 var map = loader.LoadMap(mapName);
 
 ApplicationConfiguration.Initialize();
-Application.Run(new GameWindow(map));
+Application.Run(new GameWindow(map, Path.GetDirectoryName(mapFile)));
 
 return 0;

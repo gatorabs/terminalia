@@ -1,5 +1,8 @@
 using Terminalia.Assets.Json;
+using Terminalia.Core.Abstractions.Input;
+using Terminalia.Core.Abstractions.Runtime;
 using Terminalia.Core.Assets;
+using Terminalia.Core.Runtime;
 using Terminalia.Runtime.Windows;
 using Terminalia.TileMapGame;
 using Timer = System.Windows.Forms.Timer;
@@ -12,7 +15,8 @@ public sealed class WinFormsGameHost : IDisposable
     private readonly WinFormsInputProvider _inputProvider = new();
     private readonly WinFormsGameClock _clock = new();
     private readonly Timer _timer;
-    private TileMapGameSession? _game;
+    private IGame? _game;
+    private TileMap? _startMap;
     private Action? _onFrameReady;
     private string? _assetDirectory;
     private string? _pendingTransition;
@@ -38,11 +42,24 @@ public sealed class WinFormsGameHost : IDisposable
         _onFrameReady = onFrameReady;
         _assetDirectory = assetDirectory;
         _pendingTransition = null;
-        _kernelSize = GameViewportDefaults.ComputeKernelSize(map.CameraZoom);
-        _renderer.Configure(_kernelSize.Width, _kernelSize.Height, CellSize);
-        var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
-        _game = new TileMapGameSession(scene, _renderer, _inputProvider);
+        _game = CreateGameplay(map, _inputProvider);
         _game.Initialize();
+        _timer.Start();
+    }
+
+    public void Start(GameDefinition definition, TileMap startMap, Action onFrameReady, string? assetDirectory = null)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(startMap);
+
+        _onFrameReady = onFrameReady;
+        _assetDirectory = assetDirectory;
+        _pendingTransition = null;
+        _startMap = startMap;
+        ConfigureRendererFor(startMap);
+        var flow = new GameFlowSession(definition, _renderer, _inputProvider, input => CreateGameplay(_startMap!, input));
+        flow.Initialize();
+        _game = flow;
         _timer.Start();
     }
 
@@ -67,6 +84,16 @@ public sealed class WinFormsGameHost : IDisposable
 
     public void Reload(TileMap map)
     {
+        if (_game is GameFlowSession flow && flow.IsRunning)
+        {
+            _startMap = map;
+            if (flow.State == GameFlowState.Playing)
+            {
+                flow.ReplaceGameplay(CreateGameplay(map, flow.GameplayInput));
+            }
+            return;
+        }
+
         var wasRunning = IsRunning;
         _timer.Stop();
         _game = null;
@@ -84,6 +111,19 @@ public sealed class WinFormsGameHost : IDisposable
     {
         _timer.Dispose();
         _renderer.Dispose();
+    }
+
+    private TileMapGameSession CreateGameplay(TileMap map, IInputProvider input)
+    {
+        ConfigureRendererFor(map);
+        var scene = SceneAssembler.Assemble(map, _renderer, t => _pendingTransition = t);
+        return new TileMapGameSession(scene, _renderer, input);
+    }
+
+    private void ConfigureRendererFor(TileMap map)
+    {
+        _kernelSize = GameViewportDefaults.ComputeKernelSize(map.CameraZoom);
+        _renderer.Configure(_kernelSize.Width, _kernelSize.Height, CellSize);
     }
 
     private void OnTick(object? sender, EventArgs e)
@@ -126,6 +166,14 @@ public sealed class WinFormsGameHost : IDisposable
         }
 
         var nextMap = MapAssetDocument.Load(path).ToTileMap();
+
+        if (_game is GameFlowSession flow)
+        {
+            flow.ReplaceGameplay(CreateGameplay(nextMap, flow.GameplayInput));
+            _onFrameReady();
+            return;
+        }
+
         _timer.Stop();
         _game = null;
         Start(nextMap, _onFrameReady, _assetDirectory);

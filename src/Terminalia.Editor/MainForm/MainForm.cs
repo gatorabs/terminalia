@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Terminalia.Assets.Json;
 using Terminalia.Editor.Controls.Shared;
 using Terminalia.Editor.Selection;
 using Terminalia.Editor.Services;
@@ -13,6 +14,7 @@ public sealed partial class MainForm : Form
     private readonly ExportService _exportService = new();
     private readonly SelectableRegistry _selectableRegistry = new();
     private readonly EditorShell _shell = new();
+    private GameAssetDocument _gameDocument;
     private readonly StartPage _startPage = new();
     private readonly LoadingOverlay _loadingOverlay = new();
     private EditorState _state = new();
@@ -25,6 +27,7 @@ public sealed partial class MainForm : Form
         BackColor = EditorColors.AppBackground;
         Font = EditorFonts.UiFont;
         KeyPreview = true;
+        _gameDocument = _fileService.LoadOrCreateGame();
         TryUseDarkTitleBar();
 
         _shell.Visible = false;
@@ -59,8 +62,7 @@ public sealed partial class MainForm : Form
 
         if (_shell.Runtime.IsRunning && !IsEditingTextInput())
         {
-            var keyCode = keyData & Keys.KeyCode;
-            if (_shell.Runtime.TryHandleInput(keyCode))
+            if (_shell.Runtime.TryHandleInput(keyData))
             {
                 _shell.Inspector.SetRunState(_shell.Runtime.IsRunning);
                 if (!_shell.Runtime.IsRunning)

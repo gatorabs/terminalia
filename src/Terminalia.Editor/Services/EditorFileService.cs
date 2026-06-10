@@ -10,6 +10,46 @@ public sealed class EditorFileService
 
     public void SaveMap(MapAssetDocument document, string path) => document.Save(path);
 
+    public GameAssetDocument LoadOrCreateGame()
+    {
+        var path = DefaultGameFilePath;
+        if (!File.Exists(path))
+        {
+            return GameAssetDocument.CreateDefault(FindDefaultStartMap());
+        }
+
+        try
+        {
+            return GameAssetDocument.Load(path);
+        }
+        catch (Exception ex) when (ex is InvalidDataException or ArgumentException or System.Text.Json.JsonException)
+        {
+            return GameAssetDocument.CreateDefault(FindDefaultStartMap());
+        }
+    }
+
+    public void SaveGame(GameAssetDocument document) => document.Save(DefaultGameFilePath);
+
+    public static string DefaultGameFilePath
+    {
+        get
+        {
+            var root = FindRepositoryRoot();
+            return root is not null
+                ? Path.Combine(root, "game.json")
+                : Path.Combine(AppContext.BaseDirectory, "game.json");
+        }
+    }
+
+    private static string FindDefaultStartMap()
+    {
+        var mapsDir = DefaultMapsDirectory;
+        var first = Directory.Exists(mapsDir)
+            ? Directory.GetFiles(mapsDir, "*.json").Select(Path.GetFileNameWithoutExtension).FirstOrDefault()
+            : null;
+        return string.IsNullOrWhiteSpace(first) ? "first_dungeon" : first;
+    }
+
     public static string DefaultMapsDirectory
     {
         get
