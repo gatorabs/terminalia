@@ -75,6 +75,17 @@ internal sealed class WinFormsRenderer : IRenderer, IDisposable
         }
     }
 
+    public void DrawTextCentered(int y, string text)
+    {
+        if (_frameGraphics is null || _backBuffer is null)
+        {
+            return;
+        }
+        using var brush = new SolidBrush(Color.White);
+        var bounds = new RectangleF(0, y * _cellSize, _backBuffer.Width, _cellSize);
+        _frameGraphics.DrawString(text, _font, brush, bounds, _centerFormat);
+    }
+
     public void Present()
     {
         _frameGraphics?.Dispose();

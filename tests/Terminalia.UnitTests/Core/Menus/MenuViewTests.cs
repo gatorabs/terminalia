@@ -15,7 +15,7 @@ public sealed class MenuViewTests
 
         var heading = renderer.Texts.First();
         Assert.Equal("MY GAME", heading.Text);
-        Assert.Equal((renderer.Width - "MY GAME".Length) / 2, heading.X);
+        Assert.InRange(heading.Y, 0, renderer.Height - 1);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class MenuViewTests
 
         public int Height => 20;
 
-        public List<(int X, int Y, string Text)> Texts { get; } = [];
+        public List<(int Y, string Text)> Texts { get; } = [];
 
         public void Clear()
         {
@@ -68,7 +68,11 @@ public sealed class MenuViewTests
 
         public void DrawText(int x, int y, string text)
         {
-            Texts.Add((x, y, text));
+        }
+
+        public void DrawTextCentered(int y, string text)
+        {
+            Texts.Add((y, text));
         }
 
         public void Present()

@@ -290,6 +290,8 @@ public sealed class GameFlowSessionTests
 
         public void DrawText(int x, int y, string text) => Texts.Add(text);
 
+        public void DrawTextCentered(int y, string text) => Texts.Add(text);
+
         public void Present() => PresentCount++;
     }
 }

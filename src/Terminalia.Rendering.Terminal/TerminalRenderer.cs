@@ -37,6 +37,13 @@ public sealed class TerminalRenderer : IRenderer
         _frameBuffer.DrawText(x, y, text);
     }
 
+    public void DrawTextCentered(int y, string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        var x = Math.Max(0, (Width - text.Length) / 2);
+        _frameBuffer.DrawText(x, y, text);
+    }
+
     public void Present()
     {
         if (Console.IsOutputRedirected)

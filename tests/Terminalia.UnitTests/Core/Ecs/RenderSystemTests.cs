@@ -100,6 +100,10 @@ public sealed class RenderSystemTests
         {
         }
 
+        public void DrawTextCentered(int y, string text)
+        {
+        }
+
         public void Present()
         {
         }
