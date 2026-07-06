@@ -52,8 +52,7 @@ public sealed class PlayerTileDescriptor : ITileDescriptor
     {
         if (key == CameraZoomKey)
         {
-            var zoom = DescriptorProperties.ParseInt(value, document.CameraZoom);
-            document.CameraZoom = Math.Clamp(zoom, TileMap.MinCameraZoom, TileMap.MaxCameraZoom);
+            document.SetCameraZoom(DescriptorProperties.ParseInt(value, document.CameraZoom));
             return;
         }
 

@@ -1,7 +1,12 @@
+using Terminalia.Editor.Styling.Colors;
+using Terminalia.Editor.Styling.Fonts;
+
 namespace Terminalia.Editor.Styling.Cursors;
 
 internal static class EditorCursors
 {
+    private const int GlyphAlpha = 170;
+
     private static readonly Dictionary<char, Cursor> _tileCache = [];
 
     public static readonly Cursor Blank = CreateBlankCursor();
@@ -30,8 +35,8 @@ internal static class EditorCursors
         g.Clear(Color.Transparent);
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
 
-        using var brush = new SolidBrush(Color.FromArgb(170, color.R, color.G, color.B));
-        using var font = new Font(FontFamily.GenericMonospace, 18, FontStyle.Bold);
+        using var brush = new SolidBrush(EditorColors.WithAlpha(GlyphAlpha, color));
+        using var font = EditorFonts.MonospaceBold(18);
         using var format = new StringFormat
         {
             Alignment = StringAlignment.Center,

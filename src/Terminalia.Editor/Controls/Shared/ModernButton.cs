@@ -46,7 +46,7 @@ public sealed class ModernButton : Button
         set
         {
             _isPrimary = value;
-            ForeColor = _isPrimary ? Color.Black : EditorColors.PrimaryText;
+            ForeColor = _isPrimary ? EditorColors.OnAccent : EditorColors.PrimaryText;
             _currentBackColor = NormalColor;
             _targetBackColor = NormalColor;
             Invalidate();
@@ -104,7 +104,7 @@ public sealed class ModernButton : Button
 
         if (_pulse > 0.01)
         {
-            using var pulseBrush = new SolidBrush(Color.FromArgb((int)(38 * _pulse), Color.White));
+            using var pulseBrush = new SolidBrush(EditorColors.WhiteOverlay((int)(EditorColors.ButtonPulseAlpha * _pulse)));
             pevent.Graphics.FillRectangle(pulseBrush, bounds);
         }
 

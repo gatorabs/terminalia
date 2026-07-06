@@ -14,8 +14,6 @@ internal static class EditorColors
     public static readonly Color ButtonPressed = Color.FromArgb(8, 8, 8);
     public static readonly Color CommandBackground = Color.FromArgb(12, 12, 12);
     public static readonly Color CommandHover = Color.FromArgb(28, 28, 28);
-    public static readonly Color CommandGroup = Color.FromArgb(4, 4, 4);
-    public static readonly Color PanelHighlight = Color.FromArgb(24, 24, 24);
     public static readonly Color OverlayScrim = Color.FromArgb(184, 0, 0, 0);
     public static readonly Color LoadingCard = Color.FromArgb(12, 12, 12);
     public static readonly Color Border = Color.FromArgb(68, 68, 68);
@@ -33,6 +31,20 @@ internal static class EditorColors
     public static readonly Color SelectKernelFill = Color.FromArgb(26, 255, 196, 64);
     public static readonly Color SelectKernelBorder = Color.FromArgb(220, 255, 196, 64);
     public static readonly Color FillToolAccent = Color.FromArgb(80, 140, 255);
+    public static readonly Color OnAccent = Color.FromArgb(0, 0, 0);
+    public static readonly Color StartBackground = Color.FromArgb(0, 0, 0);
+    public static readonly Color StartText = Color.FromArgb(255, 255, 255);
+    public static readonly Color StartTextDim = Color.FromArgb(80, 255, 255, 255);
+    public static readonly Color StartHint = Color.FromArgb(38, 255, 255, 255);
+    public static readonly Color StartSeparator = Color.FromArgb(22, 255, 255, 255);
+
+    public const int ButtonPulseAlpha = 38;
+    public const int CommandPulseAlpha = 42;
+
+    public static Color WhiteOverlay(int alpha) => Color.FromArgb(alpha, 255, 255, 255);
+
+    public static Color WithAlpha(int alpha, Color color) =>
+        Color.FromArgb(alpha, color.R, color.G, color.B);
 
     public static int ColorDistance(Color a, Color b) =>
         Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);

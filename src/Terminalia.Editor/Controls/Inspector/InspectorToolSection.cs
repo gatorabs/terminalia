@@ -1,3 +1,4 @@
+using Terminalia.Editor.State;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Fonts;
 

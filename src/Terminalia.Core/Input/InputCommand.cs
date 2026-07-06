@@ -4,7 +4,6 @@ public enum InputCommand
 {
     None,
     Confirm,
-    Cancel,
     Exit,
     MoveUp,
     MoveDown,

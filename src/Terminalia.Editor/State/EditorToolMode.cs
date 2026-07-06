@@ -1,4 +1,4 @@
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.State;
 
 public enum EditorToolMode
 {

@@ -1,8 +1,11 @@
 using System.Runtime.InteropServices;
 using Terminalia.Assets.Json;
 using Terminalia.Editor.Controls.Shared;
+using Terminalia.Editor.Screens.StartPage;
 using Terminalia.Editor.Selection;
 using Terminalia.Editor.Services;
+using Terminalia.Editor.Shell;
+using Terminalia.Editor.State;
 using Terminalia.Editor.Styling.Colors;
 using Terminalia.Editor.Styling.Fonts;
 

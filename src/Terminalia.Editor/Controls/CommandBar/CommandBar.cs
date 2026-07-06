@@ -1,12 +1,10 @@
-using Terminalia.Editor.Controls.Inspector;
 using Terminalia.Editor.Styling.Colors;
-using Terminalia.Editor.Styling.Drawing;
 using Terminalia.Editor.Styling.Fonts;
 using Terminalia.Editor.Styling.Layout;
 
 namespace Terminalia.Editor.Controls.CommandBar;
 
-public sealed class CommandBar : UserControl
+public sealed partial class CommandBar : UserControl
 {
     private const int SepAdvance = 22;
     private const int MinGap = 2;
@@ -78,158 +76,7 @@ public sealed class CommandBar : UserControl
         _animTimer.Tick += (_, _) => AnimTick();
 
         _entranceTimer.Interval = EditorLayout.AnimationInterval;
-        _entranceTimer.Tick += (_, _) =>
-        {
-            _entranceOffset = (int)Math.Round(_entranceOffset * 0.66);
-            if (Math.Abs(_entranceOffset) <= 1)
-            {
-                _entranceOffset = 0;
-                _entranceTimer.Stop();
-            }
-            CalculateBounds();
-            Invalidate();
-        };
-    }
-
-    protected override void OnHandleCreated(EventArgs e)
-    {
-        base.OnHandleCreated(e);
-        _entranceOffset = -56;
-        _entranceTimer.Start();
-    }
-
-    protected override void OnLayout(LayoutEventArgs e)
-    {
-        base.OnLayout(e);
-        CalculateBounds();
-        Invalidate();
-    }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        var g = e.Graphics;
-        g.Clear(EditorColors.AppBackground);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
-        var rail = new Rectangle(EditorLayout.CommandPadding, EditorLayout.CommandPadding, Width - EditorLayout.CommandPadding * 2, Height - EditorLayout.CommandPadding * 2);
-
-        using (var railPath = EditorDrawing.CreateRoundedPath(rail, 18))
-        using (var railFill = new SolidBrush(EditorColors.Surface))
-        using (var railBorder = new Pen(EditorColors.BorderSoft))
-        {
-            g.FillPath(railFill, railPath);
-            g.DrawPath(railBorder, railPath);
-        }
-
-        DrawBrand(g);
-
-        foreach (var item in _items)
-        {
-            if (item.IsSeparator)
-            {
-                PaintSeparator(g, item);
-            }
-            else
-            {
-                PaintButton(g, item);
-            }
-        }
-    }
-
-    protected override void OnMouseMove(MouseEventArgs e)
-    {
-        var hit = HitTest(e.Location);
-        if (hit == _hoverItem)
-        {
-            return;
-        }
-
-        _hoverItem = hit;
-        Cursor = hit is not null ? Cursors.Hand : Cursors.Default;
-
-        foreach (var item in _items)
-        {
-            if (item.IsSeparator)
-            {
-                continue;
-            }
-            item.TargetColor = item == hit
-                ? (item.IsPrimary ? EditorColors.AccentHover : EditorColors.CommandHover)
-                : NormalColor(item);
-        }
-
-        if (hit is not null)
-        {
-            _toolTip.Show(hit.Caption, this, new Point(Width - 8, hit.Bounds.Top + 8), 3000);
-        }
-        else
-        {
-            _toolTip.Hide(this);
-        }
-
-        StartAnim();
-        Invalidate();
-    }
-
-    protected override void OnMouseLeave(EventArgs e)
-    {
-        _hoverItem = null;
-        _pressItem = null;
-        Cursor = Cursors.Default;
-        _toolTip.Hide(this);
-
-        foreach (var item in _items)
-        {
-            if (!item.IsSeparator)
-            {
-                item.TargetColor = NormalColor(item);
-            }
-        }
-
-        StartAnim();
-        Invalidate();
-    }
-
-    protected override void OnMouseDown(MouseEventArgs e)
-    {
-        if (e.Button != MouseButtons.Left)
-        {
-            return;
-        }
-        var hit = HitTest(e.Location);
-        if (hit is null)
-        {
-            return;
-        }
-
-        _pressItem = hit;
-        hit.Pulse = 1;
-        hit.TargetColor = hit.IsPrimary ? EditorColors.AccentPressed : EditorColors.ButtonPressed;
-        StartAnim();
-        Invalidate();
-    }
-
-    protected override void OnMouseUp(MouseEventArgs e)
-    {
-        if (_pressItem is null)
-        {
-            return;
-        }
-        var pressed = _pressItem;
-        _pressItem = null;
-
-        pressed.TargetColor = pressed == _hoverItem
-            ? (pressed.IsPrimary ? EditorColors.AccentHover : EditorColors.CommandHover)
-            : NormalColor(pressed);
-
-        if (pressed == _hoverItem)
-        {
-            pressed.Click?.Invoke();
-        }
-
-        StartAnim();
-        Invalidate();
+        _entranceTimer.Tick += (_, _) => EntranceTick();
     }
 
     protected override void Dispose(bool disposing)
@@ -241,6 +88,15 @@ public sealed class CommandBar : UserControl
             _entranceTimer.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    public void SetSelectToolActive(bool active)
+    {
+        if (_selectToolItem is { } item && item.IsActive != active)
+        {
+            item.IsActive = active;
+            Invalidate();
+        }
     }
 
     private void AddCmd(string glyph, string caption, Action action, bool isPrimary = false)
@@ -255,199 +111,6 @@ public sealed class CommandBar : UserControl
     }
 
     private void AddSep() => _items.Add(new CommandBarItem { IsSeparator = true });
-
-    private void CalculateBounds()
-    {
-        var sepCount = _items.Count(c => c.IsSeparator);
-        var buttonCount = _items.Count - sepCount;
-        var available = Height - EditorLayout.BrandSectionHeight - EditorLayout.CommandPadding;
-        var sizeOnlyNeeded = buttonCount * EditorLayout.CommandSize + sepCount * SepAdvance;
-
-        int size, gap;
-        if (sizeOnlyNeeded <= available)
-        {
-            size = EditorLayout.CommandSize;
-            gap = buttonCount > 1
-                ? Math.Min(EditorLayout.CommandGap, (available - sizeOnlyNeeded) / (buttonCount - 1))
-                : EditorLayout.CommandGap;
-        }
-        else
-        {
-            size = Math.Max(24, (available - Math.Max(0, buttonCount - 1) * MinGap - sepCount * SepAdvance) / Math.Max(1, buttonCount));
-            gap = buttonCount > 1
-                ? Math.Max(MinGap, (available - buttonCount * size - sepCount * SepAdvance) / (buttonCount - 1))
-                : MinGap;
-        }
-
-        var x = (Width - size) / 2 + _entranceOffset;
-        var y = EditorLayout.BrandSectionHeight;
-
-        foreach (var item in _items)
-        {
-            if (item.IsSeparator)
-            {
-                item.Bounds = new Rectangle(x, y + 3, size, 10);
-                y += SepAdvance;
-            }
-            else
-            {
-                item.Bounds = new Rectangle(x, y, size, size);
-                y += size + gap;
-            }
-        }
-    }
-
-    private void DrawBrand(Graphics g)
-    {
-        using var titleFont = new Font(FontFamily.GenericMonospace, 14, FontStyle.Bold);
-        using var smallFont = new Font(FontFamily.GenericMonospace, 7, FontStyle.Regular);
-
-        TextRenderer.DrawText(g, ">_", titleFont,
-            new Rectangle(0, 38, Width, 24), EditorColors.PrimaryText,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-        TextRenderer.DrawText(g, "TERM", smallFont,
-            new Rectangle(0, 62, Width, 16), EditorColors.SecondaryText,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-    }
-
-    private static void PaintSeparator(Graphics g, CommandBarItem item)
-    {
-        using var pen = new Pen(EditorColors.BorderSoft);
-        var midY = item.Bounds.Top + item.Bounds.Height / 2;
-        g.DrawLine(pen, item.Bounds.Left + 10, midY, item.Bounds.Right - 10, midY);
-    }
-
-    private void PaintButton(Graphics g, CommandBarItem item)
-    {
-        var b = item.Bounds;
-        b.Inflate(-1, -1);
-        if (item == _pressItem)
-        {
-            b.Offset(0, 1);
-        }
-
-        using var path = EditorDrawing.CreateRoundedPath(b, 12);
-        using var fill = new SolidBrush(item.BackColor);
-        var borderColor = item.IsActive
-            ? EditorColors.SelectAccent
-            : item.IsPrimary ? EditorColors.PrimaryText : EditorColors.BorderSoft;
-        using var border = new Pen(borderColor, item.IsActive ? 2f : 1f);
-        g.FillPath(fill, path);
-
-        if (item.Pulse > 0.01)
-        {
-            using var pulseBrush = new SolidBrush(Color.FromArgb((int)(42 * item.Pulse), Color.White));
-            g.FillPath(pulseBrush, path);
-        }
-
-        g.DrawPath(border, path);
-
-        using var iconFont = new Font(FontFamily.GenericMonospace, item.Glyph.Length > 2 ? 9 : 10, FontStyle.Bold);
-        var glyphColor = item.IsActive
-            ? EditorColors.SelectAccent
-            : item.IsPrimary ? Color.Black : EditorColors.PrimaryText;
-        TextRenderer.DrawText(g, item.Glyph, iconFont, b, glyphColor,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
-    }
-
-    private void DrawToolTip(object? sender, DrawToolTipEventArgs e)
-    {
-        using var fill = new SolidBrush(EditorColors.Surface);
-        using var border = new Pen(EditorColors.Border);
-        e.Graphics.FillRectangle(fill, e.Bounds);
-        e.Graphics.DrawRectangle(border, new Rectangle(0, 0, e.Bounds.Width - 1, e.Bounds.Height - 1));
-        TextRenderer.DrawText(e.Graphics, e.ToolTipText, EditorFonts.UiFont, e.Bounds,
-            EditorColors.PrimaryText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-    }
-
-    public void SetSelectToolActive(bool active)
-    {
-        if (_selectToolItem is { } item && item.IsActive != active)
-        {
-            item.IsActive = active;
-            Invalidate();
-        }
-    }
-
-    public Rectangle GetPanelItemBounds(InspectorSection section)
-    {
-        var index = section switch
-        {
-            InspectorSection.Map => 0,
-            InspectorSection.Tool => 1,
-            InspectorSection.Palette => 2,
-            InspectorSection.Run => 3,
-            InspectorSection.Game => 4,
-            InspectorSection.Object => 5,
-            _ => -1
-        };
-        if (index < 0)
-        {
-            return Rectangle.Empty;
-        }
-        var buttonIndex = 0;
-        foreach (var item in _items)
-        {
-            if (item.IsSeparator)
-            {
-                continue;
-            }
-            if (buttonIndex == index)
-            {
-                return item.Bounds;
-            }
-            buttonIndex++;
-        }
-        return Rectangle.Empty;
-    }
-
-    private CommandBarItem? HitTest(Point p)
-    {
-        foreach (var item in _items)
-        {
-            if (!item.IsSeparator && item.Bounds.Contains(p))
-            {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    private void AnimTick()
-    {
-        var allDone = true;
-        foreach (var item in _items)
-        {
-            if (item.IsSeparator)
-            {
-                continue;
-            }
-            item.BackColor = EditorColors.Lerp(item.BackColor, item.TargetColor, 0.32);
-            item.Pulse *= 0.72;
-            if (EditorColors.ColorDistance(item.BackColor, item.TargetColor) < 3 && item.Pulse < 0.01)
-            {
-                item.BackColor = item.TargetColor;
-                item.Pulse = 0;
-            }
-            else
-            {
-                allDone = false;
-            }
-        }
-        if (allDone)
-        {
-            _animTimer.Stop();
-        }
-        Invalidate();
-    }
-
-    private void StartAnim()
-    {
-        if (!_animTimer.Enabled)
-        {
-            _animTimer.Start();
-        }
-    }
 
     private static Color NormalColor(CommandBarItem item) =>
         item.IsPrimary ? EditorColors.Accent : EditorColors.CommandBackground;

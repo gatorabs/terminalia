@@ -89,14 +89,16 @@ public sealed class LoadingOverlay : UserControl
             var angle = (Math.PI * 2 / 8) * i;
             var alphaStep = (i - _frame) % 8;
             if (alphaStep < 0)
+            {
                 alphaStep += 8;
+            }
 
             var alpha = 70 + (7 - alphaStep) * 22;
             var point = new PointF(
                 center.X + (float)Math.Cos(angle) * radius,
                 center.Y + (float)Math.Sin(angle) * radius);
 
-            using var brush = new SolidBrush(Color.FromArgb(Math.Clamp(alpha, 70, 224), EditorColors.Accent));
+            using var brush = new SolidBrush(EditorColors.WithAlpha(Math.Clamp(alpha, 70, 224), EditorColors.Accent));
             graphics.FillEllipse(brush, point.X - 3, point.Y - 3, 6, 6);
         }
     }

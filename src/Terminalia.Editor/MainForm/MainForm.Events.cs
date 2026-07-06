@@ -1,5 +1,6 @@
 using Terminalia.Editor.Controls.Inspector;
 using Terminalia.Editor.Selection.Descriptors;
+using Terminalia.Editor.State;
 
 namespace Terminalia.Editor;
 
@@ -39,7 +40,7 @@ public sealed partial class MainForm
         _shell.Inspector.TileSelected += (_, tile) =>
         {
             _state.SelectedTile = tile;
-            _shell.Canvas.SelectedTile = tile;
+            _shell.SelectTile(tile);
             UpdateStatus();
         };
         _shell.Inspector.RunEmbeddedRequested += (_, _) => ToggleEmbeddedRun();
@@ -65,19 +66,15 @@ public sealed partial class MainForm
         _shell.Inspector.ZoneSelected += (_, args) =>
         {
             _state.SelectedZone = args.ZoneName;
-            _shell.Canvas.SelectedZone = args.ZoneName;
             _state.ToolMode = args.ZoneName is not null ? EditorToolMode.Zone : EditorToolMode.Paint;
-            _shell.Canvas.ToolMode = _state.ToolMode;
-            _shell.Inspector.SetToolMode(_state.ToolMode);
-            _shell.CommandBar.SetSelectToolActive(false);
-            _shell.Canvas.ClearSelection();
+            _shell.SelectZone(args.ZoneName, _state.ToolMode);
             UpdateStatus();
         };
 
         _shell.Canvas.ZonePicked += (_, zoneName) =>
         {
             _state.SelectedZone = zoneName;
-            _shell.Canvas.SelectedZone = zoneName;
+            _shell.SetSelectedZone(zoneName);
             UpdateStatus();
         };
 
@@ -104,7 +101,7 @@ public sealed partial class MainForm
         _shell.Canvas.TilePicked += (_, tile) =>
         {
             _state.SelectedTile = tile;
-            _shell.Canvas.SelectedTile = tile;
+            _shell.SelectTile(tile);
             _shell.Inspector.SelectTile(tile);
             UpdateStatus();
         };
@@ -113,9 +110,7 @@ public sealed partial class MainForm
         {
             if (cell is { } selected)
             {
-                var info = _selectableRegistry.Describe(_state.Document, selected);
-                _shell.Inspector.ShowObjectSelection(info, _shell.Canvas.KernelPreviewVisible);
-                _shell.ShowInspectorSection(InspectorSection.Object);
+                _shell.ShowObjectSelection(_selectableRegistry.Describe(_state.Document, selected));
             }
             else
             {
@@ -133,9 +128,7 @@ public sealed partial class MainForm
             _selectableRegistry.ApplyProperty(_state.Document, cell, args.Key, args.Value);
             if (args.Key == PlayerTileDescriptor.CameraZoomKey)
             {
-                var document = _state.Document;
-                _shell.Inspector.LoadDocument(document.Name, document.Width, document.Height, document.CameraZoom);
-                _shell.Canvas.Invalidate();
+                _shell.RefreshCameraZoom(_state.Document);
             }
             MarkDirty();
         };
@@ -146,16 +139,8 @@ public sealed partial class MainForm
     private void ApplyToolMode(EditorToolMode tool)
     {
         _state.ToolMode = tool;
-        _shell.Canvas.ToolMode = tool;
         _state.SelectedZone = null;
-        _shell.Canvas.SelectedZone = null;
-        _shell.Inspector.ClearZoneSelection();
-        _shell.Inspector.SetToolMode(tool);
-        _shell.CommandBar.SetSelectToolActive(tool == EditorToolMode.Select);
-        if (tool != EditorToolMode.Select)
-        {
-            _shell.Canvas.ClearSelection();
-        }
+        _shell.ApplyToolMode(tool);
         UpdateStatus();
     }
 }

@@ -1,6 +1,6 @@
 using Terminalia.Assets.Json;
 
-namespace Terminalia.Editor;
+namespace Terminalia.Editor.State;
 
 public sealed class EditorState
 {

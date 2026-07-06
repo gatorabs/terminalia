@@ -14,14 +14,18 @@ Terminalia.Core          (zero dependências externas)
         ├── Terminalia.Rendering.Terminal
         ├── Terminalia.Input.Console
         ├── Terminalia.Assets.Json
-        └── Terminalia.Editor
-                ↑
-                └── Samples/*
+        └── Terminalia.TileMapGame
+                    ↑
+                    └── Terminalia.Runtime.Windows   (TileMapGame + Assets.Json)
+                                ↑
+                                └── Terminalia.Editor (Runtime.Windows + Assets.Json)
 ```
 
 - `Terminalia.Core` nunca referencia `System.Console`, JSON, file system, WinForms, ou qualquer adapter.
 - Adapters (`Rendering.Terminal`, `Input.Console`, `Assets.Json`) dependem de Core e implementam suas interfaces.
-- `Terminalia.Editor` depende de Core. Core jamais depende do Editor.
+- `Terminalia.TileMapGame` contém as regras do jogo tile-based (`SceneAssembler`, `TileMapGameSession`, `EntityRule`); depende apenas de Core.
+- `Terminalia.Runtime.Windows` hospeda o jogo em WinForms (`WinFormsGameHost`, `WinFormsRenderer`, `WinFormsInputProvider`, `GameWindow`).
+- `Terminalia.Editor` referencia `Assets.Json` + `Runtime.Windows`; o Core chega transitivamente. Core jamais depende do Editor.
 - Samples dependem de Core e dos adapters necessários. Nunca do Editor.
 
 ### Camadas e responsabilidades
@@ -103,6 +107,10 @@ Input → Update (cada IGameSystem.Update) → Render (IRenderer via RenderSyste
 
 Ao atingir o limite: extrair responsabilidade para novo arquivo antes de continuar.
 
+Interpretação dos limites:
+- O limite é **por arquivo**: cada partial class conta individualmente.
+- 150 LOC vale para tipos derivados de `Form`/`UserControl`. Controles custom derivados de `Control`/`Panel`/`Button` (canvases, seções, botões) seguem o limite de 300, com alvo recomendado de 200.
+
 ### Inner classes
 
 - **Proibidas** se públicas ou com mais de 20 LOC.
@@ -144,6 +152,7 @@ Terminalia.Input.Console/
 - Interfaces internas (abstrações para testabilidade) ficam em `Abstractions/`; o prefixo `I` já identifica o diretório.
 - Cada subdiretório impõe um sufixo uniforme a todos os seus arquivos (`Mapping/` → `*Mapper`, `Providers/` → `*Provider`).
 - Namespace espelha o diretório: `Terminalia.Input.Console.Providers`, `Terminalia.Input.Console.Mapping`, etc.
+- Adapters pequenos (< ~500 LOC totais, ex.: `Rendering.Terminal`, `Assets.Json`) podem manter estrutura plana na raiz; adotar subdiretórios quando o projeto crescer.
 
 ---
 
@@ -154,46 +163,51 @@ Terminalia.Input.Console/
 ```
 Terminalia.Editor/
 ├── Program.cs
-├── MainForm/
-│   ├── MainForm.cs                  (partial — campos, construtor, overrides, DllImport)
-│   ├── MainForm.Events.cs           (partial — WireEvents: wiring de todos os eventos)
-│   └── MainForm.Actions.cs          (partial — ações: file I/O, loading async, estado UI)
+├── MainForm/                        (partials da MainForm — cada um ≤150 LOC)
+│   ├── MainForm.cs                  (campos, construtor, overrides, DllImport)
+│   ├── MainForm.Events.cs           (WireEvents: wiring de todos os eventos)
+│   ├── MainForm.Actions.cs          (ações de arquivo: new/open/save)
+│   ├── MainForm.Run.cs              (export, run externo/embutido, game definition)
+│   ├── MainForm.Status.cs           (status bar, dirty/clean, consultas de mapas)
+│   └── MainForm.Tabs.cs             (gerência de abas)
 │
 ├── Shell/
-│   ├── EditorShell.cs               (composição de layout)
-│   └── EditorShell.Layout.cs        (partial — init visual)
+│   ├── EditorShell.cs               (composição e API do shell)
+│   ├── EditorShell.Layout.cs        (partial — init visual)
+│   ├── EditorShell.Facade.cs        (partial — operações compostas sobre os filhos)
+│   └── ClickOutsideFilter.cs        (IMessageFilter extraído)
 │
 ├── Screens/
 │   ├── StartPage/
-│   │   ├── StartPage.cs             (UserControl host, <100 LOC)
+│   │   ├── StartPage.cs             (UserControl host)
 │   │   └── TerminalMenu.cs          (componente extraído)
-│   │
-│   └── Workspace/
-│       ├── MapCanvas.cs             (<200 LOC)
-│       └── Tools/
-│           ├── PaintTool.cs
-│           ├── FillTool.cs
-│           └── PickerTool.cs
+│   └── Dialogs/
+│       └── MapNameDialog.cs         (sufixo Dialog)
 │
 ├── Controls/
 │   ├── Canvas/                      (namespace ...Controls.Canvas; sufixo Canvas)
-│   │   ├── MapCanvas.cs
-│   │   └── EmbeddedCanvas.cs
-│   │
+│   │   ├── MapCanvas.cs             (+ partials .Painting / .Interaction / .Cursor)
+│   │   └── EngineCanvas.cs
 │   ├── CommandBar/                  (namespace ...Controls.CommandBar; prefixo CommandBar)
-│   │   ├── CommandBar.cs
+│   │   ├── CommandBar.cs            (+ partials .Painting / .Interaction / .Layout)
 │   │   └── CommandBarItem.cs
-│   │
 │   ├── Inspector/                   (namespace ...Controls.Inspector; prefixo Inspector)
-│   │   └── InspectorPanel.cs
-│   │
-│   └── Shared/                      (namespace ...Controls.Shared; sufixo semântico CLAUDE.md)
+│   │   ├── InspectorPanel.cs        (+ partials .Sections / .Palette)
+│   │   ├── Inspector*Section.cs     (seções), InspectorSectionCard.cs, InspectorEventArgs.cs
+│   │   └── InspectorSection.cs      (enum)
+│   └── Shared/                      (namespace ...Controls.Shared)
 │       ├── ModernButton.cs
 │       ├── CardPanel.cs
+│       ├── MapTabBar.cs
 │       └── LoadingOverlay.cs
 │
+├── Selection/                       (descrição/edição de objetos selecionados)
+│   ├── Descriptors/                 (*TileDescriptor)
+│   └── SelectableRegistry.cs, SelectedObjectInfo.cs, EditableProperty*.cs
+│
 ├── Services/
-│   └── EditorFileService.cs
+│   ├── EditorFileService.cs
+│   └── ExportService.cs, ExportResult.cs
 │
 ├── State/
 │   ├── EditorState.cs
@@ -201,13 +215,16 @@ Terminalia.Editor/
 │
 └── Styling/
     ├── Colors/
-    │   └── EditorColors.cs          (Color tokens + ColorDistance + Lerp)
+    │   ├── EditorColors.cs          (Color tokens + Lerp/WithAlpha/WhiteOverlay)
+    │   └── EditorTileColors.cs      (cores de tile e paleta de zonas)
     ├── Fonts/
-    │   └── EditorFonts.cs           (Font tokens)
+    │   └── EditorFonts.cs           (Font tokens + MonospaceBold(size))
     ├── Layout/
     │   └── EditorLayout.cs          (const int — dimensões e espaçamentos)
     ├── Drawing/
     │   └── EditorDrawing.cs         (CreateRoundedPath)
+    ├── Cursors/
+    │   └── EditorCursors.cs         (cursores custom por tile)
     └── Controls/
         └── EditorControls.cs        (Create* + Style* + ApplyDarkScrollBars)
 ```
@@ -219,7 +236,9 @@ Terminalia.Editor/
 - `Styling/` é a **única** fonte de cores, fontes, espaçamentos e utilitários de desenho. Zero magic strings de cor.
 - `MainForm` apenas orquestra: não desenha, não lê arquivo diretamente, não conhece detalhes de controles filhos.
 - Comunicação entre controles via **eventos C#** (não chamadas diretas entre siblings).
+- Mutações que atravessam vários filhos do shell passam pelos métodos de fachada de `EditorShell.Facade.cs` (`ApplyToolMode`, `LoadMapDocument`, `SelectZone`...); `MainForm` não faz cascatas de chamadas em `Canvas`/`Inspector`/`CommandBar`.
 - Arquivos dentro de um subdiretório de `Styling/` seguem o sufixo do diretório: `Colors/` → `Editor*Colors`, `Fonts/` → `Editor*Fonts`, etc.
+- **Exceção de namespace documentada**: os partials de `MainForm/` usam `namespace Terminalia.Editor` (o namespace `Terminalia.Editor.MainForm` colidiria com o nome da classe).
 
 ---
 
@@ -273,7 +292,8 @@ A lógica da engine é **pura e determinística**: dado um estado de entrada (co
 | `Rendering.Terminal` | Frame buffer: escrita, clear, delta de células | Erros de pixel são silenciosos sem testes |
 | `Input.Console` | Mapeamento tecla → `InputCommand` | Simples e crítico para gameplay |
 | `Assets.Json` | Serialização/deserialização e validações de segurança | Path traversal e dados inválidos devem falhar ruidosamente |
-| `Editor/Services` e `Editor/State` | Lógica de arquivo e estado do editor | Sem testes de UI WinForms — custo alto, benefício baixo |
+| `TileMapGame` | `SceneAssembler` (montagem de entidades/sistemas) e `TileMapGameSession` (input → velocity, stop) | Lógica determinística fora do Core |
+| `Editor/Services` e `Editor/State` | Lógica de arquivo e estado do editor | Pendente: o projeto de testes é `net8.0` e o Editor é `net8.0-windows`; exigiria mudar o TFM dos testes. Sem testes de UI WinForms — custo alto, benefício baixo |
 
 ### Fakes vs Mocks
 
@@ -297,10 +317,13 @@ tests/
     ├── Core/
     │   ├── Ecs/
     │   ├── Scenes/
+    │   ├── Menus/
+    │   ├── Input/
     │   └── Runtime/
     ├── Rendering/
     ├── Input/
-    └── Assets/
+    ├── Assets/
+    └── TileMapGame/
 ```
 
 O namespace raiz é `Terminalia.UnitTests.*` espelhando o caminho de diretório.
@@ -358,7 +381,7 @@ Antes de considerar uma tarefa concluída, verificar cada item:
 - [ ] Nenhuma inner class pública ou com mais de 20 LOC
 - [ ] Dependency Rule preservada (Core sem deps externas; Editor não é referenciado por Core)
 - [ ] Namespace espelha o caminho de diretório exato
-- [ ] Cores e fontes usadas exclusivamente via `EditorTheme`
+- [ ] Cores e fontes usadas exclusivamente via `Styling/` (`EditorColors`, `EditorTileColors`, `EditorFonts`)
 - [ ] Comunicação entre controles irmãos feita via eventos, não chamadas diretas
 - [ ] Novos componentes ECS são dados puros (sem métodos de negócio)
 - [ ] Novos sistemas ECS recebem dependências via construtor
