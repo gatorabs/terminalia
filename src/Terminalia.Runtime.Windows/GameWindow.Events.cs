@@ -1,0 +1,105 @@
+using System.Runtime.InteropServices;
+
+namespace Terminalia.Runtime.Windows;
+
+public sealed partial class GameWindow
+{
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        Action onFrameReady = () =>
+        {
+            if (!IsDisposed)
+            {
+                Invalidate();
+            }
+        };
+
+        if (_definition is not null)
+        {
+            _host.Start(_definition, _map, onFrameReady, _assetDirectory);
+        }
+        else
+        {
+            _host.Start(_map, onFrameReady, _assetDirectory);
+        }
+    }
+
+    protected override void OnClientSizeChanged(EventArgs e)
+    {
+        base.OnClientSizeChanged(e);
+        _host.ApplyZoom(ComputeFittingCellSize());
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        e.Graphics.Clear(Color.Black);
+
+        var frame = _host.GetFrame();
+        if (frame is not null)
+        {
+            var available = GameViewportDefaults.ComputeAvailableArea(ClientSize);
+            var ox = GamePadding + Math.Max(0, (available.Width - frame.Width) / 2);
+            var oy = GamePadding + Math.Max(0, (available.Height - frame.Height) / 2);
+            e.Graphics.DrawImage(frame, ox, oy);
+        }
+
+        TextRenderer.DrawText(
+            e.Graphics,
+            _definition is null ? "[ESC] exit" : "[ESC] menu",
+            _hintFont,
+            new Point(GamePadding, ClientSize.Height - HintBarHeight + 4),
+            Color.FromArgb(50, 255, 255, 255));
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.KeyCode == Keys.Escape && _definition is null)
+        {
+            Close();
+            return;
+        }
+        if (_host.IsRunning)
+        {
+            _host.HandleKey(e.KeyCode);
+        }
+    }
+
+    protected override bool IsInputKey(Keys keyData) =>
+        keyData is Keys.Up or Keys.Down or Keys.Left or Keys.Right || base.IsInputKey(keyData);
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        _host.Stop();
+        base.OnFormClosed(e);
+    }
+
+    private int ComputeFittingCellSize()
+    {
+        return GameViewportDefaults.ComputeCellSize(GameViewportDefaults.ComputeAvailableArea(ClientSize), _kernelSize);
+    }
+
+    private Size ComputeMinimumSize()
+    {
+        const int minCellSize = 4;
+        return new Size(
+            _kernelSize.Width * minCellSize + GamePadding * 2,
+            _kernelSize.Height * minCellSize + GamePadding * 2 + HintBarHeight);
+    }
+
+    private void TryUseDarkTitleBar()
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
+        {
+            return;
+        }
+        var value = 1;
+        _ = DwmSetWindowAttribute(Handle, 20, ref value, sizeof(int));
+        _ = DwmSetWindowAttribute(Handle, 19, ref value, sizeof(int));
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int attributeValue, int size);
+}

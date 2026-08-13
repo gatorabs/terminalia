@@ -33,9 +33,10 @@ Terminalia.Core          (zero dependências externas)
 | Camada | Projeto | Responsabilidade |
 |--------|---------|-----------------|
 | Domain | `Core/Ecs/`, `Core/Scenes/`, `Core/Assets/` | Entidades, componentes, sistemas, regras de jogo |
-| Application | `Core/Runtime/` | GameLoop, orquestração de cena, ciclo de vida |
+| Application | `Core/Runtime/` | `GameFlowSession`, orquestração de cena e estado de jogo; o pump de frame (`HandleInput`/`Update`/`Render` por tick) roda em `Runtime.Windows/GameHost/WinFormsGameHost.cs` via `Timer` |
 | Port | `Core/Rendering/`, `Core/Input/` | Interfaces abstratas (`IRenderer`, `IInputProvider`) |
-| Adapter | `Rendering.Terminal`, `Input.Console`, `Assets.Json` | Implementações concretas das portas |
+| Adapter | `Rendering.Terminal`, `Input.Console` | Implementações concretas das portas (`IRenderer`, `IInputProvider`) |
+| Adapter (sem porta) | `Assets.Json` | `JsonAssetLoader` traduz JSON em tipos de domínio (`TileMap`); instanciado direto pelo composition root (`Program.cs`), sem interface em Core — nenhum consumidor precisa trocar a implementação |
 | UI | `Editor/` | WinForms; não contém lógica de domínio |
 
 ---
@@ -50,8 +51,7 @@ Terminalia.Core          (zero dependências externas)
 | Entity | `Entity` | Identificada por `EntityId`; contém componentes |
 | Value Object | `Position`, `Size`, `Velocity`, `Bounds` | `readonly record struct`; imutável; sem identidade |
 | Domain Event | `IGameEvent` (a criar) | Publicado via `Scene`; consumido por sistemas |
-| Repository | `IAssetLoader` | Único ponto de acesso a ativos externos |
-| Service | `GameLoop` | Orquestra ciclo sem conter estado de domínio |
+| Service | `GameFlowSession` | Orquestra ciclo sem conter estado de domínio |
 
 ### Regras DDD
 
@@ -70,8 +70,11 @@ Entity        → container de componentes, identificado por EntityId
 IComponent    → dados puros, sem lógica
 IGameSystem   → lógica por frame; recebe IEnumerable<Entity> + GameTime
 Scene         → Aggregate Root; gerencia entidades e sistemas
-GameLoop      → chama Scene.Update + Scene.Render a cada frame
 ```
+
+O pump de frame (chamar `Scene.Update` + `Scene.Render` a cada tick) é
+responsabilidade do host de runtime (ex.: `WinFormsGameHost`), não de uma
+classe no Core.
 
 ### Ciclo por frame
 
@@ -288,7 +291,7 @@ A lógica da engine é **pura e determinística**: dado um estado de entrada (co
 |--------|-------------|---------------------|
 | `Core/Ecs/Systems` | Comportamento por frame (movimento, colisão, animação) | Lógica determinística; bugs aparecem cedo |
 | `Core/Scenes` | Invariantes do Aggregate Root (`Scene`) | Garante que entidades duplicadas são rejeitadas etc. |
-| `Core/Runtime` | Ordem e contagem de chamadas do `GameLoop` | Protege o contrato do ciclo Update/Render |
+| `Core/Runtime` | Transições de estado do `GameFlowSession` (Title → Gameplay etc.) | Lógica determinística; bugs aparecem cedo |
 | `Rendering.Terminal` | Frame buffer: escrita, clear, delta de células | Erros de pixel são silenciosos sem testes |
 | `Input.Console` | Mapeamento tecla → `InputCommand` | Simples e crítico para gameplay |
 | `Assets.Json` | Serialização/deserialização e validações de segurança | Path traversal e dados inválidos devem falhar ruidosamente |

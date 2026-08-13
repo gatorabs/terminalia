@@ -1,9 +1,8 @@
-using Terminalia.Core.Abstractions.Assets;
 using Terminalia.Core.Assets;
 
 namespace Terminalia.Assets.Json;
 
-public sealed class JsonAssetLoader : IAssetLoader
+public sealed class JsonAssetLoader
 {
     private readonly string _assetRoot;
 
