@@ -10,7 +10,7 @@ public readonly record struct Size
         Width = width;
         Height = height;
     }
-
+    poggers
     public int Width { get; }
 
     public int Height { get; }
